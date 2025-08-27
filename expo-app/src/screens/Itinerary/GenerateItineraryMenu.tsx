@@ -10,6 +10,7 @@ import { ArrowLeft, Plus } from "lucide-react-native";
 import { IconButton } from "@components/Buttons/IconButton";
 import { useNavigation } from "@react-navigation/native";
 import { AuthNavigationProp } from "@routes/auth.routes";
+import { ItinerariesError } from "@components/Errors/ItinerariesError";
 
 export function GenerateItineraryMenu(){
   const [showAlertDialog, setShowAlertDialog] = useState(false);
@@ -26,7 +27,7 @@ export function GenerateItineraryMenu(){
           iconColor="#000"
           buttonBgColor="transparent"
           buttonFunctionality={ () => navigation.goBack() }
-          styles={{ marginLeft: -10 }}
+          styles={{ marginLeft: -15 }}
         />
         <ButtonIconLeft 
           textContent="Novo Itinerário" 
@@ -50,13 +51,28 @@ export function GenerateItineraryMenu(){
         shadowOpacity={0.2}
         shadowRadius={5}
         elevation={5}
+        maxHeight={250}
         justifyContent="center"
+        alignItems="center"
         alignSelf="center"
         w="95%"
         py={15}
-        pl={20}
         mt={15}
-      ></View>
+      >
+        <View>
+          <ItinerariesError />
+          <ButtonIconLeft
+            textContent="Novo Itinerário"
+            icon={Plus}
+            action={() => setShowAlertDialog(true)}
+            iconDimension={24}
+            textColor="#FFF"
+            iconStyles={{ marginRight: 5, color: '#FFF' }}
+            buttonStyles={{ backgroundColor: '#2752B7', borderRadius: 20 }}
+            styles={{ alignSelf: "center" }}
+          />
+        </View>
+      </View>
 
       {
         showAlertDialog
