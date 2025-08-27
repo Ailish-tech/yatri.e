@@ -6,7 +6,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 
 import { Button, ButtonGroup, ButtonText, Pressable, Text, View } from "@gluestack-ui/themed";
 
-import { ChooseDialog } from "@components/ChooseDialog";
+import { ChooseDialog } from "@components/Dialogs/ChooseDialog";
 
 import { 
   ArrowRight, 

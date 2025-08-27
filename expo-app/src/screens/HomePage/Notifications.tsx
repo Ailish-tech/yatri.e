@@ -10,7 +10,7 @@ import Reanimated, {
 import { Pressable } from "@gluestack-ui/themed";
 
 import { NotificationCard } from "@components/Cards/NotificationCard";
-import { ChooseDialog } from "@components/ChooseDialog";
+import { ChooseDialog } from "@components/Dialogs/ChooseDialog";
 import { NotificationError } from "@components/Errors/NotificationsError";
 
 import { useNotificationStore } from '@utils/notificationStore';
