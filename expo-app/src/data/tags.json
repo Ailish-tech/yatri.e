@@ -2,7 +2,7 @@
     {
         "id": "1",
         "name": "⚱️ Museus",
-        "image": "museu.png"
+        "image": "museus.png"
     },
     {
         "id": "2",
@@ -12,12 +12,12 @@
     {
         "id": "3",
         "name": "🍔 Eventos",
-        "image": "eventos.png"
+        "image": "evento.png"
     },
     {
         "id": "4",
         "name": "🕍 Monumentos Históricos",
-        "image": "monumentos.png"
+        "image": "monumentoshistoricos.png"
     },
     {
         "id": "5",
@@ -32,21 +32,21 @@
     {
         "id": "7",
         "name": "🌄 Trilhas e Cachoeiras",
-        "image": "cachoeiras.png"
+        "image": "cachoeira.png"
     },
     {
         "id": "8",
         "name": "🚀 Ciências",
-        "image": "ciencias.png"
+        "image": "ciencia.png"
     },
     {
         "id": "9",
         "name": "👘 Cultura",
-        "image": "cultura.png"
+        "image": "culturas.png"
     },
     {
         "id": "10",
         "name": "🍔 Comida ",
-        "image": "comida.png"
+        "image": "comidas.png"
     }
 ]

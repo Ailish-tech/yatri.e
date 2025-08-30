@@ -1,16 +1,16 @@
 import data from "@data/tags.json";
 
 const imageMap: { [key: string]: any } = { 
-    "museu.png": require("@assets/museu.png"),
+    "museus.png": require("@assets/museus.png"),
     "nightclub.png": require("@assets/nightclub.png"),
-    "eventos.png": require("@assets/eventos.png"),
-    "monumentos.png": require("@assets/monumentos.png"),
+    "evento.png": require("@assets/evento.png"),
+    "monumentoshistoricos.png": require("@assets/monumentoshistoricos.png"),
     "church.png": require("@assets/church.png"),
     "park.png": require("@assets/park.png"),
-    "cachoeiras.png": require("@assets/cachoeiras.png"),
-    "ciencias.png": require("@assets/ciencias.png"),
-    "cultura.png": require("@assets/cultura.png"),
-    "comida.png": require("@assets/comida.png"),
+    "cachoeira.png": require("@assets/cachoeira.png"),
+    "ciencia.png": require("@assets/ciencia.png"),
+    "culturas.png": require("@assets/culturas.png"),
+    "comidas.png": require("@assets/comidas.png"),
   };
 
 /**
