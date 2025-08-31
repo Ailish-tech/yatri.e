@@ -32,6 +32,8 @@ import { ArrowLeft, CircleAlert } from 'lucide-react-native';
 import GoogleLogo from '@assets/Enterprises/Google/google-icon.svg';
 import FacebookLogo from '@assets/Enterprises/Facebook/facebook-svgrepo.svg';
 
+import { handleGoogleSignIn } from '@services/login/googleLogin';
+
 import { useAuth } from '@contexts/AuthContext';
 
 import { NoAuthNavigationProp } from '@routes/noauth.routes';
@@ -50,7 +52,7 @@ export function LoginScreen() {
       setIsInvalid(true);
     } else {
       setIsInvalid(false);
-      login;
+      login();
     }
   }
 

@@ -6,8 +6,6 @@ import { Profile } from "@screens/UserProfile/Profile";
 import { EditProfile } from "@screens/UserProfile/EditProfile";
 import { UserPreferences } from "@screens/UserProfile/UserPreferences";
 import { GenerateItinerary } from "@screens/Itinerary/GenerateItinerary";
-import { GenerateItineraryFeaturesIntroduction } from "@screens/Itinerary/GenerateItineraryFeaturesIntroduction";
-import { GenerateItineraryMenu } from "@screens/Itinerary/GenerateItineraryMenu";
 import { AIChat } from "@screens/AIChat/AIChat";
 import { AIVoiceChat } from "@screens/AIChat/AIVoiceChat";
 import { AIMascotIntroduction } from "@screens/AIChat/AIMascotIntroduction";
@@ -28,7 +26,7 @@ import { Place } from '../../@types/PlacesTypes';
 const Stack = createNativeStackNavigator();
 
 type AuthStackParamList = {
-  Home: undefined;
+  Home:  { name: string, email: string, photo: string };
   AIMascotIntroduction: undefined;
   AIChat: { chatId?: string, topic?: string } | undefined;
   AIChatMenu: undefined;
@@ -81,14 +79,6 @@ function GenerateItineraryWithNavBar() {
   return (
     <ScreenWrapper>
       <GenerateItinerary />
-    </ScreenWrapper>
-  );
-}
-
-function GenerateItineraryMenuWithNavBar() {
-  return (
-    <ScreenWrapper>
-      <GenerateItineraryMenu />
     </ScreenWrapper>
   );
 }
@@ -146,16 +136,6 @@ export function AuthRoute() {
       <Stack.Screen 
         name="UserPreferences" 
         component={ UserPreferences }
-        options={{ animation: 'none' }}
-      />
-      <Stack.Screen 
-        name="GenerateItineraryFeaturesIntroduction" 
-        component={ GenerateItineraryFeaturesIntroduction } 
-        options={{ animation: 'none' }}
-      />
-      <Stack.Screen 
-        name="GenerateItineraryMenu" 
-        component={ GenerateItineraryMenuWithNavBar } 
         options={{ animation: 'none' }}
       />
       <Stack.Screen 

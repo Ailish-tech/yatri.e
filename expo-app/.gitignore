@@ -39,3 +39,6 @@ yarn-error.*
 
 # evitar problemas de compatibilidade
 tsconfig.json
+
+# pastas de builds
+android/
