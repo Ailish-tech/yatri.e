@@ -6,6 +6,8 @@ import { Profile } from "@screens/UserProfile/Profile";
 import { EditProfile } from "@screens/UserProfile/EditProfile";
 import { UserPreferences } from "@screens/UserProfile/UserPreferences";
 import { GenerateItinerary } from "@screens/Itinerary/GenerateItinerary";
+import { GenerateItineraryMenu } from "@screens/Itinerary/GenerateItineraryMenu";
+import { GenerateItineraryFeaturesIntroduction } from "@screens/Itinerary/GenerateItineraryFeaturesIntroduction";
 import { AIChat } from "@screens/AIChat/AIChat";
 import { AIVoiceChat } from "@screens/AIChat/AIVoiceChat";
 import { AIMascotIntroduction } from "@screens/AIChat/AIMascotIntroduction";
@@ -83,6 +85,14 @@ function GenerateItineraryWithNavBar() {
   );
 }
 
+function GenerateItineraryMenuWithNavBar() {
+  return (
+    <ScreenWrapper>
+      <GenerateItineraryMenu />
+    </ScreenWrapper>
+  );
+}
+
 function AIChatWithNavBar() {
   return (
     <ScreenWrapper>
@@ -136,6 +146,16 @@ export function AuthRoute() {
       <Stack.Screen 
         name="UserPreferences" 
         component={ UserPreferences }
+        options={{ animation: 'none' }}
+      />
+      <Stack.Screen 
+        name="GenerateItineraryFeaturesIntroduction" 
+        component={ GenerateItineraryFeaturesIntroduction } 
+        options={{ animation: 'none' }}
+      />
+      <Stack.Screen 
+        name="GenerateItineraryMenu" 
+        component={ GenerateItineraryMenuWithNavBar } 
         options={{ animation: 'none' }}
       />
       <Stack.Screen 
