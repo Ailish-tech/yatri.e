@@ -194,27 +194,14 @@ export function LoginScreen() {
                   buttonSize='xl'
                   action={ login }
                   iconStyles={{
-                    marginRight: 15,
-                    marginLeft: 17
+                    marginRight: 15
                   }}
                   styles={{ 
                     borderWidth: .6,
                     borderRadius: 10,
-                    width: '45%',
-                    marginRight: 10
-                  }}
-                />
-                <ButtonIconImageLeft 
-                  icon={ FacebookLogo }
-                  iconWidth={50}
-                  iconHeight={50}
-                  textContent='Facebook'
-                  buttonSize='xl'
-                  action={ login } 
-                  styles={{ 
-                    borderWidth: .6,
-                    borderRadius: 10,
-                    width: '45%'
+                    width: '80%',
+                    justifyContent: 'center',
+                    textAlign: 'center'
                   }}
                 />
               </View>

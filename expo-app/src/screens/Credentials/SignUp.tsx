@@ -50,7 +50,11 @@ export function SignUpScreen() {
       setIsInvalid(true);
     } else {
       setIsInvalid(false);
-      navigation.navigate('Welcome');
+      navigation.navigate("Welcome", {
+        name: "Usuário Expo",
+        email: "expo@example.com",
+        photo: "https://cdn.pixabay.com/photo/2022/07/16/04/19/biker-7324421_640.jpg"
+      });
     }
   }
 
@@ -201,7 +205,11 @@ export function SignUpScreen() {
                   iconHeight={30}
                   textContent='Google'
                   buttonSize='xl'
-                  action={ () => navigation.navigate('Welcome') }
+                  action={() => navigation.navigate("Welcome", {
+                    name: "Usuário Expo",
+                    email: "expo@example.com",
+                    photo: "https://cdn.pixabay.com/photo/2022/07/16/04/19/biker-7324421_640.jpg"
+                  })}
                   iconStyles={{
                     marginRight: 15,
                     marginLeft: 17
@@ -209,21 +217,9 @@ export function SignUpScreen() {
                   styles={{ 
                     borderWidth: .6,
                     borderRadius: 10,
-                    width: '45%',
-                    marginRight: 10
-                  }}
-                />
-                <ButtonIconImageLeft 
-                  icon={ FacebookLogo }
-                  iconWidth={50}
-                  iconHeight={50}
-                  textContent='Facebook'
-                  buttonSize='xl'
-                  action={ () => navigation.navigate('Welcome') } 
-                  styles={{ 
-                    borderWidth: .6,
-                    borderRadius: 10,
-                    width: '45%'
+                    width: '80%',
+                    justifyContent: 'center',
+                    textAlign: 'center'
                   }}
                 />
               </View>
