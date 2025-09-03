@@ -29,7 +29,7 @@ export function ItineraryCreateDialog({ showAlertDialog, setShowAlertDialog }: s
   const [showDatePickers, setShowDatePickers] = useState<boolean>(false);
   const [days, setDays] = useState<number>(1);
   const [selectedContinent, setSelectedContinent] = useState<string>("");
-  const [selectedCountry, setSelectedCountry] = useState<string>("");
+  const [selectedCountries, setSelectedCountries] = useState<string[]>([]);
   const [includeContacts, setIncludeContacts] = useState<boolean>(false);
   const [showContinentSelector, setShowContinentSelector] = useState<boolean>(false);
   const [showCountrySelector, setShowCountrySelector] = useState<boolean>(false);
@@ -84,13 +84,18 @@ export function ItineraryCreateDialog({ showAlertDialog, setShowAlertDialog }: s
 
   const selectContinent = (continent: string) => {
     setSelectedContinent(continent);
-    setSelectedCountry("");
+    setSelectedCountries([]);
     setShowContinentSelector(false);
   };
 
-  const selectCountry = (country: string) => {
-    setSelectedCountry(country);
-    setShowCountrySelector(false);
+  const toggleCountrySelection = (country: string) => {
+    setSelectedCountries(prev => {
+      if (prev.includes(country)) {
+        return prev.filter(c => c !== country);
+      } else {
+        return [...prev, country];
+      }
+    });
   };
 
   const handleClose = () => setShowAlertDialog(false);
@@ -244,16 +249,35 @@ export function ItineraryCreateDialog({ showAlertDialog, setShowAlertDialog }: s
 
               {selectedContinent && (
                 <View style={styles.section}>
-                  <Text style={styles.sectionLabel}>País</Text>
+                  <Text style={styles.sectionLabel}>Países</Text>
                   <TouchableOpacity
                     style={styles.selector}
                     onPress={() => setShowCountrySelector(!showCountrySelector)}
                   >
-                    <Text style={[styles.selectorText, selectedCountry && styles.selectorTextSelected]}>
-                      {selectedCountry || "Selecione um país"}
+                    <Text style={[styles.selectorText, selectedCountries.length > 0 && styles.selectorTextSelected]}>
+                      {selectedCountries.length > 0 
+                        ? `${selectedCountries.length} país${selectedCountries.length > 1 ? 'es' : ''} selecionado${selectedCountries.length > 1 ? 's' : ''}`
+                        : "Selecione países"
+                      }
                     </Text>
                     <ChevronDown size={16} color="#666" />
                   </TouchableOpacity>
+
+                  {selectedCountries.length > 0 && (
+                    <View style={styles.selectedCountriesContainer}>
+                      {selectedCountries.map((country) => (
+                        <View key={country} style={styles.selectedCountryTag}>
+                          <Text style={styles.selectedCountryText}>{country}</Text>
+                          <TouchableOpacity 
+                            onPress={() => toggleCountrySelection(country)}
+                            style={styles.removeCountryButton}
+                          >
+                            <X size={14} color="#666" />
+                          </TouchableOpacity>
+                        </View>
+                      ))}
+                    </View>
+                  )}
 
                   {showCountrySelector && (
                     <View style={styles.dropdownContainer}>
@@ -262,9 +286,12 @@ export function ItineraryCreateDialog({ showAlertDialog, setShowAlertDialog }: s
                           <TouchableOpacity
                             key={country}
                             style={styles.dropdownItem}
-                            onPress={() => selectCountry(country)}
+                            onPress={() => toggleCountrySelection(country)}
                           >
                             <Text style={styles.dropdownItemText}>{country}</Text>
+                            <View style={[styles.checkbox, selectedCountries.includes(country) && styles.checkboxSelected]}>
+                              {selectedCountries.includes(country) && <Text style={styles.checkboxText}>✓</Text>}
+                            </View>
                           </TouchableOpacity>
                         ))}
                       </ScrollView>

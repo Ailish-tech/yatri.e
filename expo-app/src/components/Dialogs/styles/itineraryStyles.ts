@@ -159,6 +159,9 @@ export const styles = StyleSheet.create({
     padding: 12,
     borderBottomWidth: 1,
     borderBottomColor: '#E5E7EB',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
   dropdownItemText: {
     fontSize: 16,
@@ -230,6 +233,31 @@ export const styles = StyleSheet.create({
     color: '#374151',
     marginBottom: 8,
     textAlign: 'center',
+  },
+  selectedCountriesContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginTop: 12,
+  },
+  selectedCountryTag: {
+    backgroundColor: '#EBF4FF',
+    borderColor: '#3B82F6',
+    borderWidth: 1,
+    borderRadius: 20,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  selectedCountryText: {
+    fontSize: 14,
+    color: '#1E40AF',
+    fontWeight: '500',
+  },
+  removeCountryButton: {
+    padding: 2,
   },
   infoText: {
     fontSize: 14,
