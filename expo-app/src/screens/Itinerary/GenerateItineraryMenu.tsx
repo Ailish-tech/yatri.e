@@ -48,6 +48,7 @@ export function GenerateItineraryMenu(){
 
       <Text color='#2752B7' ml={25} mt={20} fontSize="$3xl" fontWeight="$bold">Itinerários</Text>
 
+      { /* TODO: Precisa-se criar um itinerário de exemplo baseando-se nas informações de localização atual do usuário para colocar aqui nos Destaques */ }
       <View
         bgColor="#ffffff"
         width={100}
@@ -69,7 +70,7 @@ export function GenerateItineraryMenu(){
           <ItinerariesError />
           <ButtonIconLeft
             textContent="Novo Itinerário"
-            icon={Plus}
+            icon={ Plus }
             action={() => setShowAlertDialog(true)}
             iconDimension={24}
             textColor="#FFF"
