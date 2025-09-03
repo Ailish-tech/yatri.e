@@ -1,23 +1,21 @@
 import { useState } from "react";
 import {
-  Platform,
   ScrollView,
   Modal,
   View,
   Text,
   TextInput,
   TouchableOpacity,
-  StyleSheet,
   Dimensions
 } from "react-native";
 
-import { styles } from './styles/itineraryStyles';
-
 import RNDateTimePicker from "@react-native-community/datetimepicker";
 
-import { X, Plus, Minus, ChevronDown } from "lucide-react-native";
+import { styles } from './styles/itineraryStyles';
 
-const { width, height } = Dimensions.get('window');
+import { continents, countries } from "./data/places";
+
+import { X, Plus, Minus, ChevronDown } from "lucide-react-native";
 
 type showAlertDialogTypes = {
   showAlertDialog: boolean,
@@ -27,7 +25,7 @@ type showAlertDialogTypes = {
 export function ItineraryCreateDialog({ showAlertDialog, setShowAlertDialog }: showAlertDialogTypes) {
   const [itineraryTitle, setItineraryTitle] = useState<string>("");
   const [startDate, setStartDate] = useState<Date>(new Date());
-  const [endDate, setEndDate] = useState<Date>(new Date(new Date().getTime() + 24 * 60 * 60 * 1000)); // +1 day
+  const [endDate, setEndDate] = useState<Date>(new Date(new Date().getTime() + 24 * 60 * 60 * 1000));
   const [showDatePickers, setShowDatePickers] = useState<boolean>(false);
   const [days, setDays] = useState<number>(1);
   const [selectedContinent, setSelectedContinent] = useState<string>("");
@@ -35,25 +33,6 @@ export function ItineraryCreateDialog({ showAlertDialog, setShowAlertDialog }: s
   const [includeContacts, setIncludeContacts] = useState<boolean>(false);
   const [showContinentSelector, setShowContinentSelector] = useState<boolean>(false);
   const [showCountrySelector, setShowCountrySelector] = useState<boolean>(false);
-
-  const continents = [
-    "América do Norte",
-    "América do Sul",
-    "Europa",
-    "Ásia",
-    "África",
-    "Oceania",
-    "Antártica"
-  ];
-
-  const countries = {
-    "América do Norte": ["Estados Unidos", "Canadá", "México"],
-    "América do Sul": ["Brasil", "Argentina", "Chile", "Peru", "Colômbia"],
-    "Europa": ["França", "Itália", "Espanha", "Portugal", "Alemanha", "Reino Unido"],
-    "Ásia": ["Japão", "China", "Coreia do Sul", "Tailândia", "Índia"],
-    "África": ["África do Sul", "Marrocos", "Egito", "Quênia"],
-    "Oceania": ["Austrália", "Nova Zelândia"]
-  };
 
   const calculateDays = (start: Date, end: Date) => {
     const diffTime = Math.abs(end.getTime() - start.getTime());
@@ -66,7 +45,6 @@ export function ItineraryCreateDialog({ showAlertDialog, setShowAlertDialog }: s
       setStartDate(selectedDate);
       const newDays = calculateDays(selectedDate, endDate);
       setDays(newDays);
-      // Fecha os date pickers após a seleção
       setTimeout(() => setShowDatePickers(false), 300);
     }
   };
@@ -76,7 +54,6 @@ export function ItineraryCreateDialog({ showAlertDialog, setShowAlertDialog }: s
       setEndDate(selectedDate);
       const newDays = calculateDays(startDate, selectedDate);
       setDays(newDays);
-      // Fecha os date pickers após a seleção
       setTimeout(() => setShowDatePickers(false), 300);
     }
   };
@@ -107,7 +84,7 @@ export function ItineraryCreateDialog({ showAlertDialog, setShowAlertDialog }: s
 
   const selectContinent = (continent: string) => {
     setSelectedContinent(continent);
-    setSelectedCountry(""); // Reset country when continent changes
+    setSelectedCountry("");
     setShowContinentSelector(false);
   };
 
@@ -183,7 +160,6 @@ export function ItineraryCreateDialog({ showAlertDialog, setShowAlertDialog }: s
                   </View>
                 </View>
 
-                {/* DateTimePickers - aparecem lado a lado quando ativados */}
                 {showDatePickers && (
                   <View style={styles.calendarContainer}>
                     <View style={styles.datePickersRow}>
