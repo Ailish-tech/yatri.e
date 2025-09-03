@@ -28,8 +28,7 @@ export function ItineraryCreateDialog({ showAlertDialog, setShowAlertDialog }: s
   const [itineraryTitle, setItineraryTitle] = useState<string>("");
   const [startDate, setStartDate] = useState<Date>(new Date());
   const [endDate, setEndDate] = useState<Date>(new Date(new Date().getTime() + 24 * 60 * 60 * 1000)); // +1 day
-  const [showStartDatePicker, setShowStartDatePicker] = useState<boolean>(false);
-  const [showEndDatePicker, setShowEndDatePicker] = useState<boolean>(false);
+  const [showDatePickers, setShowDatePickers] = useState<boolean>(false);
   const [days, setDays] = useState<number>(1);
   const [selectedContinent, setSelectedContinent] = useState<string>("");
   const [selectedCountry, setSelectedCountry] = useState<string>("");
@@ -53,8 +52,7 @@ export function ItineraryCreateDialog({ showAlertDialog, setShowAlertDialog }: s
     "Europa": ["França", "Itália", "Espanha", "Portugal", "Alemanha", "Reino Unido"],
     "Ásia": ["Japão", "China", "Coreia do Sul", "Tailândia", "Índia"],
     "África": ["África do Sul", "Marrocos", "Egito", "Quênia"],
-    "Oceania": ["Austrália", "Nova Zelândia"],
-    "Antártica": ["Antártica"]
+    "Oceania": ["Austrália", "Nova Zelândia"]
   };
 
   const calculateDays = (start: Date, end: Date) => {
@@ -68,6 +66,8 @@ export function ItineraryCreateDialog({ showAlertDialog, setShowAlertDialog }: s
       setStartDate(selectedDate);
       const newDays = calculateDays(selectedDate, endDate);
       setDays(newDays);
+      // Fecha os date pickers após a seleção
+      setTimeout(() => setShowDatePickers(false), 300);
     }
   };
 
@@ -76,6 +76,8 @@ export function ItineraryCreateDialog({ showAlertDialog, setShowAlertDialog }: s
       setEndDate(selectedDate);
       const newDays = calculateDays(startDate, selectedDate);
       setDays(newDays);
+      // Fecha os date pickers após a seleção
+      setTimeout(() => setShowDatePickers(false), 300);
     }
   };
 
@@ -154,7 +156,7 @@ export function ItineraryCreateDialog({ showAlertDialog, setShowAlertDialog }: s
                     <Text style={styles.dateLabel}>Início da viagem</Text>
                     <TouchableOpacity
                       style={styles.dateButton}
-                      onPress={() => setShowStartDatePicker(!showStartDatePicker)}
+                      onPress={() => setShowDatePickers(!showDatePickers)}
                     >
                       <Text style={styles.dateButtonTitle}>Definir Datas</Text>
                       <Text style={styles.dateButtonSubtitle}>
@@ -171,7 +173,7 @@ export function ItineraryCreateDialog({ showAlertDialog, setShowAlertDialog }: s
                     <Text style={styles.dateLabel}>Fim da viagem</Text>
                     <TouchableOpacity
                       style={styles.dateButton}
-                      onPress={() => setShowEndDatePicker(!showEndDatePicker)}
+                      onPress={() => setShowDatePickers(!showDatePickers)}
                     >
                       <Text style={styles.dateButtonTitle}>Definir Datas</Text>
                       <Text style={styles.dateButtonSubtitle}>
@@ -181,28 +183,31 @@ export function ItineraryCreateDialog({ showAlertDialog, setShowAlertDialog }: s
                   </View>
                 </View>
 
-                {/* DateTimePickers - aparecem inline logo abaixo dos botões */}
-                {showStartDatePicker && (
+                {/* DateTimePickers - aparecem lado a lado quando ativados */}
+                {showDatePickers && (
                   <View style={styles.calendarContainer}>
-                    <RNDateTimePicker
-                      mode="date"
-                      value={startDate}
-                      minimumDate={new Date()}
-                      maximumDate={new Date(2030, 11, 31)}
-                      onChange={handleStartDateChange}
-                    />
-                  </View>
-                )}
-
-                {showEndDatePicker && (
-                  <View style={styles.calendarContainer}>
-                    <RNDateTimePicker
-                      mode="date"
-                      value={endDate}
-                      minimumDate={startDate}
-                      maximumDate={new Date(2030, 11, 31)}
-                      onChange={handleEndDateChange}
-                    />
+                    <View style={styles.datePickersRow}>
+                      <View style={styles.datePickerColumn}>
+                        <Text style={styles.datePickerLabel}>Data de Início</Text>
+                        <RNDateTimePicker
+                          mode="date"
+                          value={startDate}
+                          minimumDate={new Date()}
+                          maximumDate={new Date(2030, 11, 31)}
+                          onChange={handleStartDateChange}
+                        />
+                      </View>
+                      <View style={styles.datePickerColumn}>
+                        <Text style={styles.datePickerLabel}>Data de Fim</Text>
+                        <RNDateTimePicker
+                          mode="date"
+                          value={endDate}
+                          minimumDate={startDate}
+                          maximumDate={new Date(2030, 11, 31)}
+                          onChange={handleEndDateChange}
+                        />
+                      </View>
+                    </View>
                   </View>
                 )}
 

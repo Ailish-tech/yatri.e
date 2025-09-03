@@ -215,6 +215,22 @@ export const styles = StyleSheet.create({
     marginTop: 12,
     marginBottom: 16,
   },
+  datePickersRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: 12,
+  },
+  datePickerColumn: {
+    flex: 1,
+    alignItems: 'center',
+  },
+  datePickerLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#374151',
+    marginBottom: 8,
+    textAlign: 'center',
+  },
   infoText: {
     fontSize: 14,
     color: '#6B7280',
