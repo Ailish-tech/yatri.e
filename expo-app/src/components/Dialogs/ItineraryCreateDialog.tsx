@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   ScrollView,
   Modal,
@@ -6,8 +6,12 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  Dimensions
+  Dimensions,
+  Image
 } from "react-native";
+
+import * as Contacts from 'expo-contacts';
+import { Contact } from "expo-contacts";
 
 import RNDateTimePicker from "@react-native-community/datetimepicker";
 
@@ -31,6 +35,9 @@ export function ItineraryCreateDialog({ showAlertDialog, setShowAlertDialog }: s
   const [selectedContinent, setSelectedContinent] = useState<string>("");
   const [selectedCountries, setSelectedCountries] = useState<string[]>([]);
   const [includeContacts, setIncludeContacts] = useState<boolean>(false);
+  const [listContacts, setListContacts] = useState<Contact[]>([]);
+  const [selectedContacts, setSelectedContacts] = useState<Contact[]>([]);
+  const [showContacts, setShowContacts] = useState<boolean>(false);
   const [showContinentSelector, setShowContinentSelector] = useState<boolean>(false);
   const [showCountrySelector, setShowCountrySelector] = useState<boolean>(false);
 
@@ -96,6 +103,47 @@ export function ItineraryCreateDialog({ showAlertDialog, setShowAlertDialog }: s
         return [...prev, country];
       }
     });
+  };
+
+  useEffect(() => {
+    (async () => {
+      const { status } = await Contacts.requestPermissionsAsync();
+      if (status === 'granted') {
+        const { data } = await Contacts.getContactsAsync({
+          fields: [Contacts.Fields.PhoneNumbers, Contacts.Fields.FirstName, Contacts.Fields.LastName],
+        });
+
+        if (data.length > 0) {
+          setListContacts(data);
+        }
+      }
+    })();
+  }, []);
+
+  const toggleContactSelection = () => {
+    const newValue = !includeContacts;
+    setIncludeContacts(newValue);
+    if (newValue) {
+      setShowContacts(true);
+    } else {
+      // Limpa os contatos selecionados quando desabilita a opção
+      setSelectedContacts([]);
+    }
+  };
+
+  const handleContactSelection = (contact: Contact) => {
+    setSelectedContacts(prev => {
+      const isAlreadySelected = prev.some(c => c.id === contact.id);
+      if (isAlreadySelected) {
+        return prev.filter(c => c.id !== contact.id);
+      } else {
+        return [...prev, contact];
+      }
+    });
+  };
+
+  const isContactSelected = (contact: Contact) => {
+    return selectedContacts.some(c => c.id === contact.id);
   };
 
   const handleClose = () => setShowAlertDialog(false);
@@ -304,7 +352,7 @@ export function ItineraryCreateDialog({ showAlertDialog, setShowAlertDialog }: s
                 <Text style={styles.sectionLabel}>Opções Avançadas</Text>
                 <TouchableOpacity
                   style={[styles.contactOption, includeContacts && styles.contactOptionSelected]}
-                  onPress={() => setIncludeContacts(!includeContacts)}
+                  onPress={toggleContactSelection}
                 >
                   <View style={styles.contactOptionContent}>
                     <Text style={styles.contactOptionTitle}>Incluir Contatos</Text>
@@ -316,6 +364,67 @@ export function ItineraryCreateDialog({ showAlertDialog, setShowAlertDialog }: s
                     {includeContacts && <Text style={styles.checkboxText}>✓</Text>}
                   </View>
                 </TouchableOpacity>
+
+                {includeContacts && listContacts && (
+                  <View>
+                    {selectedContacts.length > 0 && (
+                      <View style={styles.selectedContactsContainer}>
+                        <Text style={styles.sectionLabel}>
+                          {selectedContacts.length} contato{selectedContacts.length > 1 ? 's' : ''} selecionado{selectedContacts.length > 1 ? 's' : ''}
+                        </Text>
+                        <View style={styles.selectedContactsRow}>
+                          {selectedContacts.map((contact, index) => (
+                            <View key={index} style={styles.selectedContactTag}>
+                              <Text style={styles.selectedContactText}>
+                                {contact.name || `${contact.firstName || ''} ${contact.lastName || ''}`.trim() || 'Contato sem nome'}
+                              </Text>
+                              <TouchableOpacity 
+                                onPress={() => handleContactSelection(contact)}
+                                style={styles.removeContactButton}
+                              >
+                                <X size={14} color="#666" />
+                              </TouchableOpacity>
+                            </View>
+                          ))}
+                        </View>
+                      </View>
+                    )}
+                    
+                    <Text style={styles.sectionLabel}>
+                      {selectedContacts.length === 0 ? 'Selecione os contatos para compartilhar' : 'Seus contatos'}
+                    </Text>
+                    
+                    {listContacts.length > 0 ? (
+                      listContacts.map((data, index) => (
+                        <TouchableOpacity 
+                          key={index} 
+                          style={[
+                            styles.contactItem,
+                            isContactSelected(data) && styles.contactItemSelected
+                          ]}
+                          onPress={() => handleContactSelection(data)}
+                        >
+                          <View style={styles.contactInfo}>
+                            <Image 
+                              source={ require('@assets/profile.png') } 
+                              style={styles.contactImage}
+                            />
+                            <Text style={styles.contactName}>
+                              {data.name || `${data.firstName || ''} ${data.lastName || ''}`.trim() || 'Contato sem nome'}
+                            </Text>
+                          </View>
+                          <View style={[styles.checkbox, isContactSelected(data) && styles.checkboxSelected]}>
+                            {isContactSelected(data) && <Text style={styles.checkboxText}>✓</Text>}
+                          </View>
+                        </TouchableOpacity>
+                      ))
+                    ) : (
+                      <View style={styles.contactItem}>
+                        <Text style={styles.contactName}>Nenhum contato disponível</Text>
+                      </View>
+                    )}
+                  </View>
+                )}
               </View>
 
               <View style={[styles.section, styles.lastSection]}>

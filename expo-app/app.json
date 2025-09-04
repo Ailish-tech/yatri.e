@@ -25,7 +25,13 @@
           "imageWidth": 300
         }
       ],
-      "expo-maps"
+      "expo-maps",
+      [
+        "expo-contacts",
+        {
+          "contactsPermission": "Allow EzTripAI to access your contacts."
+        }
+      ]
     ],
     "ios": {
       "supportsTablet": true,
