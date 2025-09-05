@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { StatusBar, ScrollView } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 
@@ -25,8 +26,60 @@ import FelipeMascotItinerary from "@assets/Mascot/Felipe_Mascot_Itinerary_Featur
 
 import { Check } from "lucide-react-native";
 
+type GenerateItineraryPreferencesFormTypes = {
+  budget: number,
+  peopleQuantity: number,
+  acconpanying: "Family" | "Friends",
+  tripStyle: "Urban" | "Countryside",
+  vehicleLocomotionTypes: "Car" | "Motorcycle" | "Foot" | "Train" | "Boat" | "Bicycle",
+  locomotionMethod: Array<GenerateItineraryPreferencesFormTypes["vehicleLocomotionTypes"]>,
+  specialWish: string
+}
+
 export function GenerateItineraryPreferences() {
+  const [budget, setBudget] = useState<GenerateItineraryPreferencesFormTypes["budget"]>(0);
+  const [peopleQuantity, setPeopleQuantity] = useState<GenerateItineraryPreferencesFormTypes["peopleQuantity"]>(0);
+  const [acconpanyingType, setAcconpanyingType] = useState<GenerateItineraryPreferencesFormTypes["acconpanying"]>();
+  const [tripStyle, setTripStyle] = useState<Array<"Urban" | "Countryside">>([]);
+  const [specialWish, setSpecialWish] = useState<GenerateItineraryPreferencesFormTypes["specialWish"]>("");
+  const [locomotionMethod, setLocomotionMethod] = useState<Array<GenerateItineraryPreferencesFormTypes["vehicleLocomotionTypes"]>>([]);
+
   const navigation = useNavigation<AuthNavigationProp>()
+
+  const handleAccompanying = (type: "Family" | "Friends") => {
+    setAcconpanyingType(type);
+  };
+
+  // Handler para "Qual estilo de viagem você prefere" (corrigido)
+  const handleTripStyle = (type: "Urban" | "Countryside" | "Both") => {
+    if (type === "Both") {
+      // Se ambos já estão marcados, desmarca todos
+      if (tripStyle.includes("Urban") && tripStyle.includes("Countryside")) {
+        setTripStyle([]);
+      } else {
+        // Caso contrário, marca ambos
+        setTripStyle(["Urban", "Countryside"]);
+      }
+    } else {
+      // Para Urban ou Countryside
+      if (tripStyle.includes(type)) {
+        // Se já está marcado, desmarca
+        setTripStyle(tripStyle.filter(item => item !== type));
+      } else {
+        // Se não está marcado, adiciona
+        const newTripStyle = [...tripStyle, type];
+        setTripStyle(newTripStyle);
+      }
+    }
+  };
+
+  const handleLocomotion = (type: GenerateItineraryPreferencesFormTypes["vehicleLocomotionTypes"]) => {
+    if (locomotionMethod.includes(type)) {
+      setLocomotionMethod(locomotionMethod.filter(item => item !== type));
+    } else if (locomotionMethod.length < 5) {
+      setLocomotionMethod([...locomotionMethod, type]);
+    }
+  };
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: '#2752B7' }}>
@@ -60,19 +113,29 @@ export function GenerateItineraryPreferences() {
         </View>
         <Text mt={15} fontWeight="$bold" fontSize="$xl" textAlign="center" color="white">Finalize os parâmetros do seu novo roteiro</Text>
       </View>
-      <ScrollView contentContainerStyle={{ paddingHorizontal: 2 }} showsVerticalScrollIndicator={true}>
+      <ScrollView contentContainerStyle={{ paddingHorizontal: 15 }} showsVerticalScrollIndicator={true}>
         <View>
           <View>
             <View mb={20}>
               <Text fontSize={16} color="white" mb={8}>Orçamento máximo a ser gasto nesta viagem</Text>
               <Input borderWidth={1} borderColor="#D1D5DB" borderRadius={12} padding={8} bgColor="#FFF">
-                <InputField placeholder="0" />
+                <InputField 
+                  placeholder="0" 
+                  keyboardType="numeric" 
+                  value={String(budget)}
+                  onChangeText={text => setBudget(Number(text.replace(/[^0-9]/g, "")))}
+                />
               </Input>
             </View>
             <View mb={20}>
               <Text fontSize={16} color="white" mb={8}>Quantas pessoas te acompanham?</Text>
               <Input borderWidth={1} borderColor="#D1D5DB" borderRadius={12} padding={8} bgColor="#FFF">
-                <InputField placeholder="0" />
+                <InputField 
+                  placeholder="0" 
+                  keyboardType="numeric" 
+                  value={String(peopleQuantity)}
+                  onChangeText={text => setPeopleQuantity(Number(text.replace(/[^0-9]/g, "")))}
+                />
               </Input>
             </View>
             <View flexDirection="column" mb={20}>
@@ -82,8 +145,9 @@ export function GenerateItineraryPreferences() {
                   isDisabled={false} 
                   isInvalid={false} 
                   size="lg" 
-                  value={""} 
+                  value={acconpanyingType === "Family" ? "checked" : ""}
                   mr={20}
+                  onPress={() => handleAccompanying("Family")}
                 >
                   <CheckboxIndicator 
                     borderColor="white" 
@@ -99,8 +163,9 @@ export function GenerateItineraryPreferences() {
                   isDisabled={false} 
                   isInvalid={false} 
                   size="lg" 
-                  value={""} 
+                  value={acconpanyingType === "Friends" ? "checked" : ""}
                   mr={20}
+                  onPress={() => handleAccompanying("Friends")}
                 >
                   <CheckboxIndicator 
                     borderColor="white" 
@@ -117,35 +182,43 @@ export function GenerateItineraryPreferences() {
             <View flexDirection="column" mb={20}>
               <Text fontSize={16} color="white" mb={8}>Qual estilo de viagem você prefere?</Text>
               <View flexDirection="row" ml={5}>
-                <Checkbox isDisabled={false} isInvalid={false} size="lg" value={""} mr={20}>
-                  <CheckboxIndicator 
-                    borderColor="white" 
-                    borderWidth={2}
-                    borderRadius={6}
-                    bgColor="transparent"
-                  >
+                <Checkbox 
+                  isDisabled={false}
+                  isInvalid={false} 
+                  size="lg" 
+                  value={tripStyle.includes("Urban") ? "Urban" : ""} 
+                  isChecked={tripStyle.includes("Urban")}
+                  mr={20}
+                  onPress={() => handleTripStyle("Urban")}
+                >
+                  <CheckboxIndicator borderColor="white" borderWidth={2} borderRadius={6} bgColor="transparent">
                     <CheckboxIcon as={Check} color="white" />
                   </CheckboxIndicator>
                   <CheckboxLabel ml={5} color="white" fontSize={16}>Urbana</CheckboxLabel>
                 </Checkbox>
-                <Checkbox isDisabled={false} isInvalid={false} size="lg" value={""} mr={20}>
-                  <CheckboxIndicator 
-                    borderColor="white" 
-                    borderWidth={2}
-                    borderRadius={6}
-                    bgColor="transparent"
-                  >
+                <Checkbox 
+                  isDisabled={false}
+                  isInvalid={false} 
+                  size="lg" 
+                  value={tripStyle.includes("Countryside") ? "Countryside" : ""} 
+                  isChecked={tripStyle.includes("Countryside")}
+                  mr={20}
+                  onPress={() => handleTripStyle("Countryside")}
+                >
+                  <CheckboxIndicator borderColor="white" borderWidth={2} borderRadius={6} bgColor="transparent">
                     <CheckboxIcon as={Check} color="white" />
                   </CheckboxIndicator>
                   <CheckboxLabel ml={5} color="white" fontSize={16}>Rural</CheckboxLabel>
                 </Checkbox>
-                <Checkbox isDisabled={false} isInvalid={false} size="lg" value={""}>
-                  <CheckboxIndicator 
-                    borderColor="white" 
-                    borderWidth={2}
-                    borderRadius={6}
-                    bgColor="transparent"
-                  >
+                <Checkbox 
+                  isDisabled={tripStyle.includes("Urban") || tripStyle.includes("Countryside")}
+                  isInvalid={false} 
+                  size="lg" 
+                  value={tripStyle.includes("Urban") && tripStyle.includes("Countryside") ? "Both" : ""}
+                  isChecked={tripStyle.includes("Urban") && tripStyle.includes("Countryside")}
+                  onPress={() => handleTripStyle("Both")}
+                >
+                  <CheckboxIndicator borderColor="white" borderWidth={2} borderRadius={6} bgColor="transparent">
                     <CheckboxIcon as={Check} color="white" />
                   </CheckboxIndicator>
                   <CheckboxLabel ml={5} color="white" fontSize={16}>Ambos</CheckboxLabel>
@@ -155,61 +228,22 @@ export function GenerateItineraryPreferences() {
             <View flexDirection="column" mb={20}>
               <Text fontSize={16} color="white" mb={8}>Método de locomoção preferido?</Text>
               <View flexDirection="row" flexWrap="wrap" rowGap={8} ml={5}>
-                <Checkbox isDisabled={false} isInvalid={false} size="lg" value={""} mr={20}>
-                  <CheckboxIndicator 
-                    borderColor="white" 
-                    borderWidth={2}
-                    borderRadius={6}
-                    bgColor="transparent"
+                {(["Car", "Motorcycle", "Foot", "Train", "Boat", "Bicycle"] as const).map(type => (
+                  <Checkbox
+                    key={type}
+                    isDisabled={locomotionMethod.length >= 5 && !locomotionMethod.includes(type)}
+                    isInvalid={false}
+                    size="lg"
+                    value={locomotionMethod.includes(type) ? "checked" : ""}
+                    mr={20}
+                    onPress={() => handleLocomotion(type)}
                   >
-                    <CheckboxIcon as={Check} color="white" />
-                  </CheckboxIndicator>
-                  <CheckboxLabel ml={5} color="white" fontSize={16}>Carro</CheckboxLabel>
-                </Checkbox>
-                <Checkbox isDisabled={false} isInvalid={false} size="lg" value={""} mr={20}>
-                  <CheckboxIndicator 
-                    borderColor="white" 
-                    borderWidth={2}
-                    borderRadius={6}
-                    bgColor="transparent"
-                  >
-                    <CheckboxIcon as={Check} color="white" />
-                  </CheckboxIndicator>
-                  <CheckboxLabel ml={5} color="white" fontSize={16}>Moto</CheckboxLabel>
-                </Checkbox>
-                <Checkbox isDisabled={false} isInvalid={false} size="lg" value={""} mr={20}>
-                  <CheckboxIndicator 
-                    borderColor="white" 
-                    borderWidth={2}
-                    borderRadius={6}
-                    bgColor="transparent"
-                  >
-                    <CheckboxIcon as={Check} color="white" />
-                  </CheckboxIndicator>
-                  <CheckboxLabel ml={5} color="white" fontSize={16}>Caminhada</CheckboxLabel>
-                </Checkbox>
-                <Checkbox isDisabled={false} isInvalid={false} size="lg" value={""} mr={20}>
-                  <CheckboxIndicator 
-                    borderColor="white" 
-                    borderWidth={2}
-                    borderRadius={6}
-                    bgColor="transparent"
-                  >
-                    <CheckboxIcon as={Check} color="white" />
-                  </CheckboxIndicator>
-                  <CheckboxLabel ml={5} color="white" fontSize={16}>Trem</CheckboxLabel>
-                </Checkbox>
-                <Checkbox isDisabled={false} isInvalid={false} size="lg" value={""} mr={20}>
-                  <CheckboxIndicator 
-                    borderColor="white" 
-                    borderWidth={2}
-                    borderRadius={6}
-                    bgColor="transparent"
-                  >
-                    <CheckboxIcon as={Check} color="white" />
-                  </CheckboxIndicator>
-                  <CheckboxLabel ml={5} color="white" fontSize={16}>Barco</CheckboxLabel>
-                </Checkbox>
+                    <CheckboxIndicator borderColor="white" borderWidth={2} borderRadius={6} bgColor="transparent">
+                      <CheckboxIcon as={Check} color="white" />
+                    </CheckboxIndicator>
+                    <CheckboxLabel ml={5} color="white" fontSize={16}>{type === "Foot" ? "Caminhada" : type === "Motorcycle" ? "Moto" : type === "Car" ? "Carro" : type === "Train" ? "Trem" : type === "Boat" ? "Barco" : "Bicicleta"}</CheckboxLabel>
+                  </Checkbox>
+                ))}
               </View>
             </View>
             <View mb={20}>
