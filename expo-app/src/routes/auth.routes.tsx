@@ -1,6 +1,8 @@
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 
+import { Contact } from "expo-contacts";
+
 import { Home } from "@screens/HomePage/Home";
 import { Profile } from "@screens/UserProfile/Profile";
 import { EditProfile } from "@screens/UserProfile/EditProfile";
@@ -8,6 +10,7 @@ import { UserPreferences } from "@screens/UserProfile/UserPreferences";
 import { GenerateItinerary } from "@screens/Itinerary/GenerateItinerary";
 import { GenerateItineraryMenu } from "@screens/Itinerary/GenerateItineraryMenu";
 import { GenerateItineraryFeaturesIntroduction } from "@screens/Itinerary/GenerateItineraryFeaturesIntroduction";
+import { GenerateItineraryPreferences } from "@screens/Itinerary/GenerateItineraryPreferences";
 import { AIChat } from "@screens/AIChat/AIChat";
 import { AIVoiceChat } from "@screens/AIChat/AIVoiceChat";
 import { AIMascotIntroduction } from "@screens/AIChat/AIMascotIntroduction";
@@ -39,6 +42,7 @@ type AuthStackParamList = {
   GenerateItinerary: undefined;
   GenerateItineraryFeaturesIntroduction: undefined;
   GenerateItineraryMenu: undefined;
+  GenerateItineraryPreferences: { title: string, dateBegin: Date, dateEnd: Date, days: number, continent: string, countries: Array<string>, contacts: Array<Contact[]> };
   ManagePremiumPlan: undefined;
   MapsExpanded: { places: Place[], loading: boolean };
   Notifications: undefined;
@@ -156,6 +160,11 @@ export function AuthRoute() {
       <Stack.Screen 
         name="GenerateItineraryMenu" 
         component={ GenerateItineraryMenuWithNavBar } 
+        options={{ animation: 'none' }}
+      />
+      <Stack.Screen 
+        name="GenerateItineraryPreferences" 
+        component={ GenerateItineraryPreferences } 
         options={{ animation: 'none' }}
       />
       <Stack.Screen 

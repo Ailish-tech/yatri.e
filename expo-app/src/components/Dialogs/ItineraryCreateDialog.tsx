@@ -9,6 +9,7 @@ import {
   Dimensions,
   Image
 } from "react-native";
+import { useNavigation } from "@react-navigation/native";
 
 import * as Contacts from 'expo-contacts';
 import { Contact } from "expo-contacts";
@@ -18,6 +19,8 @@ import RNDateTimePicker from "@react-native-community/datetimepicker";
 import { styles } from './styles/itineraryStyles';
 
 import { continents, countries } from "./data/places";
+
+import { AuthNavigationProp } from "@routes/auth.routes";
 
 import { X, Plus, Minus, ChevronDown } from "lucide-react-native";
 
@@ -40,6 +43,8 @@ export function ItineraryCreateDialog({ showAlertDialog, setShowAlertDialog }: s
   const [showContacts, setShowContacts] = useState<boolean>(false);
   const [showContinentSelector, setShowContinentSelector] = useState<boolean>(false);
   const [showCountrySelector, setShowCountrySelector] = useState<boolean>(false);
+
+  const navigation = useNavigation<AuthNavigationProp>();
 
   const calculateDays = (start: Date, end: Date) => {
     const diffTime = Math.abs(end.getTime() - start.getTime());
