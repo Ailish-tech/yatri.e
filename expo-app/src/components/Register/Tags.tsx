@@ -1,4 +1,5 @@
-import { Box, Text, Image, Button } from '@gluestack-ui/themed';
+import { Box, Text, Image, Button, View } from '@gluestack-ui/themed';
+import { Check } from 'lucide-react-native';
 
 interface Props {
   item: {
@@ -16,7 +17,7 @@ export function UserPreferencesTags({ item, isSelected, onToggle }: Props) {
       py={3}
       h="$48"
       borderRadius={10}
-      borderColor="$darkBlue600"
+      borderColor="#FFD700"
       borderWidth={ isSelected ? '$4' : '$0' }
     >
       <Box position="absolute" top={0} left={0} right={0} bottom={0}>
@@ -31,18 +32,38 @@ export function UserPreferencesTags({ item, isSelected, onToggle }: Props) {
           alt=""
         />
       </Box>
-      <Text
-        color="$warmGray50"
-        bgColor="rgba(78, 78, 78, 0.58)"
-        borderRadius={10}
-        px={5}
-        py={3}
-        fontSize="$lg"
-        top={0}
-        textAlign="center"
-      >
-        { item.name }
-      </Text>
+      {
+        isSelected
+          ?
+          <View flexDirection='column' alignItems='center'>
+            <Check height={75} width={75} color="white" />
+            <Text
+              color="$warmGray50"
+              bgColor="rgba(78, 78, 78, 0.58)"
+              borderRadius={10}
+              px={5}
+              py={3}
+              fontSize="$lg"
+              top={0}
+              textAlign="center"
+            >
+              {item.name}
+            </Text>
+          </View>
+          :
+          <Text
+            color="$warmGray50"
+            bgColor="rgba(78, 78, 78, 0.58)"
+            borderRadius={10}
+            px={5}
+            py={3}
+            fontSize="$lg"
+            top={0}
+            textAlign="center"
+          >
+            {item.name}
+          </Text>
+      }
     </Button>
   );
 }
