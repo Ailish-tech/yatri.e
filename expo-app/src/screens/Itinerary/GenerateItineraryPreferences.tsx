@@ -1,4 +1,6 @@
-import { StatusBar } from "react-native";
+import { StatusBar, ScrollView } from "react-native";
+import { useNavigation } from "@react-navigation/native";
+
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { 
@@ -9,15 +11,23 @@ import {
   Checkbox,
   CheckboxIndicator,
   CheckboxIcon,
-  CheckboxLabel
+  CheckboxLabel,
+  Button,
+  ButtonText,
+  ButtonGroup
 } from "@gluestack-ui/themed";
+
+import AnimatedStar from '@components/AnimatedStar';
+
+import { AuthNavigationProp } from "@routes/auth.routes";
 
 import FelipeMascotItinerary from "@assets/Mascot/Felipe_Mascot_Itinerary_Features.svg";
 
 import { Check } from "lucide-react-native";
-import AnimatedStar from '../../components/AnimatedStar';
 
 export function GenerateItineraryPreferences() {
+  const navigation = useNavigation<AuthNavigationProp>()
+
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: '#2752B7' }}>
       <StatusBar barStyle="light-content" backgroundColor="#2752B7" />
@@ -50,157 +60,201 @@ export function GenerateItineraryPreferences() {
         </View>
         <Text mt={15} fontWeight="$bold" fontSize="$xl" textAlign="center" color="white">Finalize os parâmetros do seu novo roteiro</Text>
       </View>
-      <View mx={10}>
-        <View mb={20}>
-          <Text fontSize={16} color="white" mb={8}>Orçamento máximo a ser gasto nesta viagem</Text>
-          <Input borderWidth={1} borderColor="#D1D5DB" borderRadius={12} padding={8} bgColor="#FFF">
-            <InputField placeholder="0" />
-          </Input>
-        </View>
-        <View mb={20}>
-          <Text fontSize={16} color="white" mb={8}>Quantas pessoas te acompanham?</Text>
-          <Input borderWidth={1} borderColor="#D1D5DB" borderRadius={12} padding={8} bgColor="#FFF">
-            <InputField placeholder="0" />
-          </Input>
-        </View>
-        <View flexDirection="column" mb={20}>
-          <Text fontSize={16} color="white" mb={8}>Quem te acompanha?</Text>
-          <View flexDirection="row" ml={5}>
-            <Checkbox 
-              isDisabled={false} 
-              isInvalid={false} 
-              size="lg" 
-              value={""} 
-              mr={20}
-            >
-              <CheckboxIndicator 
-                borderColor="white" 
-                borderWidth={2}
-                borderRadius={6}
-                bgColor="transparent"
-              >
-                <CheckboxIcon as={Check} color="white" />
-              </CheckboxIndicator>
-              <CheckboxLabel ml={5} color="white" fontSize={16}>Família</CheckboxLabel>
-            </Checkbox>
-            <Checkbox 
-              isDisabled={false} 
-              isInvalid={false} 
-              size="lg" 
-              value={""} 
-              mr={20}
-            >
-              <CheckboxIndicator 
-                borderColor="white" 
-                borderWidth={2}
-                borderRadius={6}
-                bgColor="transparent"
-              >
-                <CheckboxIcon as={Check} color="white" />
-              </CheckboxIndicator>
-              <CheckboxLabel ml={5} color="white" fontSize={16}>Amigos</CheckboxLabel>
-            </Checkbox>
+      <ScrollView contentContainerStyle={{ paddingHorizontal: 2 }} showsVerticalScrollIndicator={true}>
+        <View>
+          <View>
+            <View mb={20}>
+              <Text fontSize={16} color="white" mb={8}>Orçamento máximo a ser gasto nesta viagem</Text>
+              <Input borderWidth={1} borderColor="#D1D5DB" borderRadius={12} padding={8} bgColor="#FFF">
+                <InputField placeholder="0" />
+              </Input>
+            </View>
+            <View mb={20}>
+              <Text fontSize={16} color="white" mb={8}>Quantas pessoas te acompanham?</Text>
+              <Input borderWidth={1} borderColor="#D1D5DB" borderRadius={12} padding={8} bgColor="#FFF">
+                <InputField placeholder="0" />
+              </Input>
+            </View>
+            <View flexDirection="column" mb={20}>
+              <Text fontSize={16} color="white" mb={8}>Quem te acompanha?</Text>
+              <View flexDirection="row" ml={5}>
+                <Checkbox 
+                  isDisabled={false} 
+                  isInvalid={false} 
+                  size="lg" 
+                  value={""} 
+                  mr={20}
+                >
+                  <CheckboxIndicator 
+                    borderColor="white" 
+                    borderWidth={2}
+                    borderRadius={6}
+                    bgColor="transparent"
+                  >
+                    <CheckboxIcon as={Check} color="white" />
+                  </CheckboxIndicator>
+                  <CheckboxLabel ml={5} color="white" fontSize={16}>Família</CheckboxLabel>
+                </Checkbox>
+                <Checkbox 
+                  isDisabled={false} 
+                  isInvalid={false} 
+                  size="lg" 
+                  value={""} 
+                  mr={20}
+                >
+                  <CheckboxIndicator 
+                    borderColor="white" 
+                    borderWidth={2}
+                    borderRadius={6}
+                    bgColor="transparent"
+                  >
+                    <CheckboxIcon as={Check} color="white" />
+                  </CheckboxIndicator>
+                  <CheckboxLabel ml={5} color="white" fontSize={16}>Amigos</CheckboxLabel>
+                </Checkbox>
+              </View>
+            </View>
+            <View flexDirection="column" mb={20}>
+              <Text fontSize={16} color="white" mb={8}>Qual estilo de viagem você prefere?</Text>
+              <View flexDirection="row" ml={5}>
+                <Checkbox isDisabled={false} isInvalid={false} size="lg" value={""} mr={20}>
+                  <CheckboxIndicator 
+                    borderColor="white" 
+                    borderWidth={2}
+                    borderRadius={6}
+                    bgColor="transparent"
+                  >
+                    <CheckboxIcon as={Check} color="white" />
+                  </CheckboxIndicator>
+                  <CheckboxLabel ml={5} color="white" fontSize={16}>Urbana</CheckboxLabel>
+                </Checkbox>
+                <Checkbox isDisabled={false} isInvalid={false} size="lg" value={""} mr={20}>
+                  <CheckboxIndicator 
+                    borderColor="white" 
+                    borderWidth={2}
+                    borderRadius={6}
+                    bgColor="transparent"
+                  >
+                    <CheckboxIcon as={Check} color="white" />
+                  </CheckboxIndicator>
+                  <CheckboxLabel ml={5} color="white" fontSize={16}>Rural</CheckboxLabel>
+                </Checkbox>
+                <Checkbox isDisabled={false} isInvalid={false} size="lg" value={""}>
+                  <CheckboxIndicator 
+                    borderColor="white" 
+                    borderWidth={2}
+                    borderRadius={6}
+                    bgColor="transparent"
+                  >
+                    <CheckboxIcon as={Check} color="white" />
+                  </CheckboxIndicator>
+                  <CheckboxLabel ml={5} color="white" fontSize={16}>Ambos</CheckboxLabel>
+                </Checkbox>
+              </View>
+            </View>
+            <View flexDirection="column" mb={20}>
+              <Text fontSize={16} color="white" mb={8}>Método de locomoção preferido?</Text>
+              <View flexDirection="row" flexWrap="wrap" rowGap={8} ml={5}>
+                <Checkbox isDisabled={false} isInvalid={false} size="lg" value={""} mr={20}>
+                  <CheckboxIndicator 
+                    borderColor="white" 
+                    borderWidth={2}
+                    borderRadius={6}
+                    bgColor="transparent"
+                  >
+                    <CheckboxIcon as={Check} color="white" />
+                  </CheckboxIndicator>
+                  <CheckboxLabel ml={5} color="white" fontSize={16}>Carro</CheckboxLabel>
+                </Checkbox>
+                <Checkbox isDisabled={false} isInvalid={false} size="lg" value={""} mr={20}>
+                  <CheckboxIndicator 
+                    borderColor="white" 
+                    borderWidth={2}
+                    borderRadius={6}
+                    bgColor="transparent"
+                  >
+                    <CheckboxIcon as={Check} color="white" />
+                  </CheckboxIndicator>
+                  <CheckboxLabel ml={5} color="white" fontSize={16}>Moto</CheckboxLabel>
+                </Checkbox>
+                <Checkbox isDisabled={false} isInvalid={false} size="lg" value={""} mr={20}>
+                  <CheckboxIndicator 
+                    borderColor="white" 
+                    borderWidth={2}
+                    borderRadius={6}
+                    bgColor="transparent"
+                  >
+                    <CheckboxIcon as={Check} color="white" />
+                  </CheckboxIndicator>
+                  <CheckboxLabel ml={5} color="white" fontSize={16}>Caminhada</CheckboxLabel>
+                </Checkbox>
+                <Checkbox isDisabled={false} isInvalid={false} size="lg" value={""} mr={20}>
+                  <CheckboxIndicator 
+                    borderColor="white" 
+                    borderWidth={2}
+                    borderRadius={6}
+                    bgColor="transparent"
+                  >
+                    <CheckboxIcon as={Check} color="white" />
+                  </CheckboxIndicator>
+                  <CheckboxLabel ml={5} color="white" fontSize={16}>Trem</CheckboxLabel>
+                </Checkbox>
+                <Checkbox isDisabled={false} isInvalid={false} size="lg" value={""} mr={20}>
+                  <CheckboxIndicator 
+                    borderColor="white" 
+                    borderWidth={2}
+                    borderRadius={6}
+                    bgColor="transparent"
+                  >
+                    <CheckboxIcon as={Check} color="white" />
+                  </CheckboxIndicator>
+                  <CheckboxLabel ml={5} color="white" fontSize={16}>Barco</CheckboxLabel>
+                </Checkbox>
+              </View>
+            </View>
+            <View mb={20}>
+              <Text fontSize={16} color="white" mb={8}>Algum desejo especial para esta viagem?</Text>
+              <Input borderWidth={1} borderColor="#D1D5DB" borderRadius={12} padding={8} bgColor="#FFF">
+                <InputField placeholder="Escreva aqui - Campo não obrigatório" maxLength={100} />
+              </Input>
+            </View>
+            <View mt={20} flexDirection="row" justifyContent="center">
+              <ButtonGroup style={{ width: '100%', flexDirection: 'row', justifyContent: 'space-between', gap: 16 }}>
+                <Button
+                  onPress={() => navigation.goBack()}
+                  w="48%"
+                  bgColor="#ff4d4f"
+                  borderRadius={16}
+                  shadowColor="#000"
+                  shadowOffset={{ width: 0, height: 2 }}
+                  shadowOpacity={0.2}
+                  shadowRadius={4}
+                  elevation={3}
+                  $active-opacity={0.7}
+                >
+                  <ButtonText color="#fff" fontWeight="$bold" fontSize={16}>Cancelar</ButtonText>
+                </Button>
+                <Button
+                  onPress={() => navigation.navigate("UserPreferences")}
+                  w="48%"
+                  bgColor="#fff"
+                  borderRadius={16}
+                  shadowColor="#000"
+                  shadowOffset={{ width: 0, height: 2 }}
+                  shadowOpacity={0.2}
+                  shadowRadius={4}
+                  elevation={3}
+                  $active-opacity={0.7}
+                  borderWidth={2}
+                  borderColor="#2752B7"
+                >
+                  <ButtonText color="#2752B7" fontWeight="$bold" fontSize={16}>Próximo</ButtonText>
+                </Button>
+              </ButtonGroup>
+            </View>
           </View>
         </View>
-        <View flexDirection="column" mb={20}>
-          <Text fontSize={16} color="white" mb={8}>Qual estilo de viagem você prefere?</Text>
-          <View flexDirection="row" ml={5}>
-            <Checkbox isDisabled={false} isInvalid={false} size="lg" value={""} mr={20}>
-              <CheckboxIndicator 
-                borderColor="white" 
-                borderWidth={2}
-                borderRadius={6}
-                bgColor="transparent"
-              >
-                <CheckboxIcon as={Check} color="white" />
-              </CheckboxIndicator>
-              <CheckboxLabel ml={5} color="white" fontSize={16}>Urbana</CheckboxLabel>
-            </Checkbox>
-            <Checkbox isDisabled={false} isInvalid={false} size="lg" value={""} mr={20}>
-              <CheckboxIndicator 
-                borderColor="white" 
-                borderWidth={2}
-                borderRadius={6}
-                bgColor="transparent"
-              >
-                <CheckboxIcon as={Check} color="white" />
-              </CheckboxIndicator>
-              <CheckboxLabel ml={5} color="white" fontSize={16}>Rural</CheckboxLabel>
-            </Checkbox>
-            <Checkbox isDisabled={false} isInvalid={false} size="lg" value={""}>
-              <CheckboxIndicator 
-                borderColor="white" 
-                borderWidth={2}
-                borderRadius={6}
-                bgColor="transparent"
-              >
-                <CheckboxIcon as={Check} color="white" />
-              </CheckboxIndicator>
-              <CheckboxLabel ml={5} color="white" fontSize={16}>Ambos</CheckboxLabel>
-            </Checkbox>
-          </View>
-        </View>
-        <View flexDirection="column">
-          <Text fontSize={16} color="white" mb={8}>Método de locomoção preferido?</Text>
-          <View flexDirection="row" flexWrap="wrap" rowGap={8} ml={5}>
-            <Checkbox isDisabled={false} isInvalid={false} size="lg" value={""} mr={20}>
-              <CheckboxIndicator 
-                borderColor="white" 
-                borderWidth={2}
-                borderRadius={6}
-                bgColor="transparent"
-              >
-                <CheckboxIcon as={Check} color="white" />
-              </CheckboxIndicator>
-              <CheckboxLabel ml={5} color="white" fontSize={16}>Carro</CheckboxLabel>
-            </Checkbox>
-            <Checkbox isDisabled={false} isInvalid={false} size="lg" value={""} mr={20}>
-              <CheckboxIndicator 
-                borderColor="white" 
-                borderWidth={2}
-                borderRadius={6}
-                bgColor="transparent"
-              >
-                <CheckboxIcon as={Check} color="white" />
-              </CheckboxIndicator>
-              <CheckboxLabel ml={5} color="white" fontSize={16}>Moto</CheckboxLabel>
-            </Checkbox>
-            <Checkbox isDisabled={false} isInvalid={false} size="lg" value={""} mr={20}>
-              <CheckboxIndicator 
-                borderColor="white" 
-                borderWidth={2}
-                borderRadius={6}
-                bgColor="transparent"
-              >
-                <CheckboxIcon as={Check} color="white" />
-              </CheckboxIndicator>
-              <CheckboxLabel ml={5} color="white" fontSize={16}>Caminhada</CheckboxLabel>
-            </Checkbox>
-            <Checkbox isDisabled={false} isInvalid={false} size="lg" value={""} mr={20}>
-              <CheckboxIndicator 
-                borderColor="white" 
-                borderWidth={2}
-                borderRadius={6}
-                bgColor="transparent"
-              >
-                <CheckboxIcon as={Check} color="white" />
-              </CheckboxIndicator>
-              <CheckboxLabel ml={5} color="white" fontSize={16}>Trem</CheckboxLabel>
-            </Checkbox>
-            <Checkbox isDisabled={false} isInvalid={false} size="lg" value={""} mr={20}>
-              <CheckboxIndicator 
-                borderColor="white" 
-                borderWidth={2}
-                borderRadius={6}
-                bgColor="transparent"
-              >
-                <CheckboxIcon as={Check} color="white" />
-              </CheckboxIndicator>
-              <CheckboxLabel ml={5} color="white" fontSize={16}>Barco</CheckboxLabel>
-            </Checkbox>
-          </View>
-        </View>
-      </View>
+      </ScrollView>
     </SafeAreaView>
   )
 }
