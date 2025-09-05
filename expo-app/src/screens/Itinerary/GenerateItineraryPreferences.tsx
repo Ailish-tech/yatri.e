@@ -256,7 +256,7 @@ export function GenerateItineraryPreferences() {
               </Input>
             </View>
             <View mt={20} flexDirection="row" justifyContent="center">
-              <ButtonGroup style={{ width: '100%', flexDirection: 'row', justifyContent: 'space-between', gap: 16 }}>
+              <ButtonGroup width="100%" flexDirection='row' justifyContent='space-between' gap={16}>
                 <Button
                   onPress={() => navigation.goBack()}
                   w="48%"

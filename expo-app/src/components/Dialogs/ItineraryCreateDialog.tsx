@@ -441,7 +441,7 @@ export function ItineraryCreateDialog({ showAlertDialog, setShowAlertDialog }: s
               <View style={[styles.section, styles.lastSection]}>
                 <Text style={styles.sectionLabel}>Informações Adicionais</Text>
                 <Text style={styles.infoText}>
-                  Qualquer ajuste manual nos destinos será automaticamente atualizado nos itinerários dos grupos selecionados.
+                  Qualquer ajuste manual nos destinos será automaticamente atualizado nos itinerários dos contatos selecionados.
                 </Text>
               </View>
             </ScrollView>
