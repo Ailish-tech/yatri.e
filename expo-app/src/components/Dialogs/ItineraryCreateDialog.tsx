@@ -168,7 +168,13 @@ export function ItineraryCreateDialog({ showAlertDialog, setShowAlertDialog }: s
                 <X size={24} color="#000" />
               </TouchableOpacity>
               <Text style={styles.headerTitle}>Criar Itinerário</Text>
-              <TouchableOpacity style={styles.nextButton}>
+              <TouchableOpacity 
+                style={styles.nextButton} 
+                onPress={ () => {
+                  handleClose();
+                  navigation.navigate("GenerateItineraryPreferences", { title: itineraryTitle, dateBegin: startDate, dateEnd: endDate, days: days, continent: selectedContinent, countries: selectedCountries, contacts: selectedContacts } );
+                } }
+              >
                 <Text style={styles.nextButtonText}>Próximo</Text>
               </TouchableOpacity>
             </View>

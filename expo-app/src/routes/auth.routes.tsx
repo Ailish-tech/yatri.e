@@ -42,7 +42,7 @@ type AuthStackParamList = {
   GenerateItinerary: undefined;
   GenerateItineraryFeaturesIntroduction: undefined;
   GenerateItineraryMenu: undefined;
-  GenerateItineraryPreferences: { title: string, dateBegin: Date, dateEnd: Date, days: number, continent: string, countries: Array<string>, contacts: Array<Contact[]> };
+  GenerateItineraryPreferences: { title: string, dateBegin: Date, dateEnd: Date, days: number, continent: string, countries: Array<string>, contacts: Contact[] };
   ManagePremiumPlan: undefined;
   MapsExpanded: { places: Place[], loading: boolean };
   Notifications: undefined;
