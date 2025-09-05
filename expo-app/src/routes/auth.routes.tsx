@@ -27,6 +27,7 @@ import { CancelPremiumPlan } from "@screens/Premium/CancelPremiumPlan";
 import { NavigationBar } from "@components/NavigationBar";
 
 import { Place } from '../../@types/PlacesTypes';
+import { CreatingItinerary } from "../../@types/CreatingItinerary";
 
 const Stack = createNativeStackNavigator();
 
@@ -42,7 +43,7 @@ type AuthStackParamList = {
   GenerateItinerary: undefined;
   GenerateItineraryFeaturesIntroduction: undefined;
   GenerateItineraryMenu: undefined;
-  GenerateItineraryPreferences: { title: string, dateBegin: Date, dateEnd: Date, days: number, continent: string, countries: Array<string>, contacts: Contact[] };
+  GenerateItineraryPreferences: { title: CreatingItinerary["title"], dateBegin: CreatingItinerary["dateBegin"], dateEnd: CreatingItinerary["dateEnd"], days: CreatingItinerary["days"], continent: CreatingItinerary["continent"], countries: CreatingItinerary["countries"], contacts: CreatingItinerary["contacts"] };
   ManagePremiumPlan: undefined;
   MapsExpanded: { places: Place[], loading: boolean };
   Notifications: undefined;
@@ -50,7 +51,7 @@ type AuthStackParamList = {
   PremiumPlans: undefined;
   Profile: undefined;
   Settings: undefined;
-  UserPreferences: undefined;
+  UserPreferences: CreatingItinerary;
   WelcomePremium: undefined;
 };
 

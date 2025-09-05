@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { StatusBar, ScrollView } from "react-native";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useRoute, RouteProp } from "@react-navigation/native";
 
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -24,6 +24,8 @@ import { AuthNavigationProp } from "@routes/auth.routes";
 
 import FelipeMascotItinerary from "@assets/Mascot/Felipe_Mascot_Itinerary_Features.svg";
 
+import { CreatingItinerary } from "../../../@types/CreatingItinerary";
+
 import { Check } from "lucide-react-native";
 
 type GenerateItineraryPreferencesFormTypes = {
@@ -44,29 +46,25 @@ export function GenerateItineraryPreferences() {
   const [specialWish, setSpecialWish] = useState<GenerateItineraryPreferencesFormTypes["specialWish"]>("");
   const [locomotionMethod, setLocomotionMethod] = useState<Array<GenerateItineraryPreferencesFormTypes["vehicleLocomotionTypes"]>>([]);
 
-  const navigation = useNavigation<AuthNavigationProp>()
+  const navigation = useNavigation<AuthNavigationProp>();
+  const route = useRoute<RouteProp<{ params: CreatingItinerary }, 'params'>>();
+  const { title, dateBegin, dateEnd, days, continent, countries, contacts } = route.params;
 
   const handleAccompanying = (type: "Family" | "Friends") => {
     setAcconpanyingType(type);
   };
 
-  // Handler para "Qual estilo de viagem você prefere" (corrigido)
   const handleTripStyle = (type: "Urban" | "Countryside" | "Both") => {
     if (type === "Both") {
-      // Se ambos já estão marcados, desmarca todos
       if (tripStyle.includes("Urban") && tripStyle.includes("Countryside")) {
         setTripStyle([]);
       } else {
-        // Caso contrário, marca ambos
         setTripStyle(["Urban", "Countryside"]);
       }
     } else {
-      // Para Urban ou Countryside
       if (tripStyle.includes(type)) {
-        // Se já está marcado, desmarca
         setTripStyle(tripStyle.filter(item => item !== type));
       } else {
-        // Se não está marcado, adiciona
         const newTripStyle = [...tripStyle, type];
         setTripStyle(newTripStyle);
       }
@@ -249,7 +247,12 @@ export function GenerateItineraryPreferences() {
             <View mb={20}>
               <Text fontSize={16} color="white" mb={8}>Algum desejo especial para esta viagem?</Text>
               <Input borderWidth={1} borderColor="#D1D5DB" borderRadius={12} padding={8} bgColor="#FFF">
-                <InputField placeholder="Escreva aqui - Campo não obrigatório" maxLength={100} />
+                <InputField 
+                  placeholder="Escreva aqui - Campo não obrigatório" 
+                  maxLength={100}
+                  value={specialWish}
+                  onChangeText={setSpecialWish}
+                />
               </Input>
             </View>
             <View mt={20} flexDirection="row" justifyContent="center">
@@ -269,7 +272,25 @@ export function GenerateItineraryPreferences() {
                   <ButtonText color="#fff" fontWeight="$bold" fontSize={16}>Cancelar</ButtonText>
                 </Button>
                 <Button
-                  onPress={() => navigation.navigate("UserPreferences")}
+                  onPress={ 
+                    () => navigation.navigate("UserPreferences", {
+                      title, 
+                      dateBegin, 
+                      dateEnd, 
+                      days, 
+                      continent, 
+                      countries, 
+                      contacts, 
+                      budget, 
+                      peopleQuantity, 
+                      acconpanying: acconpanyingType!,
+                      tripStyleTypes: tripStyle[0] || "Urban",
+                      tripStyle, 
+                      vehicleLocomotionTypes: locomotionMethod[0] || "Car",
+                      locomotionMethod, 
+                      specialWish
+                    })
+                  }
                   w="48%"
                   bgColor="#fff"
                   borderRadius={16}
