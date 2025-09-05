@@ -15,13 +15,24 @@ import {
 import FelipeMascotItinerary from "@assets/Mascot/Felipe_Mascot_Itinerary_Features.svg";
 
 import { Check } from "lucide-react-native";
+import AnimatedStar from '../../components/AnimatedStar';
 
 export function GenerateItineraryPreferences() {
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: '#2752B7' }}>
       <StatusBar barStyle="light-content" backgroundColor="#2752B7" />
       <View flexDirection="column" alignItems="center" mt={10} mb={20}>
-        <View justifyContent="center" alignItems="center">
+        <View justifyContent="center" alignItems="center" style={{ width: 260, height: 260 }}>
+          <AnimatedStar size={18} style={{ position: 'absolute', top: 10, left: 20, zIndex: 2 }} delay={0} duration={1400} />
+          <AnimatedStar size={18} style={{ position: 'absolute', top: 60, left: 0, zIndex: 2 }} delay={700} duration={1400} />
+          <AnimatedStar size={18} style={{ position: 'absolute', top: 55, right: 0, zIndex: 2 }} delay={700} duration={1400} />
+          <AnimatedStar size={22} style={{ position: 'absolute', top: 20, right: 30, zIndex: 2 }} delay={100} duration={1400} />
+          <AnimatedStar size={16} style={{ position: 'absolute', bottom: 20, left: 30, zIndex: 2 }} delay={600} duration={1400} />
+          <AnimatedStar size={20} style={{ position: 'absolute', bottom: 10, right: 40, zIndex: 2 }} delay={900} duration={1400} />
+          <AnimatedStar size={14} style={{ position: 'absolute', top: 120, left: 0, zIndex: 2 }} delay={1200} duration={1400} />
+          <AnimatedStar size={15} style={{ position: 'absolute', top: 120, right: 0, zIndex: 2 }} delay={1500} duration={1400} />
+          <AnimatedStar size={13} style={{ position: 'absolute', bottom: 60, right: 10, zIndex: 2 }} delay={1800} duration={1400} />
+          <AnimatedStar size={17} style={{ position: 'absolute', bottom: 60, left: 10, zIndex: 2 }} delay={2100} duration={1400} />
           <View 
             position="absolute"
             width={260}
@@ -33,8 +44,9 @@ export function GenerateItineraryPreferences() {
             shadowOpacity={1}
             shadowRadius={20}
             elevation={10}
+            zIndex={1}
           />
-          <FelipeMascotItinerary width={250} height={250} />
+          <FelipeMascotItinerary width={250} height={250} style={{ zIndex: 2 }} />
         </View>
         <Text mt={15} fontWeight="$bold" fontSize="$xl" textAlign="center" color="white">Finalize os parâmetros do seu novo roteiro</Text>
       </View>
