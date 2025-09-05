@@ -1,8 +1,6 @@
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 
-import { Contact } from "expo-contacts";
-
 import { Home } from "@screens/HomePage/Home";
 import { Profile } from "@screens/UserProfile/Profile";
 import { EditProfile } from "@screens/UserProfile/EditProfile";
@@ -11,6 +9,7 @@ import { GenerateItinerary } from "@screens/Itinerary/GenerateItinerary";
 import { GenerateItineraryMenu } from "@screens/Itinerary/GenerateItineraryMenu";
 import { GenerateItineraryFeaturesIntroduction } from "@screens/Itinerary/GenerateItineraryFeaturesIntroduction";
 import { GenerateItineraryPreferences } from "@screens/Itinerary/GenerateItineraryPreferences";
+import { ItineraryMapMenu } from "@screens/Itinerary/ItineraryMapMenu";
 import { AIChat } from "@screens/AIChat/AIChat";
 import { AIVoiceChat } from "@screens/AIChat/AIVoiceChat";
 import { AIMascotIntroduction } from "@screens/AIChat/AIMascotIntroduction";
@@ -44,6 +43,7 @@ type AuthStackParamList = {
   GenerateItineraryFeaturesIntroduction: undefined;
   GenerateItineraryMenu: undefined;
   GenerateItineraryPreferences: { title: CreatingItinerary["title"], dateBegin: CreatingItinerary["dateBegin"], dateEnd: CreatingItinerary["dateEnd"], days: CreatingItinerary["days"], continent: CreatingItinerary["continent"], countries: CreatingItinerary["countries"], contacts: CreatingItinerary["contacts"] };
+  ItineraryMapMenu: { itineraryData: CreatingItinerary, userPreferences: string[] };
   ManagePremiumPlan: undefined;
   MapsExpanded: { places: Place[], loading: boolean };
   Notifications: undefined;
@@ -94,6 +94,14 @@ function GenerateItineraryMenuWithNavBar() {
   return (
     <ScreenWrapper>
       <GenerateItineraryMenu />
+    </ScreenWrapper>
+  );
+}
+
+function ItineraryMapMenuWithNavBar() {
+  return (
+    <ScreenWrapper>
+      <ItineraryMapMenu />
     </ScreenWrapper>
   );
 }
@@ -171,6 +179,11 @@ export function AuthRoute() {
       <Stack.Screen 
         name="GenerateItinerary" 
         component={ GenerateItineraryWithNavBar } 
+        options={{ animation: 'none' }}
+      />
+      <Stack.Screen 
+        name="ItineraryMapMenu"
+        component={ ItineraryMapMenuWithNavBar } 
         options={{ animation: 'none' }}
       />
       <Stack.Screen 

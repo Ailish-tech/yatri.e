@@ -168,7 +168,7 @@ export function UserPreferences() {
                 <Button
                   onPress={() => {
                     utilsSetSelectedTags(selectedTags);
-                    console.log('Dados completos do itinerário:', itineraryData);
+                    navigation.navigate("ItineraryMapMenu", { itineraryData: itineraryData, userPreferences: utilsGetSelectedTags() })
                   }}
                   w="48%"
                   bgColor="#fff"

@@ -81,7 +81,7 @@ export function NavigationBar() {
 
   const routeMapping: Record<string, string[]> = {
     Home: ['Home', 'DestinationDetails', 'MapsExpanded', 'Notifications'],
-    GenerateItinerary: ['GenerateItineraryFeaturesIntroduction', 'GenerateItineraryMenu', 'GenerateItinerary'],
+    GenerateItinerary: ['GenerateItineraryFeaturesIntroduction', 'GenerateItineraryMenu', 'GenerateItinerary', 'ItineraryMapMenu'],
     AIChat: ['AIChat', 'AIChatMenu', 'AIMascotIntroduction', 'AIVoiceChat'],
     Games: ['Games'],
     Settings: ['Profile', 'EditProfile', 'Settings', 'UserPreferences'],
