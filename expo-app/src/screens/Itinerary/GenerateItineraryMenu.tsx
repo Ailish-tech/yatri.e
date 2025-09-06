@@ -36,31 +36,10 @@ export function GenerateItineraryMenu(){
     return process.env.ADMOB_IOS_APP_ID;
   }
 
-  const handleNewItinerary = () => {
-    setDisableAdIsLoading(true);
-
-    if(adLoaded && rewardedRef.current){
-      try{
-        rewardedRef.current.show();
-      }catch(error){
-        console.log('Error showing ad:', error);
-        setAdLoaded(false);
-        setDisableAdIsLoading(false);
-      }finally{
-        setDisableAdIsLoading(false);
-      }
-    } else {
-      console.log('Ad not loaded yet. User must wait for ad to load.');
-      setDisableAdIsLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    console.log('Setting up RewardedAd...');
+  // Carregar um novo anúncio a ser exibido
+  const loadNewAd = () => {
     const adUnitId = __DEV__ ? TestIds.REWARDED : getCorrectIdForPlatform();
-    console.log('Ad Unit ID:', adUnitId, '__DEV__:', __DEV__);
-    
-    const rewarded = RewardedAd.createForAdRequest(adUnitId, {
+    const newRewarded = RewardedAd.createForAdRequest(adUnitId, {
       keywords: [
         "adventure travel",
         "airbnb",
@@ -86,34 +65,56 @@ export function GenerateItineraryMenu(){
       ],
     });
 
-    rewardedRef.current = rewarded;
-    
-    const unsubscribeLoaded = rewarded.addAdEventListener(
+    rewardedRef.current = newRewarded;
+
+    const unsubscribeLoaded = newRewarded.addAdEventListener(
       RewardedAdEventType.LOADED,
       () => {
-        console.log('RewardedAd loaded successfully');
         setAdLoaded(true);
       },
     );
     
-    const unsubscribeEarned = rewarded.addAdEventListener(
+    const unsubscribeEarned = newRewarded.addAdEventListener(
       RewardedAdEventType.EARNED_REWARD,
       reward => {
-        console.log('User watched one more Rewarded Interstitial AD', reward);
+        console.log('User watched another Rewarded AD', reward);
         setShowAlertDialog(true);
+        // Load next ad automatically
+        setTimeout(() => {
+          loadNewAd();
+        }, 3000);
       },
     );
 
-    // Start loading the rewarded interstitial ad straight away
-    console.log('Starting to load RewardedAd...');
-    rewarded.load();
+    newRewarded.load();
 
     // Unsubscribe from events on unmount
     return () => {
-      console.log('Cleaning up RewardedAd listeners');
       unsubscribeLoaded();
       unsubscribeEarned();
     };
+  };
+
+  const handleNewItinerary = () => {
+    setDisableAdIsLoading(true);
+
+    if(adLoaded && rewardedRef.current){
+      try{
+        rewardedRef.current.show();
+      }catch(error){
+        console.log('Error showing ad:', error);
+        setAdLoaded(false);
+        setDisableAdIsLoading(false);
+      }finally{
+        setDisableAdIsLoading(false);
+      }
+    } else {
+      setDisableAdIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadNewAd();
   }, []);
   
   return(
@@ -135,6 +136,7 @@ export function GenerateItineraryMenu(){
           iconDimension={24}
           textColor="#FFF"
           disabled={ disableAdIsLoading }
+          loading={ !adLoaded }
           iconStyles={{ marginRight: 5, color: '#FFF' }}
           buttonStyles={{ backgroundColor: '#2752B7', borderRadius: 20 }}
         />
@@ -169,6 +171,7 @@ export function GenerateItineraryMenu(){
             iconDimension={24}
             textColor="#FFF"
             disabled={ disableAdIsLoading }
+            loading={ !adLoaded }
             iconStyles={{ marginRight: 5, color: '#FFF' }}
             buttonStyles={{ backgroundColor: '#2752B7', borderRadius: 20 }}
             styles={{ alignSelf: "center" }}
@@ -250,6 +253,7 @@ export function GenerateItineraryMenu(){
             iconDimension={24}
             textColor="#FFF"
             disabled={ disableAdIsLoading }
+            loading={ !adLoaded }
             iconStyles={{ marginRight: 5, color: '#FFF' }}
             buttonStyles={{ backgroundColor: '#2752B7', borderRadius: 20 }}
             styles={{ alignSelf: "center" }}

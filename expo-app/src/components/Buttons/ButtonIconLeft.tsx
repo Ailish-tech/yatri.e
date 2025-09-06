@@ -1,7 +1,8 @@
 import {
   Button,
   ButtonGroup,
-  ButtonText
+  ButtonText,
+  Spinner
 } from "@gluestack-ui/themed";
 
 import { LucideIcon } from "lucide-react-native";
@@ -13,13 +14,14 @@ type ButtonContent = {
   iconDimension: number,
   textColor: string,
   disabled?: boolean,
+  loading?: boolean,
   buttonSize?: "xs" | "sm" | "md" | "lg" | "xl" | undefined,
   iconStyles?: Object,
   buttonStyles?: Object,
   styles?: Object
 }
 
-export function ButtonIconLeft({ textContent, buttonSize, icon: Icon, iconDimension, textColor, disabled, action, iconStyles, buttonStyles, styles }: ButtonContent){
+export function ButtonIconLeft({ textContent, buttonSize, icon: Icon, iconDimension, textColor, disabled, loading, action, iconStyles, buttonStyles, styles }: ButtonContent){
   return(
     <ButtonGroup alignContent="center" style={ styles }>
       <Button 
@@ -32,7 +34,11 @@ export function ButtonIconLeft({ textContent, buttonSize, icon: Icon, iconDimens
         disabled={ disabled }
         style={ buttonStyles }
       >
-        <Icon width={ iconDimension } height={ iconDimension } style={ iconStyles } />
+        {
+          loading
+          ? <Spinner color="#FFF" mr={10} />
+          : <Icon width={ iconDimension } height={ iconDimension } style={ iconStyles } />
+        }
         <ButtonText color={ textColor } size="lg">{ textContent }</ButtonText>
       </Button>
     </ButtonGroup>
