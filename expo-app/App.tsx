@@ -5,8 +5,15 @@ import { StatusBar, useColorScheme, View } from "react-native";
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import mobileAds from 'react-native-google-mobile-ads';
+
 import { useFonts, Poppins_300Light, Poppins_400Regular, Poppins_500Medium } from "@expo-google-fonts/poppins";
 import * as SplashScreen from 'expo-splash-screen';
+import {
+  getTrackingPermissionsAsync,
+  PermissionStatus,
+  requestTrackingPermissionsAsync,
+} from 'expo-tracking-transparency';
 
 import { config } from "@gluestack-ui/config";
 import { GluestackUIProvider, StyledProvider } from "@gluestack-ui/themed";
@@ -15,10 +22,11 @@ import { SplashLoading } from "@components/Loading/SplashLoading";
 
 import { ProvideUserLocation } from "@contexts/requestDeviceLocation";
 import { AuthProvider } from '@contexts/AuthContext';
+import { ProvideUserNetInfo } from '@contexts/NetInfo';
 
 import { Routes } from '@routes/index';
+
 import { appPreloader } from '@services/AppPreloader';
-import { ProvideUserNetInfo } from '@contexts/NetInfo';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -60,6 +68,18 @@ export default function App() {
         } else {
           setLoadingMessage("Modo offline detectado...");
         }
+
+        setLoadingMessage("Personalizando anúncios para você...");
+        await mobileAds()
+          .initialize()
+          .then(adapterStatuses => {
+            // Initialization complete!
+          });
+        const { status } = await getTrackingPermissionsAsync();
+        if (status === PermissionStatus.UNDETERMINED) {
+          await requestTrackingPermissionsAsync();
+        }
+        const adapterStatuses = await mobileAds().initialize();
 
         setLoadingMessage("Quase tudo pronto...");
         await new Promise(resolve => setTimeout(resolve, 800));

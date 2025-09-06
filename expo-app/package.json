@@ -19,6 +19,7 @@
     "@gluestack-ui/themed": "^1.1.73",
     "@legendapp/motion": "^2.4.0",
     "@react-native-async-storage/async-storage": "2.1.2",
+    "@react-native-community/datetimepicker": "8.4.1",
     "@react-native-community/netinfo": "11.4.1",
     "@react-native-google-signin/google-signin": "^15.0.0",
     "@react-navigation/native": "^7.0.19",
@@ -28,6 +29,7 @@
     "expo": "53.0.20",
     "expo-av": "^15.1.7",
     "expo-constants": "^17.1.6",
+    "expo-contacts": "~14.2.5",
     "expo-dev-client": "~5.2.4",
     "expo-device": "^7.1.4",
     "expo-file-system": "~18.1.11",
@@ -51,6 +53,7 @@
     "react-native": "0.79.5",
     "react-native-country-flag": "^2.0.2",
     "react-native-gesture-handler": "~2.24.0",
+    "react-native-google-mobile-ads": "^15.7.0",
     "react-native-html-to-pdf": "^0.12.0",
     "react-native-maps": "1.20.1",
     "react-native-reanimated": "^3.17.4",
@@ -61,8 +64,7 @@
     "react-native-web": "^0.20.0",
     "uuid": "^11.1.0",
     "zustand": "^5.0.6",
-    "@react-native-community/datetimepicker": "8.4.1",
-    "expo-contacts": "~14.2.5"
+    "expo-tracking-transparency": "~5.2.4"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",

@@ -1,5 +1,7 @@
 import { useState } from "react";
-import { SafeAreaView, StatusBar } from "react-native";
+import { Platform, SafeAreaView, StatusBar } from "react-native";
+
+import { InterstitialAd, AdEventType, TestIds } from 'react-native-google-mobile-ads';
 
 import { Button, ButtonText, Text, View } from "@gluestack-ui/themed";
 
@@ -22,6 +24,61 @@ export function GenerateItineraryMenu(){
   const [selectedFilter, setSelectedFilter] = useState<MenuItineraryTypes["filters"]>("Planejados");
 
   const navigation = useNavigation<AuthNavigationProp>();
+
+  // Configuração do adMob
+  const getCorrectIdForPlatform = () => {
+    if(Platform.OS === "android"){
+      return process.env.ADMOB_ANDROID_APP_ID;
+    }
+    return process.env.ADMOB_IOS_APP_ID;
+  }
+
+  const adUnitId = __DEV__ ? TestIds.INTERSTITIAL : getCorrectIdForPlatform();
+  const interstitial = InterstitialAd.createForAdRequest(adUnitId, {
+    keywords: [
+      "travel",
+      "tourism",
+      "cheap flights",
+      "hotels",
+      "airbnb",
+      "car rental",
+      "travel insurance",
+      "tourist attractions",
+      "eco tourism",
+      "sustainable travel",
+      "honeymoon packages",
+      "luxury resorts",
+      "solo travel",
+      "family vacation",
+      "adventure travel",
+      "wine tours",
+      "wellness retreat",
+      "glamping",
+      "destination dupes",
+      "bleisure travel"
+    ],
+  });
+
+  const handleNewItinerary = () => {
+    interstitial.load();
+
+    const adListener = interstitial.addAdEventListener(AdEventType.LOADED, () => {
+      interstitial.show();
+    });
+
+    const closeListener = interstitial.addAdEventListener(AdEventType.CLOSED, () => {
+      setShowAlertDialog(true);
+      adListener(); // Remove o listener
+      closeListener();
+    });
+
+    const errorListener = interstitial.addAdEventListener(AdEventType.ERROR, () => {
+      setShowAlertDialog(true);
+      adListener();
+      closeListener();
+      errorListener();
+    });
+  };
   
   return(
     <SafeAreaView>
@@ -38,7 +95,7 @@ export function GenerateItineraryMenu(){
         <ButtonIconLeft 
           textContent="Novo Itinerário" 
           icon={ Plus } 
-          action={ () => setShowAlertDialog(true) }
+          action={ handleNewItinerary }
           iconDimension={24}
           textColor="#FFF"
           iconStyles={{ marginRight: 5, color: '#FFF' }}
@@ -71,7 +128,7 @@ export function GenerateItineraryMenu(){
           <ButtonIconLeft
             textContent="Novo Itinerário"
             icon={ Plus }
-            action={() => setShowAlertDialog(true)}
+            action={ handleNewItinerary }
             iconDimension={24}
             textColor="#FFF"
             iconStyles={{ marginRight: 5, color: '#FFF' }}
@@ -151,7 +208,7 @@ export function GenerateItineraryMenu(){
           <ButtonIconLeft
             textContent="Novo Itinerário"
             icon={Plus}
-            action={() => setShowAlertDialog(true)}
+            action={ handleNewItinerary }
             iconDimension={24}
             textColor="#FFF"
             iconStyles={{ marginRight: 5, color: '#FFF' }}
