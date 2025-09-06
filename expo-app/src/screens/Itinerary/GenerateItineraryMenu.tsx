@@ -1,7 +1,11 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Platform, SafeAreaView, StatusBar } from "react-native";
 
-import { InterstitialAd, AdEventType, TestIds } from 'react-native-google-mobile-ads';
+import {
+  RewardedInterstitialAd,
+  RewardedAdEventType,
+  TestIds,
+} from 'react-native-google-mobile-ads';
 
 import { Button, ButtonText, Text, View } from "@gluestack-ui/themed";
 
@@ -22,63 +26,85 @@ type MenuItineraryTypes = {
 export function GenerateItineraryMenu(){
   const [showAlertDialog, setShowAlertDialog] = useState<MenuItineraryTypes["dialog"]>(false);
   const [selectedFilter, setSelectedFilter] = useState<MenuItineraryTypes["filters"]>("Planejados");
+  const [adLoaded, setAdLoaded] = useState<boolean>(false);
+  const [disableAdIsLoading, setDisableAdIsLoading] = useState<boolean>(false);
 
   const navigation = useNavigation<AuthNavigationProp>();
 
-  // Configuração do adMob
+  // Configuração do AdMob
   const getCorrectIdForPlatform = () => {
     if(Platform.OS === "android"){
       return process.env.ADMOB_ANDROID_APP_ID;
     }
     return process.env.ADMOB_IOS_APP_ID;
   }
-
-  const adUnitId = __DEV__ ? TestIds.INTERSTITIAL : getCorrectIdForPlatform();
-  const interstitial = InterstitialAd.createForAdRequest(adUnitId, {
+  const adUnitId = __DEV__ ? TestIds.REWARDED : getCorrectIdForPlatform();
+  const rewardedInterstitial = RewardedInterstitialAd.createForAdRequest(adUnitId, {
     keywords: [
-      "travel",
-      "tourism",
-      "cheap flights",
-      "hotels",
+      "adventure travel",
       "airbnb",
+      "bleisure travel",
+      "booking",
       "car rental",
-      "travel insurance",
-      "tourist attractions",
+      "cheap flights",
+      "destination dupes",
       "eco tourism",
-      "sustainable travel",
+      "family vacation",
+      "glamping",
+      "hotels",
       "honeymoon packages",
       "luxury resorts",
       "solo travel",
-      "family vacation",
-      "adventure travel",
-      "wine tours",
+      "sustainable travel",
+      "tourism",
+      "tourist attractions",
+      "travel",
+      "travel insurance",
       "wellness retreat",
-      "glamping",
-      "destination dupes",
-      "bleisure travel"
+      "wine tours"
     ],
   });
 
   const handleNewItinerary = () => {
-    interstitial.load();
+    setDisableAdIsLoading(true);
 
-    const adListener = interstitial.addAdEventListener(AdEventType.LOADED, () => {
-      interstitial.show();
-    });
-
-    const closeListener = interstitial.addAdEventListener(AdEventType.CLOSED, () => {
-      setShowAlertDialog(true);
-      adListener(); // Remove o listener
-      closeListener();
-    });
-
-    const errorListener = interstitial.addAdEventListener(AdEventType.ERROR, () => {
-      setShowAlertDialog(true);
-      adListener();
-      closeListener();
-      errorListener();
-    });
+    if(adLoaded){
+      try{
+        rewardedInterstitial.show();
+      }catch(error){
+        console.log(error);
+        setAdLoaded(false);
+        setDisableAdIsLoading(false);
+      }finally{
+        setDisableAdIsLoading(false);
+      }
+    }
   };
+
+  useEffect(() => {
+    const unsubscribeLoaded = rewardedInterstitial.addAdEventListener(
+      RewardedAdEventType.LOADED,
+      () => {
+        setAdLoaded(true);
+      },
+    );
+    const unsubscribeEarned = rewardedInterstitial.addAdEventListener(
+      RewardedAdEventType.EARNED_REWARD,
+      reward => {
+        console.log('User watched one more Rewarded Interstitial AD', reward);
+        setShowAlertDialog(true);
+      },
+    );
+
+    // Start loading the rewarded interstitial ad straight away
+    rewardedInterstitial.load();
+
+    // Unsubscribe from events on unmount
+    return () => {
+      unsubscribeLoaded();
+      unsubscribeEarned();
+    };
+  }, []);
   
   return(
     <SafeAreaView>
@@ -98,6 +124,7 @@ export function GenerateItineraryMenu(){
           action={ handleNewItinerary }
           iconDimension={24}
           textColor="#FFF"
+          disabled={ disableAdIsLoading }
           iconStyles={{ marginRight: 5, color: '#FFF' }}
           buttonStyles={{ backgroundColor: '#2752B7', borderRadius: 20 }}
         />
@@ -131,6 +158,7 @@ export function GenerateItineraryMenu(){
             action={ handleNewItinerary }
             iconDimension={24}
             textColor="#FFF"
+            disabled={ disableAdIsLoading }
             iconStyles={{ marginRight: 5, color: '#FFF' }}
             buttonStyles={{ backgroundColor: '#2752B7', borderRadius: 20 }}
             styles={{ alignSelf: "center" }}
@@ -211,6 +239,7 @@ export function GenerateItineraryMenu(){
             action={ handleNewItinerary }
             iconDimension={24}
             textColor="#FFF"
+            disabled={ disableAdIsLoading }
             iconStyles={{ marginRight: 5, color: '#FFF' }}
             buttonStyles={{ backgroundColor: '#2752B7', borderRadius: 20 }}
             styles={{ alignSelf: "center" }}
