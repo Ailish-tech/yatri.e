@@ -3,17 +3,36 @@ import 'react-native-gesture-handler';
 import { useState, useEffect, useCallback } from "react";
 import { StatusBar, useColorScheme, View } from "react-native";
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import Constants from 'expo-constants';
 
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import mobileAds from 'react-native-google-mobile-ads';
+
+let mobileAds: any, getTrackingPermissionsAsync: any, PermissionStatus: any, requestTrackingPermissionsAsync: any;
+const isExpoGo = Constants.appOwnership === 'expo';
+
+if (!isExpoGo) {
+  try {
+    const admobModule = require('react-native-google-mobile-ads');
+    mobileAds = admobModule.default;
+    
+    const trackingModule = require('expo-tracking-transparency');
+    getTrackingPermissionsAsync = trackingModule.getTrackingPermissionsAsync;
+    PermissionStatus = trackingModule.PermissionStatus;
+    requestTrackingPermissionsAsync = trackingModule.requestTrackingPermissionsAsync;
+  } catch (error) {
+    console.log('AdMob or tracking modules not available:', error);
+    getTrackingPermissionsAsync = async () => ({ status: 'granted' });
+    PermissionStatus = { UNDETERMINED: 'undetermined' };
+    requestTrackingPermissionsAsync = async () => ({ status: 'granted' });
+  }
+} else {
+  getTrackingPermissionsAsync = async () => ({ status: 'granted' });
+  PermissionStatus = { UNDETERMINED: 'undetermined' };
+  requestTrackingPermissionsAsync = async () => ({ status: 'granted' });
+}
 
 import { useFonts, Poppins_300Light, Poppins_400Regular, Poppins_500Medium } from "@expo-google-fonts/poppins";
 import * as SplashScreen from 'expo-splash-screen';
-import {
-  getTrackingPermissionsAsync,
-  PermissionStatus,
-  requestTrackingPermissionsAsync,
-} from 'expo-tracking-transparency';
 
 import { config } from "@gluestack-ui/config";
 import { GluestackUIProvider, StyledProvider } from "@gluestack-ui/themed";
@@ -70,16 +89,20 @@ export default function App() {
         }
 
         setLoadingMessage("Personalizando anúncios para você...");
-        await mobileAds()
-          .initialize()
-          .then(adapterStatuses => {
-            // Initialization complete!
-          });
-        const { status } = await getTrackingPermissionsAsync();
-        if (status === PermissionStatus.UNDETERMINED) {
-          await requestTrackingPermissionsAsync();
+        
+        if (!isExpoGo && mobileAds) {
+          await mobileAds()
+            .initialize()
+            .then((adapterStatuses: any) => {
+            });
+          const { status } = await getTrackingPermissionsAsync();
+          if (status === PermissionStatus.UNDETERMINED) {
+            await requestTrackingPermissionsAsync();
+          }
+          const adapterStatuses = await mobileAds().initialize();
+        } else {
+          console.log('Skipping AdMob initialization in Expo GO');
         }
-        const adapterStatuses = await mobileAds().initialize();
 
         setLoadingMessage("Quase tudo pronto...");
         await new Promise(resolve => setTimeout(resolve, 800));

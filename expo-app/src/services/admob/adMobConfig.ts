@@ -1,20 +1,26 @@
-import mobileAds, { MaxAdContentRating } from 'react-native-google-mobile-ads';
+import Constants from 'expo-constants';
 
-mobileAds()
-  .setRequestConfiguration({
-    // Update all future requests suitable for parental guidance
-    maxAdContentRating: MaxAdContentRating.PG,
+let mobileAds: any, MaxAdContentRating: any;
+const isExpoGo = Constants.appOwnership === 'expo';
 
-    // Indicates that you want your content treated as child-directed for purposes of COPPA.
-    tagForChildDirectedTreatment: true,
+if (!isExpoGo) {
+  try {
+    const admobModule = require('react-native-google-mobile-ads');
+    mobileAds = admobModule.default;
+    MaxAdContentRating = admobModule.MaxAdContentRating;
 
-    // Indicates that you want the ad request to be handled in a
-    // manner suitable for users under the age of consent.
-    tagForUnderAgeOfConsent: true,
-
-    // An array of test device IDs to allow.
-    testDeviceIdentifiers: ['EMULATOR'],
-  })
-  .then(() => {
-    // Request config successfully set!
-  });
+    mobileAds()
+      .setRequestConfiguration({
+        maxAdContentRating: MaxAdContentRating.PG,
+        tagForChildDirectedTreatment: true,
+        tagForUnderAgeOfConsent: true,
+        testDeviceIdentifiers: ['EMULATOR'],
+      })
+      .then(() => {
+      });
+  } catch (error) {
+    console.log('AdMob module not available for configuration:', error);
+  }
+} else {
+  console.log('Skipping AdMob configuration in Expo GO');
+}

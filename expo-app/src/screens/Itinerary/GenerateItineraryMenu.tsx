@@ -1,7 +1,20 @@
 import { useEffect, useState, useRef } from "react";
-import { Platform, SafeAreaView, StatusBar } from "react-native";
+import { Platform, SafeAreaView, StatusBar, Modal, Image, Dimensions } from "react-native";
+import Constants from 'expo-constants';
 
-import { RewardedAd, RewardedAdEventType, TestIds } from 'react-native-google-mobile-ads';
+let RewardedAd: any, RewardedAdEventType: any, TestIds: any;
+const isExpoGo = Constants.appOwnership === 'expo';
+
+if (!isExpoGo) {
+  try {
+    const admobModule = require('react-native-google-mobile-ads');
+    RewardedAd = admobModule.RewardedAd;
+    RewardedAdEventType = admobModule.RewardedAdEventType;
+    TestIds = admobModule.TestIds;
+  } catch (error) {
+    console.log('AdMob module not available:', error);
+  }
+}
 
 import { Button, ButtonText, Text, View } from "@gluestack-ui/themed";
 
@@ -24,9 +37,10 @@ export function GenerateItineraryMenu(){
   const [selectedFilter, setSelectedFilter] = useState<MenuItineraryTypes["filters"]>("Planejados");
   const [adLoaded, setAdLoaded] = useState<boolean>(false);
   const [disableAdIsLoading, setDisableAdIsLoading] = useState<boolean>(false);
+  const [showAdImage, setShowAdImage] = useState<boolean>(false);
   
   const navigation = useNavigation<AuthNavigationProp>();
-  const rewardedRef = useRef<RewardedAd | null>(null);
+  const rewardedRef = useRef<any>(null);
 
   // Configuração do AdMob
   const getCorrectIdForPlatform = () => {
@@ -36,81 +50,101 @@ export function GenerateItineraryMenu(){
     return process.env.ADMOB_IOS_APP_ID;
   }
 
-  // Carregar um novo anúncio a ser exibido
   const loadNewAd = () => {
-    const adUnitId = __DEV__ ? TestIds.REWARDED : getCorrectIdForPlatform();
-    const newRewarded = RewardedAd.createForAdRequest(adUnitId, {
-      keywords: [
-        "adventure travel",
-        "airbnb",
-        "bleisure travel",
-        "booking",
-        "car rental",
-        "cheap flights",
-        "destination dupes",
-        "eco tourism",
-        "family vacation",
-        "glamping",
-        "hotels",
-        "honeymoon packages",
-        "luxury resorts",
-        "solo travel",
-        "sustainable travel",
-        "tourism",
-        "tourist attractions",
-        "travel",
-        "travel insurance",
-        "wellness retreat",
-        "wine tours"
-      ],
-    });
+    if (isExpoGo || !RewardedAd || !RewardedAdEventType || !TestIds) {
+      setAdLoaded(true);
+      return;
+    }
 
-    rewardedRef.current = newRewarded;
+    try {
+      const adUnitId = __DEV__ ? TestIds.REWARDED : getCorrectIdForPlatform();
+      const newRewarded = RewardedAd.createForAdRequest(adUnitId, {
+        keywords: [
+          "adventure travel",
+          "airbnb",
+          "bleisure travel",
+          "booking",
+          "car rental",
+          "cheap flights",
+          "destination dupes",
+          "eco tourism",
+          "family vacation",
+          "glamping",
+          "hotels",
+          "honeymoon packages",
+          "luxury resorts",
+          "solo travel",
+          "sustainable travel",
+          "tourism",
+          "tourist attractions",
+          "travel",
+          "travel insurance",
+          "wellness retreat",
+          "wine tours"
+        ],
+      });
 
-    const unsubscribeLoaded = newRewarded.addAdEventListener(
-      RewardedAdEventType.LOADED,
-      () => {
-        setAdLoaded(true);
-      },
-    );
-    
-    const unsubscribeEarned = newRewarded.addAdEventListener(
-      RewardedAdEventType.EARNED_REWARD,
-      reward => {
-        console.log('User watched another Rewarded AD', reward);
-        setShowAlertDialog(true);
-        // Load next ad automatically
-        setTimeout(() => {
-          loadNewAd();
-        }, 3000);
-      },
-    );
+      rewardedRef.current = newRewarded;
 
-    newRewarded.load();
+      const unsubscribeLoaded = newRewarded.addAdEventListener(
+        RewardedAdEventType.LOADED,
+        () => {
+          setAdLoaded(true);
+        },
+      );
+      
+      const unsubscribeEarned = newRewarded.addAdEventListener(
+        RewardedAdEventType.EARNED_REWARD,
+        (reward: any) => {
+          console.log('User watched another Rewarded AD', reward);
+          setShowAlertDialog(true);
+          setTimeout(() => {
+            loadNewAd();
+          }, 3000);
+        },
+      );
 
-    // Unsubscribe from events on unmount
-    return () => {
-      unsubscribeLoaded();
-      unsubscribeEarned();
-    };
+      newRewarded.load();
+
+      return () => {
+        unsubscribeLoaded();
+        unsubscribeEarned();
+      };
+    } catch (error) {
+      console.log('Error loading ad:', error);
+      setAdLoaded(true);
+    }
   };
 
   const handleNewItinerary = () => {
     setDisableAdIsLoading(true);
+
+    if (isExpoGo || !RewardedAd || !rewardedRef.current) {
+      setShowAdImage(true);
+      setDisableAdIsLoading(false);
+      return;
+    }
 
     if(adLoaded && rewardedRef.current){
       try{
         rewardedRef.current.show();
       }catch(error){
         console.log('Error showing ad:', error);
+        setShowAdImage(true);
         setAdLoaded(false);
         setDisableAdIsLoading(false);
       }finally{
         setDisableAdIsLoading(false);
       }
     } else {
+      setShowAdImage(true);
       setDisableAdIsLoading(false);
     }
+  };
+
+  const handleCloseAdImage = () => {
+    setShowAdImage(false);
+    setShowAlertDialog(true);
   };
 
   useEffect(() => {
@@ -266,6 +300,39 @@ export function GenerateItineraryMenu(){
           ? <ItineraryCreateDialog showAlertDialog={ showAlertDialog } setShowAlertDialog={ setShowAlertDialog } />
           : null
       }
+
+      <Modal
+        visible={showAdImage}
+        animationType="fade"
+        presentationStyle="fullScreen"
+        onRequestClose={handleCloseAdImage}
+      >
+        <View flex={1} backgroundColor="#000000">
+          <Image
+            source={{ uri: 'https://developers.google.com/static/admob/images/ios-testad-0-admob.png' }}
+            style={{
+              width: Dimensions.get('window').width,
+              height: Dimensions.get('window').height,
+              resizeMode: 'cover'
+            }}
+          />
+          <Button
+            position="absolute"
+            top={50}
+            right={20}
+            width={40}
+            height={40}
+            borderRadius={20}
+            backgroundColor="#000000"
+            opacity={0.7}
+            onPress={handleCloseAdImage}
+            justifyContent="center"
+            alignItems="center"
+          >
+            <ButtonText color="#FFFFFF" fontSize={18} fontWeight="bold">✕</ButtonText>
+          </Button>
+        </View>
+      </Modal>
     </SafeAreaView>
   )
 }
