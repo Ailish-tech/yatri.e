@@ -1,11 +1,7 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { Platform, SafeAreaView, StatusBar } from "react-native";
 
-import {
-  RewardedInterstitialAd,
-  RewardedAdEventType,
-  TestIds,
-} from 'react-native-google-mobile-ads';
+import { RewardedAd, RewardedAdEventType, TestIds } from 'react-native-google-mobile-ads';
 
 import { Button, ButtonText, Text, View } from "@gluestack-ui/themed";
 
@@ -28,8 +24,9 @@ export function GenerateItineraryMenu(){
   const [selectedFilter, setSelectedFilter] = useState<MenuItineraryTypes["filters"]>("Planejados");
   const [adLoaded, setAdLoaded] = useState<boolean>(false);
   const [disableAdIsLoading, setDisableAdIsLoading] = useState<boolean>(false);
-
+  
   const navigation = useNavigation<AuthNavigationProp>();
+  const rewardedRef = useRef<RewardedAd | null>(null);
 
   // Configuração do AdMob
   const getCorrectIdForPlatform = () => {
@@ -38,57 +35,68 @@ export function GenerateItineraryMenu(){
     }
     return process.env.ADMOB_IOS_APP_ID;
   }
-  const adUnitId = __DEV__ ? TestIds.REWARDED : getCorrectIdForPlatform();
-  const rewardedInterstitial = RewardedInterstitialAd.createForAdRequest(adUnitId, {
-    keywords: [
-      "adventure travel",
-      "airbnb",
-      "bleisure travel",
-      "booking",
-      "car rental",
-      "cheap flights",
-      "destination dupes",
-      "eco tourism",
-      "family vacation",
-      "glamping",
-      "hotels",
-      "honeymoon packages",
-      "luxury resorts",
-      "solo travel",
-      "sustainable travel",
-      "tourism",
-      "tourist attractions",
-      "travel",
-      "travel insurance",
-      "wellness retreat",
-      "wine tours"
-    ],
-  });
 
   const handleNewItinerary = () => {
     setDisableAdIsLoading(true);
 
-    if(adLoaded){
+    if(adLoaded && rewardedRef.current){
       try{
-        rewardedInterstitial.show();
+        rewardedRef.current.show();
       }catch(error){
-        console.log(error);
+        console.log('Error showing ad:', error);
         setAdLoaded(false);
         setDisableAdIsLoading(false);
       }finally{
         setDisableAdIsLoading(false);
       }
+    } else {
+      console.log('Ad not loaded yet. User must wait for ad to load.');
+      setDisableAdIsLoading(false);
     }
   };
 
   useEffect(() => {
-    const unsubscribeLoaded = rewardedInterstitial.addAdEventListener(
+    console.log('Setting up RewardedAd...');
+    const adUnitId = __DEV__ ? TestIds.REWARDED : getCorrectIdForPlatform();
+    console.log('Ad Unit ID:', adUnitId, '__DEV__:', __DEV__);
+    
+    const rewarded = RewardedAd.createForAdRequest(adUnitId, {
+      keywords: [
+        "adventure travel",
+        "airbnb",
+        "bleisure travel",
+        "booking",
+        "car rental",
+        "cheap flights",
+        "destination dupes",
+        "eco tourism",
+        "family vacation",
+        "glamping",
+        "hotels",
+        "honeymoon packages",
+        "luxury resorts",
+        "solo travel",
+        "sustainable travel",
+        "tourism",
+        "tourist attractions",
+        "travel",
+        "travel insurance",
+        "wellness retreat",
+        "wine tours"
+      ],
+    });
+
+    rewardedRef.current = rewarded;
+    
+    const unsubscribeLoaded = rewarded.addAdEventListener(
       RewardedAdEventType.LOADED,
       () => {
+        console.log('RewardedAd loaded successfully');
         setAdLoaded(true);
       },
     );
-    const unsubscribeEarned = rewardedInterstitial.addAdEventListener(
+    
+    const unsubscribeEarned = rewarded.addAdEventListener(
       RewardedAdEventType.EARNED_REWARD,
       reward => {
         console.log('User watched one more Rewarded Interstitial AD', reward);
@@ -97,10 +105,12 @@ export function GenerateItineraryMenu(){
     );
 
     // Start loading the rewarded interstitial ad straight away
-    rewardedInterstitial.load();
+    console.log('Starting to load RewardedAd...');
+    rewarded.load();
 
     // Unsubscribe from events on unmount
     return () => {
+      console.log('Cleaning up RewardedAd listeners');
       unsubscribeLoaded();
       unsubscribeEarned();
     };
