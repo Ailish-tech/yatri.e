@@ -20,8 +20,9 @@ import { Button, ButtonText, ScrollView, Text, View } from "@gluestack-ui/themed
 
 import { ButtonIconLeft } from "@components/Buttons/ButtonIconLeft";
 import { ItineraryCreateDialog } from "@components/Dialogs/ItineraryCreateDialog";
+import { UnlockProgressModal } from "@components/Itinerary/UnlockProgressModal";
 
-import { ArrowLeft, ChevronRight, Coins, Crown, Heart, Plus } from "lucide-react-native";
+import { ArrowLeft, ChevronRight, Coins, Crown, Heart, Plus, Play } from "lucide-react-native";
 import { IconButton } from "@components/Buttons/IconButton";
 import { useNavigation } from "@react-navigation/native";
 import { AuthNavigationProp } from "@routes/auth.routes";
@@ -38,6 +39,9 @@ export function GenerateItineraryMenu(){
   const [adLoaded, setAdLoaded] = useState<boolean>(false);
   const [disableAdIsLoading, setDisableAdIsLoading] = useState<boolean>(false);
   const [showAdImage, setShowAdImage] = useState<boolean>(false);
+  const [showAdProgressModal, setShowAdProgressModal] = useState<boolean>(false);
+  const [watchedAdsCount, setWatchedAdsCount] = useState<number>(0);
+  const totalAdsRequired = 3;
   
   const navigation = useNavigation<AuthNavigationProp>();
   const rewardedRef = useRef<any>(null);
@@ -69,6 +73,7 @@ export function GenerateItineraryMenu(){
           "destination dupes",
           "eco tourism",
           "family vacation",
+          "fashion",
           "glamping",
           "hotels",
           "honeymoon packages",
@@ -117,6 +122,9 @@ export function GenerateItineraryMenu(){
   };
 
   const handleNewItinerary = () => {
+    // Mostrar o modal de progresso primeiro
+    setShowAdProgressModal(true);
+    
     setDisableAdIsLoading(true);
 
     if (isExpoGo || !RewardedAd || !rewardedRef.current) {
@@ -140,6 +148,23 @@ export function GenerateItineraryMenu(){
       setShowAdImage(true);
       setDisableAdIsLoading(false);
     }
+  };
+
+  const handleCloseAdProgressModal = () => {
+    setShowAdProgressModal(false);
+  };
+
+  const handleContinueAfterAd = () => {
+    setShowAdProgressModal(false);
+    // Simular incremento do progresso para demonstração
+    if (watchedAdsCount < totalAdsRequired) {
+      setWatchedAdsCount(prev => prev + 1);
+    }
+  };
+
+  const handleUpgradeToPremium = () => {
+    setShowAdProgressModal(false);
+    navigation.navigate("PremiumPlans");
   };
 
   const handleCloseAdImage = () => {
@@ -290,6 +315,33 @@ export function GenerateItineraryMenu(){
           <ChevronRight style={{ marginRight: 10 }} />
         </Button>
 
+        {/* Botão de demonstração do modal de progresso */}
+        <Button
+          bgColor="#FF6B35"
+          borderRadius={15}
+          shadowColor="#000"
+          shadowOffset={{ width: 0, height: 4 }}
+          shadowOpacity={0.2}
+          shadowRadius={5}
+          elevation={5}
+          flexDirection="row"
+          justifyContent="space-between"
+          alignItems="center"
+          alignSelf="center"
+          w="95%"
+          minHeight={50}
+          onPress={ () => setShowAdProgressModal(true) }
+          mt={10}
+        >
+          <View flexDirection="row" alignItems="center">
+            <Play size={25} color="#FFFFFF" style={{ marginRight: 8 }} />
+            <View>
+              <Text fontSize="$sm" fontWeight="$bold" color="#FFFFFF">Ver Progresso dos Anúncios</Text>
+            </View>
+          </View>
+          <ChevronRight style={{ marginRight: 10 }} color="#FFFFFF" />
+        </Button>
+
         <View flexDirection="row" justifyContent="center" mt={30} mx={15}>
           <Button 
             borderTopLeftRadius={15} 
@@ -379,6 +431,15 @@ export function GenerateItineraryMenu(){
           ? <ItineraryCreateDialog showAlertDialog={ showAlertDialog } setShowAlertDialog={ setShowAlertDialog } />
           : null
       }
+
+      <UnlockProgressModal
+        visible={showAdProgressModal}
+        onClose={handleCloseAdProgressModal}
+        onContinue={handleContinueAfterAd}
+        onUpgradeToPremium={handleUpgradeToPremium}
+        watchedAds={watchedAdsCount}
+        totalAds={totalAdsRequired}
+      />
 
       <Modal
         visible={showAdImage}
