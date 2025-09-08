@@ -198,9 +198,9 @@ export function SignUpScreen() {
                 <Text mx={10}>Faça login com</Text>
                 <View borderBottomWidth={.7} borderColor='$gray' w="22.5%"></View>
               </View>
-              <View flexDirection='row' justifyContent='center' alignItems='center' w="100%">
-                <ButtonIconImageLeft 
-                  icon={ GoogleLogo }
+              <View width="100%" alignItems="center" mt={10}>
+                <ButtonIconImageLeft
+                  icon={GoogleLogo}
                   iconWidth={30}
                   iconHeight={30}
                   textContent='Google'
@@ -211,15 +211,14 @@ export function SignUpScreen() {
                     photo: "https://cdn.pixabay.com/photo/2022/07/16/04/19/biker-7324421_640.jpg"
                   })}
                   iconStyles={{
-                    marginRight: 15,
-                    marginLeft: 17
+                    marginRight: 15
                   }}
-                  styles={{ 
+                  styles={{
                     borderWidth: .6,
                     borderRadius: 10,
                     width: '80%',
-                    justifyContent: 'center',
-                    textAlign: 'center'
+                    textAlign: 'center',
+                    alignSelf: 'center'
                   }}
                 />
               </View>

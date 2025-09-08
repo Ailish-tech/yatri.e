@@ -185,23 +185,23 @@ export function LoginScreen() {
                 <Text mx={10}>Faça login com</Text>
                 <View borderBottomWidth={.7} borderColor='$gray' w="22.5%"></View>
               </View>
-              <View flexDirection='row' justifyContent='center'>
-                <ButtonIconImageLeft 
-                  icon={ GoogleLogo }
+              <View width="100%" alignItems="center" mt={10}>
+                <ButtonIconImageLeft
+                  icon={GoogleLogo}
                   iconWidth={30}
                   iconHeight={30}
                   textContent='Google'
                   buttonSize='xl'
-                  action={ login }
+                  action={login}
                   iconStyles={{
                     marginRight: 15
                   }}
-                  styles={{ 
+                  styles={{
                     borderWidth: .6,
                     borderRadius: 10,
                     width: '80%',
-                    justifyContent: 'center',
-                    textAlign: 'center'
+                    textAlign: 'center',
+                    alignSelf: 'center'
                   }}
                 />
               </View>
