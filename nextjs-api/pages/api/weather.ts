@@ -12,8 +12,6 @@ export default async function CurrentWeather(req: NextApiRequest, res: NextApiRe
     try {
       const response = await fetch(`http://api.weatherapi.com/v1/current.json?key=${weatherApi}&q=${latitude},${longitude}&aqi=no`)
 
-      console.log("Latitude:", latitude, "Longitude:", longitude);
-
       if(!response.ok){
         throw new Error ("Failed to fetch weather information");
       }
