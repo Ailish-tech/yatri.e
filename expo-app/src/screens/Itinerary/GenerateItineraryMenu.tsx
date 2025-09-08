@@ -1,5 +1,7 @@
 import { useEffect, useState, useRef } from "react";
 import { Platform, SafeAreaView, StatusBar, Modal, Image, Dimensions } from "react-native";
+import { useNavigation } from "@react-navigation/native";
+
 import Constants from 'expo-constants';
 
 let RewardedAd: any, RewardedAdEventType: any, TestIds: any;
@@ -21,12 +23,12 @@ import { Button, ButtonText, ScrollView, Text, View } from "@gluestack-ui/themed
 import { ButtonIconLeft } from "@components/Buttons/ButtonIconLeft";
 import { ItineraryCreateDialog } from "@components/Dialogs/ItineraryCreateDialog";
 import { UnlockProgressModal } from "@components/Itinerary/UnlockProgressModal";
-
-import { ArrowLeft, ChevronRight, Coins, Crown, Heart, Plus, Play } from "lucide-react-native";
-import { IconButton } from "@components/Buttons/IconButton";
-import { useNavigation } from "@react-navigation/native";
-import { AuthNavigationProp } from "@routes/auth.routes";
 import { ItinerariesError } from "@components/Errors/ItinerariesError";
+import { IconButton } from "@components/Buttons/IconButton";
+
+import { AuthNavigationProp } from "@routes/auth.routes";
+
+import { ArrowLeft, ChevronRight, Coins, Crown, Heart, Plus } from "lucide-react-native";
 
 type MenuItineraryTypes = {
   dialog: boolean,
@@ -41,6 +43,8 @@ export function GenerateItineraryMenu(){
   const [showAdImage, setShowAdImage] = useState<boolean>(false);
   const [showAdProgressModal, setShowAdProgressModal] = useState<boolean>(false);
   const [watchedAdsCount, setWatchedAdsCount] = useState<number>(0);
+  const [isAdPlaying, setIsAdPlaying] = useState<boolean>(false);
+
   const totalAdsRequired = 3;
   
   const navigation = useNavigation<AuthNavigationProp>();
@@ -102,10 +106,20 @@ export function GenerateItineraryMenu(){
         RewardedAdEventType.EARNED_REWARD,
         (reward: any) => {
           console.log('User watched another Rewarded AD', reward);
-          setShowAlertDialog(true);
+          setWatchedAdsCount(prev => prev + 1);
+          setDisableAdIsLoading(false);
           setTimeout(() => {
             loadNewAd();
           }, 3000);
+        },
+      );
+
+      const unsubscribeClosed = newRewarded.addAdEventListener(
+        'onAdClosed',
+        () => {
+          console.log('Ad closed');
+          setIsAdPlaying(false);
+          setDisableAdIsLoading(false);
         },
       );
 
@@ -114,6 +128,7 @@ export function GenerateItineraryMenu(){
       return () => {
         unsubscribeLoaded();
         unsubscribeEarned();
+        unsubscribeClosed();
       };
     } catch (error) {
       console.log('Error loading ad:', error);
@@ -122,62 +137,83 @@ export function GenerateItineraryMenu(){
   };
 
   const handleNewItinerary = () => {
-    // Mostrar o modal de progresso primeiro
-    setShowAdProgressModal(true);
-    
-    setDisableAdIsLoading(true);
-
-    if (isExpoGo || !RewardedAd || !rewardedRef.current) {
-      setShowAdImage(true);
+    if (watchedAdsCount === totalAdsRequired) {
       setDisableAdIsLoading(false);
-      return;
-    }
-
-    if(adLoaded && rewardedRef.current){
-      try{
-        rewardedRef.current.show();
-      }catch(error){
-        console.log('Error showing ad:', error);
-        setShowAdImage(true);
-        setAdLoaded(false);
-        setDisableAdIsLoading(false);
-      }finally{
-        setDisableAdIsLoading(false);
-      }
+      setWatchedAdsCount(0);
+      setShowAlertDialog(true);
     } else {
-      setShowAdImage(true);
-      setDisableAdIsLoading(false);
+      setShowAdProgressModal(true);
     }
   };
 
   const handleCloseAdProgressModal = () => {
     setShowAdProgressModal(false);
+    setDisableAdIsLoading(false);
   };
 
   const handleContinueAfterAd = () => {
-    setShowAdProgressModal(false);
-    // Simular incremento do progresso para demonstração
     if (watchedAdsCount < totalAdsRequired) {
-      setWatchedAdsCount(prev => prev + 1);
+      if (isExpoGo || !RewardedAd || !rewardedRef.current) {
+        setShowAdImage(true);
+        setShowAdProgressModal(false);
+        setDisableAdIsLoading(false);
+        setWatchedAdsCount(prev => prev + 1);
+        return;
+      } else {
+        setDisableAdIsLoading(true);
+        if (adLoaded && rewardedRef.current) {
+          try {
+            setIsAdPlaying(true);
+            setShowAdProgressModal(false);
+            rewardedRef.current.show();
+          } catch (error) {
+            console.log('Error showing ad:', error);
+            setAdLoaded(false);
+            setDisableAdIsLoading(false);
+            setIsAdPlaying(false);
+            setShowAdProgressModal(true);
+          }
+        } else {
+          setDisableAdIsLoading(false);
+        }
+      }
+    } else {
+      setShowAdProgressModal(false);
+      setDisableAdIsLoading(false);
+      setShowAlertDialog(true);
     }
   };
 
   const handleUpgradeToPremium = () => {
     setShowAdProgressModal(false);
+    setDisableAdIsLoading(false);
     navigation.navigate("PremiumPlans");
   };
 
   const handleCloseAdImage = () => {
     setShowAdImage(false);
-    setShowAlertDialog(true);
+    setDisableAdIsLoading(false);
+    setIsAdPlaying(false);
+    setShowAdProgressModal(true);
   };
+
+  const handleOnFinishAdProgress = () => {
+    setShowAdProgressModal(false);
+    setShowAlertDialog(true);
+  }
 
   useEffect(() => {
     loadNewAd();
   }, []);
+
+  useEffect(() => {
+    if (!showAdProgressModal && !showAdImage && !showAlertDialog && !isAdPlaying) {
+      setDisableAdIsLoading(false);
+    }
+  }, [showAdProgressModal, showAdImage, showAlertDialog, isAdPlaying]);
   
   return(
-    <SafeAreaView>
+    <SafeAreaView style={{ flex: 1 }}>
       <StatusBar barStyle="dark-content" />
       <ScrollView showsVerticalScrollIndicator={false}>
         <View px={15} mt={5} flexDirection="row" justifyContent="space-between" alignItems="center">
@@ -315,33 +351,6 @@ export function GenerateItineraryMenu(){
           <ChevronRight style={{ marginRight: 10 }} />
         </Button>
 
-        {/* Botão de demonstração do modal de progresso */}
-        <Button
-          bgColor="#FF6B35"
-          borderRadius={15}
-          shadowColor="#000"
-          shadowOffset={{ width: 0, height: 4 }}
-          shadowOpacity={0.2}
-          shadowRadius={5}
-          elevation={5}
-          flexDirection="row"
-          justifyContent="space-between"
-          alignItems="center"
-          alignSelf="center"
-          w="95%"
-          minHeight={50}
-          onPress={ () => setShowAdProgressModal(true) }
-          mt={10}
-        >
-          <View flexDirection="row" alignItems="center">
-            <Play size={25} color="#FFFFFF" style={{ marginRight: 8 }} />
-            <View>
-              <Text fontSize="$sm" fontWeight="$bold" color="#FFFFFF">Ver Progresso dos Anúncios</Text>
-            </View>
-          </View>
-          <ChevronRight style={{ marginRight: 10 }} color="#FFFFFF" />
-        </Button>
-
         <View flexDirection="row" justifyContent="center" mt={30} mx={15}>
           <Button 
             borderTopLeftRadius={15} 
@@ -436,6 +445,7 @@ export function GenerateItineraryMenu(){
         visible={showAdProgressModal}
         onClose={handleCloseAdProgressModal}
         onContinue={handleContinueAfterAd}
+        showItineraryCreate={handleOnFinishAdProgress}
         onUpgradeToPremium={handleUpgradeToPremium}
         watchedAds={watchedAdsCount}
         totalAds={totalAdsRequired}

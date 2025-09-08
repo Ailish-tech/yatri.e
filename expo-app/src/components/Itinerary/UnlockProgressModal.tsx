@@ -1,21 +1,23 @@
 import React, { useEffect, useState } from "react";
 import { Modal, Dimensions, Animated } from "react-native";
 import { Button, ButtonText, Text, View } from "@gluestack-ui/themed";
-import { Play, Star, Gift, X, Crown } from "lucide-react-native";
+import { Play, Star, NotebookPen, X, Crown } from "lucide-react-native";
 
 interface UnlockProgressModalProps {
-  visible: boolean;
-  onClose: () => void;
-  onContinue?: () => void;
-  onUpgradeToPremium?: () => void;
-  watchedAds: number;
-  totalAds: number;
+  visible: boolean,
+  onClose: () => void,
+  onContinue?: () => void,
+  showItineraryCreate: () => void,
+  onUpgradeToPremium?: () => void,
+  watchedAds: number,
+  totalAds: number
 }
 
 export const UnlockProgressModal: React.FC<UnlockProgressModalProps> = ({ 
   visible, 
   onClose, 
   onContinue,
+  showItineraryCreate,
   onUpgradeToPremium,
   watchedAds, 
   totalAds 
@@ -135,6 +137,7 @@ export const UnlockProgressModal: React.FC<UnlockProgressModalProps> = ({
       transparent
       animationType="none"
       onRequestClose={onClose}
+      statusBarTranslucent={false}
     >
       <View
         flex={1}
@@ -142,6 +145,7 @@ export const UnlockProgressModal: React.FC<UnlockProgressModalProps> = ({
         justifyContent="center"
         alignItems="center"
         paddingHorizontal={20}
+        pointerEvents={visible ? "auto" : "none"}
       >
         <Animated.View
           style={{
@@ -172,7 +176,7 @@ export const UnlockProgressModal: React.FC<UnlockProgressModalProps> = ({
                 alignItems="center"
                 marginBottom={15}
               >
-                <Gift size={30} color="#FFFFFF" />
+                <NotebookPen size={30} color="#FFFFFF" />
               </View>
               <Text
                 fontSize={24}
@@ -188,7 +192,6 @@ export const UnlockProgressModal: React.FC<UnlockProgressModalProps> = ({
                 color="#666666"
                 textAlign="center"
                 lineHeight={22}
-                paddingHorizontal={10}
               >
                 Assista 3 anúncios para criar seu itinerário gratuitamente, ajudando assim os desenvolvedores
               </Text>
@@ -239,7 +242,7 @@ export const UnlockProgressModal: React.FC<UnlockProgressModalProps> = ({
                     key={`line-${index}`}
                     position="absolute"
                     left={35 + (index * spacing)}
-                    width={spacing - 50}
+                    width={spacing - 30}
                     height={3}
                     backgroundColor={index < watchedAds - 1 ? "#4CAF50" : "#E0E0E0"}
                     top={23.5}
@@ -288,7 +291,7 @@ export const UnlockProgressModal: React.FC<UnlockProgressModalProps> = ({
                 backgroundColor={watchedAds === totalAds ? "#4CAF50" : "#2752B7"}
                 borderRadius={20}
                 height={55}
-                onPress={onContinue || onClose}
+                onPress={watchedAds === totalAds ? showItineraryCreate : onContinue}
                 shadowColor="#000"
                 shadowOffset={{ width: 0, height: 6 }}
                 shadowOpacity={0.3}
@@ -352,8 +355,8 @@ export const UnlockProgressModal: React.FC<UnlockProgressModalProps> = ({
               top={15}
               right={15}
               width={35}
-              height={35}
-              borderRadius={17.5}
+              height={40}
+              borderRadius="100%"
               backgroundColor="rgba(0, 0, 0, 0.1)"
               onPress={onClose}
               shadowColor="#000"
