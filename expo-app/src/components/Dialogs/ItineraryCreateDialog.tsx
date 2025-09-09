@@ -18,7 +18,8 @@ import RNDateTimePicker from "@react-native-community/datetimepicker";
 
 import { styles } from './styles/itineraryStyles';
 
-import { continents, countries } from "./data/places";
+import { continents, countries, originCountries } from "../../data/places";
+import { getCountryCode } from "../../data/countryCodes";
 
 import { AuthNavigationProp } from "@routes/auth.routes";
 
@@ -37,6 +38,8 @@ export function ItineraryCreateDialog({ showAlertDialog, setShowAlertDialog }: s
   const [days, setDays] = useState<number>(1);
   const [selectedContinent, setSelectedContinent] = useState<string>("");
   const [selectedCountries, setSelectedCountries] = useState<string[]>([]);
+  const [originCountry, setOriginCountry] = useState<string>("");
+  const [showOriginCountrySelector, setShowOriginCountrySelector] = useState<boolean>(false);
   const [includeContacts, setIncludeContacts] = useState<boolean>(false);
   const [listContacts, setListContacts] = useState<Contact[]>([]);
   const [selectedContacts, setSelectedContacts] = useState<Contact[]>([]);
@@ -172,7 +175,16 @@ export function ItineraryCreateDialog({ showAlertDialog, setShowAlertDialog }: s
                 style={styles.nextButton} 
                 onPress={ () => {
                   handleClose();
-                  navigation.navigate("GenerateItineraryPreferences", { title: itineraryTitle, dateBegin: startDate, dateEnd: endDate, days: days, continent: selectedContinent, countries: selectedCountries, contacts: selectedContacts } );
+                  navigation.navigate("GenerateItineraryPreferences", { 
+                    title: itineraryTitle, 
+                    dateBegin: startDate, 
+                    dateEnd: endDate, 
+                    days: days, 
+                    continent: selectedContinent, 
+                    countries: selectedCountries, 
+                    originCountry: originCountry,
+                    contacts: selectedContacts 
+                  } );
                 } }
               >
                 <Text style={styles.nextButtonText}>Próximo</Text>
@@ -275,6 +287,38 @@ export function ItineraryCreateDialog({ showAlertDialog, setShowAlertDialog }: s
                     </TouchableOpacity>
                   </View>
                 </View>
+              </View>
+
+              <View style={styles.section}>
+                <Text style={styles.sectionLabel}>País de Origem</Text>
+                <TouchableOpacity
+                  style={styles.selector}
+                  onPress={() => setShowOriginCountrySelector(!showOriginCountrySelector)}
+                >
+                  <Text style={[styles.selectorText, originCountry && styles.selectorTextSelected]}>
+                    {originCountry || "Selecione seu país de origem"}
+                  </Text>
+                  <ChevronDown size={16} color="#666" />
+                </TouchableOpacity>
+
+                {showOriginCountrySelector && (
+                  <View style={styles.dropdownContainer}>
+                    <ScrollView style={styles.dropdown}>
+                      {originCountries.map((country) => (
+                        <TouchableOpacity
+                          key={country}
+                          style={styles.dropdownItem}
+                          onPress={() => {
+                            setOriginCountry(country);
+                            setShowOriginCountrySelector(false);
+                          }}
+                        >
+                          <Text style={styles.dropdownItemText}>{country}</Text>
+                        </TouchableOpacity>
+                      ))}
+                    </ScrollView>
+                  </View>
+                )}
               </View>
 
               <View style={styles.section}>

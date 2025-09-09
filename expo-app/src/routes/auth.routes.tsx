@@ -44,7 +44,7 @@ type AuthStackParamList = {
   GenerateItinerary: undefined,
   GenerateItineraryFeaturesIntroduction: undefined,
   GenerateItineraryMenu: undefined,
-  GenerateItineraryPreferences: { title: CreatingItinerary["title"], dateBegin: CreatingItinerary["dateBegin"], dateEnd: CreatingItinerary["dateEnd"], days: CreatingItinerary["days"], continent: CreatingItinerary["continent"], countries: CreatingItinerary["countries"], contacts: CreatingItinerary["contacts"] },
+  GenerateItineraryPreferences: { title: CreatingItinerary["title"], dateBegin: CreatingItinerary["dateBegin"], dateEnd: CreatingItinerary["dateEnd"], days: CreatingItinerary["days"], continent: CreatingItinerary["continent"], countries: CreatingItinerary["countries"], originCountry: CreatingItinerary["originCountry"], contacts: CreatingItinerary["contacts"] },
   ItineraryMapMenu: { itineraryData: CreatingItinerary, userPreferences: string[], visaIssue: VisaModelTypes["results"] },
   ItineraryVisaCheck: { itineraryData: CreatingItinerary, userPreferences: string[] },
   ManagePremiumPlan: undefined,

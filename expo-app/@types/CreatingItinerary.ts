@@ -7,6 +7,7 @@ export type CreatingItinerary = {
   days: number, 
   continent: string, 
   countries: Array<string>, 
+  originCountry: string,
   contacts: Contact[],
   budget: number,
   peopleQuantity: number,

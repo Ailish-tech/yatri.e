@@ -48,7 +48,7 @@ export function GenerateItineraryPreferences() {
 
   const navigation = useNavigation<AuthNavigationProp>();
   const route = useRoute<RouteProp<{ params: CreatingItinerary }, 'params'>>();
-  const { title, dateBegin, dateEnd, days, continent, countries, contacts } = route.params;
+  const { title, dateBegin, dateEnd, days, continent, countries, originCountry, contacts } = route.params;
 
   const handleAccompanying = (type: "Family" | "Friends") => {
     setAcconpanyingType(type);
@@ -280,6 +280,7 @@ export function GenerateItineraryPreferences() {
                       days, 
                       continent, 
                       countries, 
+                      originCountry,
                       contacts, 
                       budget, 
                       peopleQuantity, 
