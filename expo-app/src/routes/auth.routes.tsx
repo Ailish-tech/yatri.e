@@ -22,6 +22,7 @@ import { WelcomePremiumPlan } from "@screens/Premium/WelcomePremiumPlan";
 import { ManagePremiumPlan } from "@screens/Premium/ManagePremiumPlan";
 import { OptionsManagePremiumPlan } from "@screens/Premium/OptionsManagePremiumPlan";
 import { CancelPremiumPlan } from "@screens/Premium/CancelPremiumPlan";
+import { ItineraryVisaCheck } from "@screens/Itinerary/ItineraryVisaCheck";
 
 import { NavigationBar } from "@components/NavigationBar";
 
@@ -31,28 +32,29 @@ import { CreatingItinerary } from "../../@types/CreatingItinerary";
 const Stack = createNativeStackNavigator();
 
 type AuthStackParamList = {
-  Home:  { name: string, email: string, photo: string };
-  AIMascotIntroduction: undefined;
-  AIChat: { chatId?: string, topic?: string } | undefined;
-  AIChatMenu: undefined;
-  AIVoiceChat: undefined;
-  CancelPremiumPlan: undefined;
-  DestinationDetail: { destinationId: number };
-  EditProfile: undefined;
-  GenerateItinerary: undefined;
-  GenerateItineraryFeaturesIntroduction: undefined;
-  GenerateItineraryMenu: undefined;
-  GenerateItineraryPreferences: { title: CreatingItinerary["title"], dateBegin: CreatingItinerary["dateBegin"], dateEnd: CreatingItinerary["dateEnd"], days: CreatingItinerary["days"], continent: CreatingItinerary["continent"], countries: CreatingItinerary["countries"], contacts: CreatingItinerary["contacts"] };
-  ItineraryMapMenu: { itineraryData: CreatingItinerary, userPreferences: string[] };
-  ManagePremiumPlan: undefined;
-  MapsExpanded: { places: Place[], loading: boolean };
-  Notifications: undefined;
-  OptionsManagePremiumPlan: undefined;
-  PremiumPlans: undefined;
-  Profile: undefined;
-  Settings: undefined;
-  UserPreferences: CreatingItinerary;
-  WelcomePremium: undefined;
+  Home:  { name: string, email: string, photo: string },
+  AIMascotIntroduction: undefined,
+  AIChat: { chatId?: string, topic?: string } | undefined,
+  AIChatMenu: undefined,
+  AIVoiceChat: undefined,
+  CancelPremiumPlan: undefined,
+  DestinationDetail: { destinationId: number },
+  EditProfile: undefined,
+  GenerateItinerary: undefined,
+  GenerateItineraryFeaturesIntroduction: undefined,
+  GenerateItineraryMenu: undefined,
+  GenerateItineraryPreferences: { title: CreatingItinerary["title"], dateBegin: CreatingItinerary["dateBegin"], dateEnd: CreatingItinerary["dateEnd"], days: CreatingItinerary["days"], continent: CreatingItinerary["continent"], countries: CreatingItinerary["countries"], contacts: CreatingItinerary["contacts"] },
+  ItineraryMapMenu: { itineraryData: CreatingItinerary, userPreferences: string[], visaIssue: boolean },
+  ItineraryVisaCheck: { itineraryData: CreatingItinerary, userPreferences: string[] },
+  ManagePremiumPlan: undefined,
+  MapsExpanded: { places: Place[], loading: boolean },
+  Notifications: undefined,
+  OptionsManagePremiumPlan: undefined,
+  PremiumPlans: undefined,
+  Profile: undefined,
+  Settings: undefined,
+  UserPreferences: CreatingItinerary,
+  WelcomePremium: undefined
 };
 
 export type AuthNavigationProp = NativeStackNavigationProp<AuthStackParamList>;
@@ -184,6 +186,11 @@ export function AuthRoute() {
       <Stack.Screen 
         name="ItineraryMapMenu"
         component={ ItineraryMapMenuWithNavBar } 
+        options={{ animation: 'none' }}
+      />
+      <Stack.Screen 
+        name="ItineraryVisaCheck"
+        component={ ItineraryVisaCheck } 
         options={{ animation: 'none' }}
       />
       <Stack.Screen 

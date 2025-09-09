@@ -3,7 +3,7 @@ import { FlatList, StatusBar } from 'react-native';
 
 import { Box, View, ButtonGroup, Button, ButtonText, Text, Spinner, Image } from "@gluestack-ui/themed";
 
-import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
+import { useNavigation, useRoute, RouteProp, useNavigationState } from '@react-navigation/native';
 import { AuthNavigationProp } from '@routes/auth.routes';
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -32,6 +32,15 @@ export function UserPreferences() {
   const navigation = useNavigation<AuthNavigationProp>();
   const route = useRoute<RouteProp<{ params: CreatingItinerary }, 'params'>>();
   const itineraryData = route.params;
+
+  const previousRouteName = useNavigationState((state) => {
+    const routes = state.routes;
+    const index = state.index;
+    if (index > 0) {
+      return routes[index - 1].name;
+    }
+    return null;
+  });
 
   useEffect(() => {
     const fetchData = async () => {
@@ -168,7 +177,9 @@ export function UserPreferences() {
                 <Button
                   onPress={() => {
                     utilsSetSelectedTags(selectedTags);
-                    navigation.navigate("ItineraryMapMenu", { itineraryData: itineraryData, userPreferences: utilsGetSelectedTags() })
+                    previousRouteName === "Profile"
+                    ? navigation.navigate("Profile")
+                    : navigation.navigate("ItineraryVisaCheck", { itineraryData: itineraryData, userPreferences: utilsGetSelectedTags() })
                   }}
                   w="48%"
                   bgColor="#fff"
