@@ -9,6 +9,8 @@ export const itineraries = [
     "countries": [
       "France", "Switzerland", "United Kingdon"
     ],
+    "userOrigin": "BR",
+    "visa": false,
     "budget": 15000,
     "people": 4,
     "accompanying": "Friends",

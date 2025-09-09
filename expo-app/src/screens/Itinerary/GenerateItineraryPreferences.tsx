@@ -248,7 +248,7 @@ export function GenerateItineraryPreferences() {
               <Text fontSize={16} color="white" mb={8}>Algum desejo especial para esta viagem?</Text>
               <Input borderWidth={1} borderColor="#D1D5DB" borderRadius={12} padding={8} bgColor="#FFF">
                 <InputField 
-                  placeholder="Escreva aqui - Campo não obrigatório" 
+                  placeholder="Eu gostaria de fazer algo específico nesta viagem..." 
                   maxLength={100}
                   value={specialWish}
                   onChangeText={setSpecialWish}
@@ -274,21 +274,21 @@ export function GenerateItineraryPreferences() {
                 <Button
                   onPress={ 
                     () => navigation.navigate("UserPreferences", {
-                      title, 
-                      dateBegin, 
-                      dateEnd, 
-                      days, 
-                      continent, 
-                      countries, 
+                      title,
+                      dateBegin,
+                      dateEnd,
+                      days,
+                      continent,
+                      countries,
                       originCountry,
-                      contacts, 
-                      budget, 
-                      peopleQuantity, 
+                      contacts,
+                      budget,
+                      peopleQuantity,
                       acconpanying: acconpanyingType!,
                       tripStyleTypes: tripStyle[0] || "Urban",
-                      tripStyle, 
+                      tripStyle,
                       vehicleLocomotionTypes: locomotionMethod[0] || "Car",
-                      locomotionMethod, 
+                      locomotionMethod,
                       specialWish
                     })
                   }
