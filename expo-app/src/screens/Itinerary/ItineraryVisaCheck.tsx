@@ -15,33 +15,53 @@ import { VisaModelTypes } from "../../../@types/VisaModelTypes";
 export function ItineraryVisaCheck(){
   const [isVisaNecessary, setIsVisaNecessary] = useState<VisaModelTypes["results"]>();
   const [hasVisaIssueFound, setHasVisaIssueFound] = useState<boolean>(false);
+  const [lastCheckedCountryCode, setLastCheckedCountryCode] = useState<string>("PT");
+  const [isCheckingVisa, setIsCheckingVisa] = useState<boolean>(false);
+  const [problematicCountryCode, setProblematicCountryCode] = useState<string>("");
 
   const navigation = useNavigation<AuthNavigationProp>();
-  const route = useRoute<RouteProp<{ params: CreatingItinerary }, 'params'>>();
-  const itineraryData = route.params;
+  const route = useRoute<RouteProp<{ params: { itineraryData: CreatingItinerary, userPreferences: string[] } }, 'params'>>();
+  const { itineraryData } = route.params;
+
+  // Verificação de segurança para garantir que os dados existem
+  if (!itineraryData || !itineraryData.originCountry) {
+    console.warn("Dados do itinerário não encontrados ou incompletos");
+    return (
+      <VisaModel
+        results="Unknown"
+        origin="ERROR"
+        destination={["ERROR"]}
+        action={ () => navigation.goBack() }
+      />
+    );
+  }
 
   useEffect(() => {
     const checkVisaInformation = async (currentCountry: string) => {
       try{
         const originCode = getCountryCode(itineraryData.originCountry);
-        const response = await fetch(`http://SEU-IP-AQUI:3000/api/passportVisa/${originCode}/${currentCountry}`);
+        setLastCheckedCountryCode(currentCountry);
+        const response = await fetch(`http://SEU-IP-AQUI:3000/api/passportVisa?origin=${originCode}&destination=${currentCountry}`);
 
         if(!response.ok){
           throw new Error("Failed to fetch Visa Information");
         }
 
         const data = await response.json();
+        console.log("Dados => ", data);
 
-        if(data.code === "VOA" || data.code === "EV" || data.code === "VR"){
+        if(data.category.code === "VR" || data.category.code === "VOA" || data.category.code === "EV"){
           setIsVisaNecessary("Negative");
           setHasVisaIssueFound(true);
+          setProblematicCountryCode(currentCountry);
           return true;
-        }else if(data.code === "VF"){
+        }else if(data.category.code === "VF"){
           setIsVisaNecessary("Positive");
           return false;
         }else {
           setIsVisaNecessary("Unknown");
           setHasVisaIssueFound(true);
+          setProblematicCountryCode(currentCountry);
           return true;
         }
       }catch(error){
@@ -53,9 +73,11 @@ export function ItineraryVisaCheck(){
     }
 
     const checkAllCountries = async () => {
-      if (hasVisaIssueFound) {
+      if (hasVisaIssueFound || !itineraryData.countries || itineraryData.countries.length === 0) {
         return;
       }
+
+      setIsCheckingVisa(true);
 
       for (const country of itineraryData.countries) {
         const currentCountryCode = getCountryCode(country);
@@ -66,6 +88,8 @@ export function ItineraryVisaCheck(){
           }
         }
       }
+
+      setIsCheckingVisa(false);
     };
 
     checkAllCountries();
@@ -73,10 +97,22 @@ export function ItineraryVisaCheck(){
 
   return (
     <VisaModel
-      results={ isVisaNecessary || "Unknown" }
-      origin={ getCountryCode(itineraryData.originCountry) }
-      destination={ itineraryData.countries.map(getCountryCode) }
-      action={ () => navigation.navigate("ItineraryMapMenu", { itineraryData: itineraryData, userPreferences: utilsGetSelectedTags(), visaIssue: isVisaNecessary }) }
+      results={ isCheckingVisa ? "Positive" : isVisaNecessary }
+      origin={ getCountryCode(itineraryData.originCountry) || "BR" }
+      destination={ 
+        hasVisaIssueFound && problematicCountryCode 
+          ? [problematicCountryCode] 
+          : [lastCheckedCountryCode] 
+      }
+      action={ () => {
+        if (!isCheckingVisa) {
+          navigation.navigate("ItineraryMapMenu", { 
+            itineraryData: itineraryData, 
+            userPreferences: utilsGetSelectedTags(), 
+            visaIssue: isVisaNecessary 
+          });
+        }
+      }}
     />
   )
 }
