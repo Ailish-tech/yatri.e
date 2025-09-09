@@ -28,6 +28,7 @@ import { NavigationBar } from "@components/NavigationBar";
 
 import { Place } from '../../@types/PlacesTypes';
 import { CreatingItinerary } from "../../@types/CreatingItinerary";
+import { VisaModelTypes } from "../../@types/VisaModelTypes";
 
 const Stack = createNativeStackNavigator();
 
@@ -44,7 +45,7 @@ type AuthStackParamList = {
   GenerateItineraryFeaturesIntroduction: undefined,
   GenerateItineraryMenu: undefined,
   GenerateItineraryPreferences: { title: CreatingItinerary["title"], dateBegin: CreatingItinerary["dateBegin"], dateEnd: CreatingItinerary["dateEnd"], days: CreatingItinerary["days"], continent: CreatingItinerary["continent"], countries: CreatingItinerary["countries"], contacts: CreatingItinerary["contacts"] },
-  ItineraryMapMenu: { itineraryData: CreatingItinerary, userPreferences: string[], visaIssue: boolean },
+  ItineraryMapMenu: { itineraryData: CreatingItinerary, userPreferences: string[], visaIssue: VisaModelTypes["results"] },
   ItineraryVisaCheck: { itineraryData: CreatingItinerary, userPreferences: string[] },
   ManagePremiumPlan: undefined,
   MapsExpanded: { places: Place[], loading: boolean },

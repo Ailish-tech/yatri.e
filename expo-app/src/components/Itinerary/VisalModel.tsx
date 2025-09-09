@@ -4,12 +4,7 @@ import { View, Text, Button, ButtonText } from "@gluestack-ui/themed";
 
 import { IdCard, PlaneTakeoff, ShieldAlert, ShieldCheck, ShieldQuestion } from "lucide-react-native";
 
-type VisaModelTypes = {
-  results: "Negative" | "Unknown" | "Positive",
-  origin: string,
-  destination: string,
-  action: () => void
-}
+import { VisaModelTypes } from '../../../@types/VisaModelTypes';
 
 export function VisaModel({ results, origin, destination, action }: VisaModelTypes){
   return(
