@@ -16,6 +16,18 @@ import { Contact } from "expo-contacts";
 
 import RNDateTimePicker from "@react-native-community/datetimepicker";
 
+import { 
+  FormControl,
+  FormControlLabel,
+  FormControlLabelText,
+  FormControlError,
+  FormControlErrorText,
+  FormControlHelper,
+  FormControlHelperText,
+  Input,
+  InputField
+} from '@gluestack-ui/themed';
+
 import { styles } from './styles/itineraryStyles';
 
 import { continents, countries, originCountries } from "@data/places";
@@ -46,7 +58,50 @@ export function ItineraryCreateDialog({ showAlertDialog, setShowAlertDialog }: s
   const [showContinentSelector, setShowContinentSelector] = useState<boolean>(false);
   const [showCountrySelector, setShowCountrySelector] = useState<boolean>(false);
 
+  // Estados para controlar erros de validação
+  const [errors, setErrors] = useState<{
+    itineraryTitle?: string;
+    originCountry?: string;
+    selectedContinent?: string;
+    selectedCountries?: string;
+  }>({});
+
   const navigation = useNavigation<AuthNavigationProp>();
+
+  // Função de validação dos campos obrigatórios
+  const validateForm = () => {
+    const newErrors: typeof errors = {};
+
+    if (!itineraryTitle.trim()) {
+      newErrors.itineraryTitle = "Título do itinerário é obrigatório";
+    }
+
+    if (!originCountry.trim()) {
+      newErrors.originCountry = "País de origem é obrigatório";
+    }
+
+    if (!selectedContinent.trim()) {
+      newErrors.selectedContinent = "Continente é obrigatório";
+    }
+
+    if (selectedCountries.length === 0) {
+      newErrors.selectedCountries = "Selecione pelo menos um país";
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  // Função para limpar erro de um campo específico
+  const clearFieldError = (fieldName: keyof typeof errors) => {
+    if (errors[fieldName]) {
+      setErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors[fieldName];
+        return newErrors;
+      });
+    }
+  };
 
   const calculateDays = (start: Date, end: Date) => {
     const diffTime = Math.abs(end.getTime() - start.getTime());
@@ -100,6 +155,7 @@ export function ItineraryCreateDialog({ showAlertDialog, setShowAlertDialog }: s
     setSelectedContinent(continent);
     setSelectedCountries([]);
     setShowContinentSelector(false);
+    clearFieldError('selectedContinent');
   };
 
   const toggleCountrySelection = (country: string) => {
@@ -110,6 +166,7 @@ export function ItineraryCreateDialog({ showAlertDialog, setShowAlertDialog }: s
         return [...prev, country];
       }
     });
+    clearFieldError('selectedCountries');
   };
 
   useEffect(() => {
@@ -173,6 +230,9 @@ export function ItineraryCreateDialog({ showAlertDialog, setShowAlertDialog }: s
               <TouchableOpacity 
                 style={styles.nextButton} 
                 onPress={ () => {
+                  if (!validateForm()) {
+                    return;
+                  }
                   handleClose();
                   navigation.navigate("GenerateItineraryPreferences", { 
                     title: itineraryTitle, 
@@ -192,14 +252,31 @@ export function ItineraryCreateDialog({ showAlertDialog, setShowAlertDialog }: s
 
             <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
               <View style={styles.section}>
-                <Text style={styles.sectionLabel}>Título do itinerário</Text>
-                <TextInput
-                  style={styles.textInput}
-                  placeholder="Insira o título deste itinerário"
-                  value={itineraryTitle}
-                  onChangeText={setItineraryTitle}
-                  placeholderTextColor="#9CA3AF"
-                />
+                <FormControl isInvalid={!!errors.itineraryTitle}>
+                  <FormControlLabel>
+                    <FormControlLabelText style={styles.sectionLabel}>
+                      Título do itinerário
+                    </FormControlLabelText>
+                  </FormControlLabel>
+                  <Input variant="outline" size="md">
+                    <InputField
+                      placeholder="Insira o título deste itinerário"
+                      value={itineraryTitle}
+                      onChangeText={(text) => {
+                        setItineraryTitle(text);
+                        clearFieldError('itineraryTitle');
+                      }}
+                      style={{ fontSize: 16 }}
+                    />
+                  </Input>
+                  {errors.itineraryTitle && (
+                    <FormControlError>
+                      <FormControlErrorText style={{ color: '#ef4444' }}>
+                        {errors.itineraryTitle}
+                      </FormControlErrorText>
+                    </FormControlError>
+                  )}
+                </FormControl>
               </View>
 
               <View style={styles.section}>
@@ -289,16 +366,29 @@ export function ItineraryCreateDialog({ showAlertDialog, setShowAlertDialog }: s
               </View>
 
               <View style={styles.section}>
-                <Text style={styles.sectionLabel}>País de Origem</Text>
-                <TouchableOpacity
-                  style={styles.selector}
-                  onPress={() => setShowOriginCountrySelector(!showOriginCountrySelector)}
-                >
-                  <Text style={[styles.selectorText, originCountry && styles.selectorTextSelected]}>
-                    {originCountry || "Selecione seu país de origem"}
-                  </Text>
-                  <ChevronDown size={16} color="#666" />
-                </TouchableOpacity>
+                <FormControl isInvalid={!!errors.originCountry}>
+                  <FormControlLabel>
+                    <FormControlLabelText style={styles.sectionLabel}>
+                      País de Origem
+                    </FormControlLabelText>
+                  </FormControlLabel>
+                  <TouchableOpacity
+                    style={styles.selector}
+                    onPress={() => setShowOriginCountrySelector(!showOriginCountrySelector)}
+                  >
+                    <Text style={[styles.selectorText, originCountry && styles.selectorTextSelected]}>
+                      {originCountry || "Selecione seu país de origem"}
+                    </Text>
+                    <ChevronDown size={16} color="#666" />
+                  </TouchableOpacity>
+                  {errors.originCountry && (
+                    <FormControlError>
+                      <FormControlErrorText style={{ color: '#ef4444' }}>
+                        {errors.originCountry}
+                      </FormControlErrorText>
+                    </FormControlError>
+                  )}
+                </FormControl>
 
                 {showOriginCountrySelector && (
                   <View style={styles.dropdownContainer}>
@@ -310,6 +400,7 @@ export function ItineraryCreateDialog({ showAlertDialog, setShowAlertDialog }: s
                           onPress={() => {
                             setOriginCountry(country);
                             setShowOriginCountrySelector(false);
+                            clearFieldError('originCountry');
                           }}
                         >
                           <Text style={styles.dropdownItemText}>{country}</Text>
@@ -321,16 +412,29 @@ export function ItineraryCreateDialog({ showAlertDialog, setShowAlertDialog }: s
               </View>
 
               <View style={styles.section}>
-                <Text style={styles.sectionLabel}>Continente</Text>
-                <TouchableOpacity
-                  style={styles.selector}
-                  onPress={() => setShowContinentSelector(!showContinentSelector)}
-                >
-                  <Text style={[styles.selectorText, selectedContinent && styles.selectorTextSelected]}>
-                    {selectedContinent || "Selecione um continente"}
-                  </Text>
-                  <ChevronDown size={16} color="#666" />
-                </TouchableOpacity>
+                <FormControl isInvalid={!!errors.selectedContinent}>
+                  <FormControlLabel>
+                    <FormControlLabelText style={styles.sectionLabel}>
+                      Continente
+                    </FormControlLabelText>
+                  </FormControlLabel>
+                  <TouchableOpacity
+                    style={styles.selector}
+                    onPress={() => setShowContinentSelector(!showContinentSelector)}
+                  >
+                    <Text style={[styles.selectorText, selectedContinent && styles.selectorTextSelected]}>
+                      {selectedContinent || "Selecione um continente"}
+                    </Text>
+                    <ChevronDown size={16} color="#666" />
+                  </TouchableOpacity>
+                  {errors.selectedContinent && (
+                    <FormControlError>
+                      <FormControlErrorText style={{ color: '#ef4444' }}>
+                        {errors.selectedContinent}
+                      </FormControlErrorText>
+                    </FormControlError>
+                  )}
+                </FormControl>
 
                 {showContinentSelector && (
                   <View style={styles.dropdownContainer}>
@@ -351,19 +455,32 @@ export function ItineraryCreateDialog({ showAlertDialog, setShowAlertDialog }: s
 
               {selectedContinent && (
                 <View style={styles.section}>
-                  <Text style={styles.sectionLabel}>Países</Text>
-                  <TouchableOpacity
-                    style={styles.selector}
-                    onPress={() => setShowCountrySelector(!showCountrySelector)}
-                  >
-                    <Text style={[styles.selectorText, selectedCountries.length > 0 && styles.selectorTextSelected]}>
-                      {selectedCountries.length > 0 
-                        ? `${selectedCountries.length} país${selectedCountries.length > 1 ? 'es' : ''} selecionado${selectedCountries.length > 1 ? 's' : ''}`
-                        : "Selecione países"
-                      }
-                    </Text>
-                    <ChevronDown size={16} color="#666" />
-                  </TouchableOpacity>
+                  <FormControl isInvalid={!!errors.selectedCountries}>
+                    <FormControlLabel>
+                      <FormControlLabelText style={styles.sectionLabel}>
+                        Países
+                      </FormControlLabelText>
+                    </FormControlLabel>
+                    <TouchableOpacity
+                      style={styles.selector}
+                      onPress={() => setShowCountrySelector(!showCountrySelector)}
+                    >
+                      <Text style={[styles.selectorText, selectedCountries.length > 0 && styles.selectorTextSelected]}>
+                        {selectedCountries.length > 0 
+                          ? `${selectedCountries.length} país${selectedCountries.length > 1 ? 'es' : ''} selecionado${selectedCountries.length > 1 ? 's' : ''}`
+                          : "Selecione países"
+                        }
+                      </Text>
+                      <ChevronDown size={16} color="#666" />
+                    </TouchableOpacity>
+                    {errors.selectedCountries && (
+                      <FormControlError>
+                        <FormControlErrorText style={{ color: '#ef4444' }}>
+                          {errors.selectedCountries}
+                        </FormControlErrorText>
+                      </FormControlError>
+                    )}
+                  </FormControl>
 
                   {selectedCountries.length > 0 && (
                     <View style={styles.selectedCountriesContainer}>

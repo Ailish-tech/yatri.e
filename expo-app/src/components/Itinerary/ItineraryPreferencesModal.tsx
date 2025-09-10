@@ -16,6 +16,18 @@ import { Contact } from "expo-contacts";
 
 import RNDateTimePicker from "@react-native-community/datetimepicker";
 
+import { 
+  FormControl,
+  FormControlLabel,
+  FormControlLabelText,
+  FormControlError,
+  FormControlErrorText,
+  FormControlHelper,
+  FormControlHelperText,
+  Input,
+  InputField
+} from '@gluestack-ui/themed';
+
 import { styles } from './styles/itineraryStyles';
 
 import { originCountries } from "../../data/places";
@@ -51,8 +63,6 @@ export function ItineraryPreferencesModal({ showAlertDialog, setShowAlertDialog 
   const [listContacts, setListContacts] = useState<Contact[]>([]);
   const [selectedContacts, setSelectedContacts] = useState<Contact[]>([]);
   const [showContacts, setShowContacts] = useState<boolean>(false);
-
-  // Campos de preferências da viagem
   const [budget, setBudget] = useState<GenerateItineraryPreferencesFormTypes["budget"]>(0);
   const [peopleQuantity, setPeopleQuantity] = useState<GenerateItineraryPreferencesFormTypes["peopleQuantity"]>(0);
   const [acconpanyingType, setAcconpanyingType] = useState<GenerateItineraryPreferencesFormTypes["acconpanying"]>();
@@ -60,7 +70,63 @@ export function ItineraryPreferencesModal({ showAlertDialog, setShowAlertDialog 
   const [specialWish, setSpecialWish] = useState<GenerateItineraryPreferencesFormTypes["specialWish"]>("");
   const [locomotionMethod, setLocomotionMethod] = useState<Array<GenerateItineraryPreferencesFormTypes["vehicleLocomotionTypes"]>>([]);
 
+  const [errors, setErrors] = useState<{
+    itineraryTitle?: string;
+    originCountry?: string;
+    budget?: string;
+    peopleQuantity?: string;
+    acconpanyingType?: string;
+    tripStyle?: string;
+    locomotionMethod?: string;
+  }>({});
+
   const navigation = useNavigation<AuthNavigationProp>();
+
+  const validateForm = () => {
+    const newErrors: typeof errors = {};
+
+    if (!itineraryTitle.trim()) {
+      newErrors.itineraryTitle = "Título do itinerário é obrigatório";
+    }
+
+    if (!originCountry.trim()) {
+      newErrors.originCountry = "País de origem é obrigatório";
+    }
+
+    if (budget < 100) {
+      newErrors.budget = "Orçamento deve ser de pelo menos R$ 100";
+    }
+
+    if (peopleQuantity <= 0) {
+      newErrors.peopleQuantity = "Quantidade de pessoas deve ser maior que zero";
+    }
+
+    if (!acconpanyingType) {
+      newErrors.acconpanyingType = "Selecione quem te acompanha";
+    }
+
+    if (tripStyle.length === 0) {
+      newErrors.tripStyle = "Selecione pelo menos um estilo de viagem";
+    }
+
+    if (locomotionMethod.length === 0) {
+      newErrors.locomotionMethod = "Selecione pelo menos um método de locomoção";
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  // Função para limpar erro de um campo específico
+  const clearFieldError = (fieldName: keyof typeof errors) => {
+    if (errors[fieldName]) {
+      setErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors[fieldName];
+        return newErrors;
+      });
+    }
+  };
 
   const calculateDays = (start: Date, end: Date) => {
     const diffTime = Math.abs(end.getTime() - start.getTime());
@@ -129,6 +195,7 @@ export function ItineraryPreferencesModal({ showAlertDialog, setShowAlertDialog 
         setTripStyle(newTripStyle);
       }
     }
+    clearFieldError('tripStyle');
   };
 
   const handleLocomotion = (type: GenerateItineraryPreferencesFormTypes["vehicleLocomotionTypes"]) => {
@@ -137,22 +204,8 @@ export function ItineraryPreferencesModal({ showAlertDialog, setShowAlertDialog 
     } else if (locomotionMethod.length < 5) {
       setLocomotionMethod([...locomotionMethod, type]);
     }
+    clearFieldError('locomotionMethod');
   };
-
-  useEffect(() => {
-    (async () => {
-      const { status } = await Contacts.requestPermissionsAsync();
-      if (status === 'granted') {
-        const { data } = await Contacts.getContactsAsync({
-          fields: [Contacts.Fields.PhoneNumbers, Contacts.Fields.FirstName, Contacts.Fields.LastName],
-        });
-
-        if (data.length > 0) {
-          setListContacts(data);
-        }
-      }
-    })();
-  }, []);
 
   const toggleContactSelection = () => {
     const newValue = !includeContacts;
@@ -193,6 +246,21 @@ export function ItineraryPreferencesModal({ showAlertDialog, setShowAlertDialog 
 
   const handleClose = () => setShowAlertDialog(false);
 
+  useEffect(() => {
+    (async () => {
+      const { status } = await Contacts.requestPermissionsAsync();
+      if (status === 'granted') {
+        const { data } = await Contacts.getContactsAsync({
+          fields: [Contacts.Fields.PhoneNumbers, Contacts.Fields.FirstName, Contacts.Fields.LastName],
+        });
+
+        if (data.length > 0) {
+          setListContacts(data);
+        }
+      }
+    })();
+  }, []);
+
   return (
     <>
       <Modal
@@ -211,6 +279,9 @@ export function ItineraryPreferencesModal({ showAlertDialog, setShowAlertDialog 
               <TouchableOpacity 
                 style={styles.nextButton} 
                 onPress={() => {
+                  if (!validateForm()) {
+                    return;
+                  }
                   handleClose();
                   navigation.navigate("UserPreferences", {
                     title: itineraryTitle,
@@ -238,14 +309,31 @@ export function ItineraryPreferencesModal({ showAlertDialog, setShowAlertDialog 
 
             <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
               <View style={styles.section}>
-                <Text style={styles.sectionLabel}>Título do itinerário</Text>
-                <TextInput
-                  style={styles.textInput}
-                  placeholder="Insira o título deste itinerário"
-                  value={itineraryTitle}
-                  onChangeText={setItineraryTitle}
-                  placeholderTextColor="#9CA3AF"
-                />
+                <FormControl isInvalid={!!errors.itineraryTitle}>
+                  <FormControlLabel>
+                    <FormControlLabelText style={styles.sectionLabel}>
+                      Título do itinerário
+                    </FormControlLabelText>
+                  </FormControlLabel>
+                  <Input variant="outline" size="md">
+                    <InputField
+                      placeholder="Insira o título deste itinerário"
+                      value={itineraryTitle}
+                      onChangeText={(text) => {
+                        setItineraryTitle(text);
+                        clearFieldError('itineraryTitle');
+                      }}
+                      style={{ fontSize: 16 }}
+                    />
+                  </Input>
+                  {errors.itineraryTitle && (
+                    <FormControlError>
+                      <FormControlErrorText style={{ color: '#ef4444' }}>
+                        {errors.itineraryTitle}
+                      </FormControlErrorText>
+                    </FormControlError>
+                  )}
+                </FormControl>
               </View>
 
               <View style={styles.section}>
@@ -335,16 +423,29 @@ export function ItineraryPreferencesModal({ showAlertDialog, setShowAlertDialog 
               </View>
 
               <View style={styles.section}>
-                <Text style={styles.sectionLabel}>País de Origem</Text>
-                <TouchableOpacity
-                  style={styles.selector}
-                  onPress={() => setShowOriginCountrySelector(!showOriginCountrySelector)}
-                >
-                  <Text style={[styles.selectorText, originCountry && styles.selectorTextSelected]}>
-                    {originCountry || "Selecione seu país de origem"}
-                  </Text>
-                  <ChevronDown size={16} color="#666" />
-                </TouchableOpacity>
+                <FormControl isInvalid={!!errors.originCountry}>
+                  <FormControlLabel>
+                    <FormControlLabelText style={styles.sectionLabel}>
+                      País de Origem
+                    </FormControlLabelText>
+                  </FormControlLabel>
+                  <TouchableOpacity
+                    style={styles.selector}
+                    onPress={() => setShowOriginCountrySelector(!showOriginCountrySelector)}
+                  >
+                    <Text style={[styles.selectorText, originCountry && styles.selectorTextSelected]}>
+                      {originCountry || "Selecione seu país de origem"}
+                    </Text>
+                    <ChevronDown size={16} color="#666" />
+                  </TouchableOpacity>
+                  {errors.originCountry && (
+                    <FormControlError>
+                      <FormControlErrorText style={{ color: '#ef4444' }}>
+                        {errors.originCountry}
+                      </FormControlErrorText>
+                    </FormControlError>
+                  )}
+                </FormControl>
 
                 {showOriginCountrySelector && (
                   <View style={styles.dropdownContainer}>
@@ -356,6 +457,7 @@ export function ItineraryPreferencesModal({ showAlertDialog, setShowAlertDialog 
                           onPress={() => {
                             setOriginCountry(country);
                             setShowOriginCountrySelector(false);
+                            clearFieldError('originCountry');
                           }}
                         >
                           <Text style={styles.dropdownItemText}>{country}</Text>
@@ -367,129 +469,208 @@ export function ItineraryPreferencesModal({ showAlertDialog, setShowAlertDialog 
               </View>
 
               <View style={styles.section}>
-                <Text style={styles.sectionLabel}>Orçamento máximo a ser gasto nesta viagem</Text>
-                <TextInput
-                  style={styles.textInput}
-                  placeholder="0"
-                  keyboardType="numeric"
-                  value={String(budget)}
-                  onChangeText={text => setBudget(Number(text.replace(/[^0-9]/g, "")))}
-                  placeholderTextColor="#9CA3AF"
-                />
+                <FormControl isInvalid={!!errors.budget}>
+                  <FormControlLabel>
+                    <FormControlLabelText style={styles.sectionLabel}>
+                      Orçamento máximo a ser gasto nesta viagem
+                    </FormControlLabelText>
+                  </FormControlLabel>
+                  <Input variant="outline" size="md">
+                    <InputField
+                      placeholder="0"
+                      keyboardType="numeric"
+                      value={String(budget)}
+                      onChangeText={(text) => {
+                        setBudget(Number(text.replace(/[^0-9]/g, "")));
+                        clearFieldError('budget');
+                      }}
+                      style={{ fontSize: 16 }}
+                    />
+                  </Input>
+                  {errors.budget && (
+                    <FormControlError>
+                      <FormControlErrorText style={{ color: '#ef4444' }}>
+                        {errors.budget}
+                      </FormControlErrorText>
+                    </FormControlError>
+                  )}
+                </FormControl>
               </View>
 
               <View style={styles.section}>
-                <Text style={styles.sectionLabel}>Quantas pessoas te acompanham?</Text>
-                <TextInput
-                  style={styles.textInput}
-                  placeholder="0"
-                  keyboardType="numeric"
-                  value={String(peopleQuantity)}
-                  onChangeText={text => setPeopleQuantity(Number(text.replace(/[^0-9]/g, "")))}
-                  placeholderTextColor="#9CA3AF"
-                />
+                <FormControl isInvalid={!!errors.peopleQuantity}>
+                  <FormControlLabel>
+                    <FormControlLabelText style={styles.sectionLabel}>
+                      Quantas pessoas te acompanham?
+                    </FormControlLabelText>
+                  </FormControlLabel>
+                  <Input variant="outline" size="md">
+                    <InputField
+                      placeholder="0"
+                      keyboardType="numeric"
+                      value={String(peopleQuantity)}
+                      onChangeText={(text) => {
+                        setPeopleQuantity(Number(text.replace(/[^0-9]/g, "")));
+                        clearFieldError('peopleQuantity');
+                      }}
+                      style={{ fontSize: 16 }}
+                    />
+                  </Input>
+                  {errors.peopleQuantity && (
+                    <FormControlError>
+                      <FormControlErrorText style={{ color: '#ef4444' }}>
+                        {errors.peopleQuantity}
+                      </FormControlErrorText>
+                    </FormControlError>
+                  )}
+                </FormControl>
               </View>
 
               <View style={styles.section}>
-                <Text style={styles.sectionLabel}>Quem te acompanha?</Text>
-                <View style={{ flexDirection: 'row', gap: 16 }}>
-                  <TouchableOpacity
-                    style={[
-                      styles.contactOption,
-                      acconpanyingType === "Family" && styles.contactOptionSelected,
-                      { paddingHorizontal: 16, paddingVertical: 12 }
-                    ]}
-                    onPress={() => handleAccompanying("Family")}
-                  >
-                    <Text style={[styles.contactOptionTitle, { fontSize: 16, flex: 1 }]}>Família</Text>
-                    <View style={[styles.checkbox, acconpanyingType === "Family" && styles.checkboxSelected, { marginLeft: 12 }]}>
-                      {acconpanyingType === "Family" && <Text style={styles.checkboxText}>✓</Text>}
-                    </View>
-                  </TouchableOpacity>
-                  
-                  <TouchableOpacity
-                    style={[
-                      styles.contactOption,
-                      acconpanyingType === "Friends" && styles.contactOptionSelected,
-                      { paddingHorizontal: 16, paddingVertical: 12 }
-                    ]}
-                    onPress={() => handleAccompanying("Friends")}
-                  >
-                    <Text style={[styles.contactOptionTitle, { fontSize: 16, flex: 1 }]}>Amigos</Text>
-                    <View style={[styles.checkbox, acconpanyingType === "Friends" && styles.checkboxSelected, { marginLeft: 12 }]}>
-                      {acconpanyingType === "Friends" && <Text style={styles.checkboxText}>✓</Text>}
-                    </View>
-                  </TouchableOpacity>
-                </View>
-              </View>
-
-              <View style={styles.section}>
-                <Text style={styles.sectionLabel}>Qual estilo de viagem você prefere?</Text>
-                <View style={{ flexDirection: 'column', gap: 8 }}>
-                  <TouchableOpacity
-                    style={[
-                      styles.contactOption,
-                      tripStyle.includes("Urban") && styles.contactOptionSelected
-                    ]}
-                    onPress={() => handleTripStyle("Urban")}
-                  >
-                    <Text style={[styles.contactOptionTitle, { fontSize: 16 }]}>Urbana</Text>
-                    <View style={[styles.checkbox, tripStyle.includes("Urban") && styles.checkboxSelected]}>
-                      {tripStyle.includes("Urban") && <Text style={styles.checkboxText}>✓</Text>}
-                    </View>
-                  </TouchableOpacity>
-                  
-                  <TouchableOpacity
-                    style={[
-                      styles.contactOption,
-                      tripStyle.includes("Countryside") && styles.contactOptionSelected
-                    ]}
-                    onPress={() => handleTripStyle("Countryside")}
-                  >
-                    <Text style={[styles.contactOptionTitle, { fontSize: 16 }]}>Rural</Text>
-                    <View style={[styles.checkbox, tripStyle.includes("Countryside") && styles.checkboxSelected]}>
-                      {tripStyle.includes("Countryside") && <Text style={styles.checkboxText}>✓</Text>}
-                    </View>
-                  </TouchableOpacity>
-                  
-                  <TouchableOpacity
-                    style={[
-                      styles.contactOption,
-                      (tripStyle.includes("Urban") && tripStyle.includes("Countryside")) && styles.contactOptionSelected
-                    ]}
-                    onPress={() => handleTripStyle("Both")}
-                  >
-                    <Text style={[styles.contactOptionTitle, { fontSize: 16 }]}>Ambos</Text>
-                    <View style={[styles.checkbox, (tripStyle.includes("Urban") && tripStyle.includes("Countryside")) && styles.checkboxSelected]}>
-                      {(tripStyle.includes("Urban") && tripStyle.includes("Countryside")) && <Text style={styles.checkboxText}>✓</Text>}
-                    </View>
-                  </TouchableOpacity>
-                </View>
-              </View>
-
-              <View style={styles.section}>
-                <Text style={styles.sectionLabel}>Método de locomoção preferido? (máximo 5)</Text>
-                <View style={{ flexDirection: 'column', gap: 8 }}>
-                  {(["Car", "Motorcycle", "Foot", "Train", "Boat", "Bicycle"] as const).map(type => (
+                <FormControl isInvalid={!!errors.acconpanyingType}>
+                  <FormControlLabel>
+                    <FormControlLabelText style={styles.sectionLabel}>
+                      Quem te acompanha nesta viagem?
+                    </FormControlLabelText>
+                  </FormControlLabel>
+                  <View style={{ flexDirection: 'row', gap: 16 }}>
                     <TouchableOpacity
-                      key={type}
                       style={[
                         styles.contactOption,
-                        locomotionMethod.includes(type) && styles.contactOptionSelected,
-                        locomotionMethod.length >= 5 && !locomotionMethod.includes(type) && { opacity: 0.5 }
+                        acconpanyingType === "Family" && styles.contactOptionSelected,
+                        { flex: 1, paddingHorizontal: 16, paddingVertical: 12 }
                       ]}
-                      onPress={() => handleLocomotion(type)}
-                      disabled={locomotionMethod.length >= 5 && !locomotionMethod.includes(type)}
+                      onPress={() => {
+                        handleAccompanying("Family");
+                        clearFieldError('acconpanyingType');
+                      }}
                     >
-                      <Text style={[styles.contactOptionTitle, { fontSize: 16 }]}>
-                        {getLocomotionLabel(type)}
-                      </Text>
-                      <View style={[styles.checkbox, locomotionMethod.includes(type) && styles.checkboxSelected]}>
-                        {locomotionMethod.includes(type) && <Text style={styles.checkboxText}>✓</Text>}
+                      <Text style={[styles.contactOptionTitle, { fontSize: 16 }]}>Família</Text>
+                      <View style={[styles.checkbox, acconpanyingType === "Family" && styles.checkboxSelected]}>
+                        {acconpanyingType === "Family" && <Text style={styles.checkboxText}>✓</Text>}
                       </View>
                     </TouchableOpacity>
-                  ))}
-                </View>
+                    
+                    <TouchableOpacity
+                      style={[
+                        styles.contactOption,
+                        acconpanyingType === "Friends" && styles.contactOptionSelected,
+                        { flex: 1, paddingHorizontal: 16, paddingVertical: 12 }
+                      ]}
+                      onPress={() => {
+                        handleAccompanying("Friends");
+                        clearFieldError('acconpanyingType');
+                      }}
+                    >
+                      <Text style={[styles.contactOptionTitle, { fontSize: 16 }]}>Amigos</Text>
+                      <View style={[styles.checkbox, acconpanyingType === "Friends" && styles.checkboxSelected]}>
+                        {acconpanyingType === "Friends" && <Text style={styles.checkboxText}>✓</Text>}
+                      </View>
+                    </TouchableOpacity>
+                  </View>
+                  {errors.acconpanyingType && (
+                    <FormControlError>
+                      <FormControlErrorText style={{ color: '#ef4444' }}>
+                        {errors.acconpanyingType}
+                      </FormControlErrorText>
+                    </FormControlError>
+                  )}
+                </FormControl>
+              </View>
+
+              <View style={styles.section}>
+                <FormControl isInvalid={!!errors.tripStyle}>
+                  <FormControlLabel>
+                    <FormControlLabelText style={styles.sectionLabel}>
+                      Qual estilo de viagem você prefere?
+                    </FormControlLabelText>
+                  </FormControlLabel>
+                  <View style={{ flexDirection: 'column', gap: 8 }}>
+                    <TouchableOpacity
+                      style={[
+                        styles.contactOption,
+                        tripStyle.includes("Urban") && styles.contactOptionSelected
+                      ]}
+                      onPress={() => handleTripStyle("Urban")}
+                    >
+                      <Text style={[styles.contactOptionTitle, { fontSize: 16 }]}>Urbana</Text>
+                      <View style={[styles.checkbox, tripStyle.includes("Urban") && styles.checkboxSelected]}>
+                        {tripStyle.includes("Urban") && <Text style={styles.checkboxText}>✓</Text>}
+                      </View>
+                    </TouchableOpacity>
+                    
+                    <TouchableOpacity
+                      style={[
+                        styles.contactOption,
+                        tripStyle.includes("Countryside") && styles.contactOptionSelected
+                      ]}
+                      onPress={() => handleTripStyle("Countryside")}
+                    >
+                      <Text style={[styles.contactOptionTitle, { fontSize: 16 }]}>Rural</Text>
+                      <View style={[styles.checkbox, tripStyle.includes("Countryside") && styles.checkboxSelected]}>
+                        {tripStyle.includes("Countryside") && <Text style={styles.checkboxText}>✓</Text>}
+                      </View>
+                    </TouchableOpacity>
+                    
+                    <TouchableOpacity
+                      style={[
+                        styles.contactOption,
+                        (tripStyle.includes("Urban") && tripStyle.includes("Countryside")) && styles.contactOptionSelected
+                      ]}
+                      onPress={() => handleTripStyle("Both")}
+                    >
+                      <Text style={[styles.contactOptionTitle, { fontSize: 16 }]}>Ambos</Text>
+                      <View style={[styles.checkbox, (tripStyle.includes("Urban") && tripStyle.includes("Countryside")) && styles.checkboxSelected]}>
+                        {(tripStyle.includes("Urban") && tripStyle.includes("Countryside")) && <Text style={styles.checkboxText}>✓</Text>}
+                      </View>
+                    </TouchableOpacity>
+                  </View>
+                  {errors.tripStyle && (
+                    <FormControlError>
+                      <FormControlErrorText style={{ color: '#ef4444' }}>
+                        {errors.tripStyle}
+                      </FormControlErrorText>
+                    </FormControlError>
+                  )}
+                </FormControl>
+              </View>
+
+              <View style={styles.section}>
+                <FormControl isInvalid={!!errors.locomotionMethod}>
+                  <FormControlLabel>
+                    <FormControlLabelText style={styles.sectionLabel}>
+                      Método de locomoção preferido? (máximo 5)
+                    </FormControlLabelText>
+                  </FormControlLabel>
+                  <View style={{ flexDirection: 'column', gap: 8 }}>
+                    {(["Car", "Motorcycle", "Foot", "Train", "Boat", "Bicycle"] as const).map(type => (
+                      <TouchableOpacity
+                        key={type}
+                        style={[
+                          styles.contactOption,
+                          locomotionMethod.includes(type) && styles.contactOptionSelected,
+                          locomotionMethod.length >= 5 && !locomotionMethod.includes(type) && { opacity: 0.5 }
+                        ]}
+                        onPress={() => handleLocomotion(type)}
+                        disabled={locomotionMethod.length >= 5 && !locomotionMethod.includes(type)}
+                      >
+                        <Text style={[styles.contactOptionTitle, { fontSize: 16 }]}>
+                          {getLocomotionLabel(type)}
+                        </Text>
+                        <View style={[styles.checkbox, locomotionMethod.includes(type) && styles.checkboxSelected]}>
+                          {locomotionMethod.includes(type) && <Text style={styles.checkboxText}>✓</Text>}
+                        </View>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                  {errors.locomotionMethod && (
+                    <FormControlError>
+                      <FormControlErrorText style={{ color: '#ef4444' }}>
+                        {errors.locomotionMethod}
+                      </FormControlErrorText>
+                    </FormControlError>
+                  )}
+                </FormControl>
               </View>
 
               <View style={styles.section}>

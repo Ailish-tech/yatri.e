@@ -276,7 +276,7 @@ export function ChooseGenerateStyle({ showModal, setShowModal, onDefinedItinerar
                   color="$text"
                   ml={8}
                 >
-                  Dica Personalizada
+                  Dica Importante
                 </Text>
               </View>
               <Text 

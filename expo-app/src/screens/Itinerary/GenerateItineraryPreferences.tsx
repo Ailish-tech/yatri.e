@@ -15,7 +15,12 @@ import {
   CheckboxLabel,
   Button,
   ButtonText,
-  ButtonGroup
+  ButtonGroup,
+  FormControl,
+  FormControlLabel,
+  FormControlLabelText,
+  FormControlError,
+  FormControlErrorText
 } from "@gluestack-ui/themed";
 
 import AnimatedStar from '@components/AnimatedStar';
@@ -46,12 +51,61 @@ export function GenerateItineraryPreferences() {
   const [specialWish, setSpecialWish] = useState<GenerateItineraryPreferencesFormTypes["specialWish"]>("");
   const [locomotionMethod, setLocomotionMethod] = useState<Array<GenerateItineraryPreferencesFormTypes["vehicleLocomotionTypes"]>>([]);
 
+  // Estados para controlar erros de validação
+  const [errors, setErrors] = useState<{
+    budget?: string;
+    peopleQuantity?: string;
+    acconpanyingType?: string;
+    tripStyle?: string;
+    locomotionMethod?: string;
+  }>({});
+
   const navigation = useNavigation<AuthNavigationProp>();
   const route = useRoute<RouteProp<{ params: CreatingItinerary }, 'params'>>();
   const { title, dateBegin, dateEnd, days, continent, countries, originCountry, contacts } = route.params;
 
+  // Função de validação dos campos obrigatórios
+  const validateForm = () => {
+    const newErrors: typeof errors = {};
+
+    if (budget < 100) {
+      newErrors.budget = "Orçamento deve ser de pelo menos R$ 100";
+    }
+
+    if (peopleQuantity <= 0) {
+      newErrors.peopleQuantity = "Quantidade de pessoas deve ser maior que zero";
+    }
+
+    if (!acconpanyingType) {
+      newErrors.acconpanyingType = "Selecione quem te acompanha";
+    }
+
+    if (tripStyle.length === 0) {
+      newErrors.tripStyle = "Selecione pelo menos um estilo de viagem";
+    }
+
+    if (locomotionMethod.length === 0) {
+      newErrors.locomotionMethod = "Selecione pelo menos um método de locomoção";
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  // Função para limpar erro de um campo específico
+  const clearFieldError = (fieldName: keyof typeof errors) => {
+    if (errors[fieldName]) {
+      setErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors[fieldName];
+        return newErrors;
+      });
+    }
+  };
+
   const handleAccompanying = (type: "Family" | "Friends") => {
     setAcconpanyingType(type);
+    clearFieldError('acconpanyingType');
   };
 
   const handleTripStyle = (type: "Urban" | "Countryside" | "Both") => {
@@ -69,6 +123,7 @@ export function GenerateItineraryPreferences() {
         setTripStyle(newTripStyle);
       }
     }
+    clearFieldError('tripStyle');
   };
 
   const handleLocomotion = (type: GenerateItineraryPreferencesFormTypes["vehicleLocomotionTypes"]) => {
@@ -77,6 +132,7 @@ export function GenerateItineraryPreferences() {
     } else if (locomotionMethod.length < 5) {
       setLocomotionMethod([...locomotionMethod, type]);
     }
+    clearFieldError('locomotionMethod');
   };
 
   return (
@@ -115,134 +171,205 @@ export function GenerateItineraryPreferences() {
         <View>
           <View>
             <View mb={20}>
-              <Text fontSize={16} color="white" mb={8}>Orçamento máximo a ser gasto nesta viagem</Text>
-              <Input borderWidth={1} borderColor="#D1D5DB" borderRadius={12} padding={8} bgColor="#FFF">
-                <InputField 
-                  placeholder="0" 
-                  keyboardType="numeric" 
-                  value={String(budget)}
-                  onChangeText={text => setBudget(Number(text.replace(/[^0-9]/g, "")))}
-                />
-              </Input>
+              <FormControl isInvalid={!!errors.budget}>
+                <FormControlLabel>
+                  <FormControlLabelText fontSize={16} color="white" mb={8}>
+                    Orçamento máximo a ser gasto nesta viagem
+                  </FormControlLabelText>
+                </FormControlLabel>
+                <Input borderWidth={1} borderColor="#D1D5DB" borderRadius={12} padding={8} bgColor="#FFF">
+                  <InputField 
+                    placeholder="0" 
+                    keyboardType="numeric" 
+                    value={String(budget)}
+                    onChangeText={(text) => {
+                      setBudget(Number(text.replace(/[^0-9]/g, "")));
+                      clearFieldError('budget');
+                    }}
+                  />
+                </Input>
+                {errors.budget && (
+                  <FormControlError>
+                    <FormControlErrorText style={{ color: '#fbbf24' }}>
+                      {errors.budget}
+                    </FormControlErrorText>
+                  </FormControlError>
+                )}
+              </FormControl>
             </View>
             <View mb={20}>
-              <Text fontSize={16} color="white" mb={8}>Quantas pessoas te acompanham?</Text>
-              <Input borderWidth={1} borderColor="#D1D5DB" borderRadius={12} padding={8} bgColor="#FFF">
-                <InputField 
-                  placeholder="0" 
-                  keyboardType="numeric" 
-                  value={String(peopleQuantity)}
-                  onChangeText={text => setPeopleQuantity(Number(text.replace(/[^0-9]/g, "")))}
-                />
-              </Input>
+              <FormControl isInvalid={!!errors.peopleQuantity}>
+                <FormControlLabel>
+                  <FormControlLabelText fontSize={16} color="white" mb={8}>
+                    Quantas pessoas te acompanham?
+                  </FormControlLabelText>
+                </FormControlLabel>
+                <Input borderWidth={1} borderColor="#D1D5DB" borderRadius={12} padding={8} bgColor="#FFF">
+                  <InputField 
+                    placeholder="0" 
+                    keyboardType="numeric" 
+                    value={String(peopleQuantity)}
+                    onChangeText={(text) => {
+                      setPeopleQuantity(Number(text.replace(/[^0-9]/g, "")));
+                      clearFieldError('peopleQuantity');
+                    }}
+                  />
+                </Input>
+                {errors.peopleQuantity && (
+                  <FormControlError>
+                    <FormControlErrorText style={{ color: '#fbbf24' }}>
+                      {errors.peopleQuantity}
+                    </FormControlErrorText>
+                  </FormControlError>
+                )}
+              </FormControl>
             </View>
             <View flexDirection="column" mb={20}>
-              <Text fontSize={16} color="white" mb={8}>Quem te acompanha?</Text>
-              <View flexDirection="row" ml={5}>
-                <Checkbox 
-                  isDisabled={false} 
-                  isInvalid={false} 
-                  size="lg" 
-                  value={acconpanyingType === "Family" ? "checked" : ""}
-                  mr={20}
-                  onPress={() => handleAccompanying("Family")}
-                >
-                  <CheckboxIndicator 
-                    borderColor="white" 
-                    borderWidth={2}
-                    borderRadius={6}
-                    bgColor="transparent"
-                  >
-                    <CheckboxIcon as={Check} color="white" />
-                  </CheckboxIndicator>
-                  <CheckboxLabel ml={5} color="white" fontSize={16}>Família</CheckboxLabel>
-                </Checkbox>
-                <Checkbox 
-                  isDisabled={false} 
-                  isInvalid={false} 
-                  size="lg" 
-                  value={acconpanyingType === "Friends" ? "checked" : ""}
-                  mr={20}
-                  onPress={() => handleAccompanying("Friends")}
-                >
-                  <CheckboxIndicator 
-                    borderColor="white" 
-                    borderWidth={2}
-                    borderRadius={6}
-                    bgColor="transparent"
-                  >
-                    <CheckboxIcon as={Check} color="white" />
-                  </CheckboxIndicator>
-                  <CheckboxLabel ml={5} color="white" fontSize={16}>Amigos</CheckboxLabel>
-                </Checkbox>
-              </View>
-            </View>
-            <View flexDirection="column" mb={20}>
-              <Text fontSize={16} color="white" mb={8}>Qual estilo de viagem você prefere?</Text>
-              <View flexDirection="row" ml={5}>
-                <Checkbox 
-                  isDisabled={false}
-                  isInvalid={false} 
-                  size="lg" 
-                  value={tripStyle.includes("Urban") ? "Urban" : ""} 
-                  isChecked={tripStyle.includes("Urban")}
-                  mr={20}
-                  onPress={() => handleTripStyle("Urban")}
-                >
-                  <CheckboxIndicator borderColor="white" borderWidth={2} borderRadius={6} bgColor="transparent">
-                    <CheckboxIcon as={Check} color="white" />
-                  </CheckboxIndicator>
-                  <CheckboxLabel ml={5} color="white" fontSize={16}>Urbana</CheckboxLabel>
-                </Checkbox>
-                <Checkbox 
-                  isDisabled={false}
-                  isInvalid={false} 
-                  size="lg" 
-                  value={tripStyle.includes("Countryside") ? "Countryside" : ""} 
-                  isChecked={tripStyle.includes("Countryside")}
-                  mr={20}
-                  onPress={() => handleTripStyle("Countryside")}
-                >
-                  <CheckboxIndicator borderColor="white" borderWidth={2} borderRadius={6} bgColor="transparent">
-                    <CheckboxIcon as={Check} color="white" />
-                  </CheckboxIndicator>
-                  <CheckboxLabel ml={5} color="white" fontSize={16}>Rural</CheckboxLabel>
-                </Checkbox>
-                <Checkbox 
-                  isDisabled={tripStyle.includes("Urban") || tripStyle.includes("Countryside")}
-                  isInvalid={false} 
-                  size="lg" 
-                  value={tripStyle.includes("Urban") && tripStyle.includes("Countryside") ? "Both" : ""}
-                  isChecked={tripStyle.includes("Urban") && tripStyle.includes("Countryside")}
-                  onPress={() => handleTripStyle("Both")}
-                >
-                  <CheckboxIndicator borderColor="white" borderWidth={2} borderRadius={6} bgColor="transparent">
-                    <CheckboxIcon as={Check} color="white" />
-                  </CheckboxIndicator>
-                  <CheckboxLabel ml={5} color="white" fontSize={16}>Ambos</CheckboxLabel>
-                </Checkbox>
-              </View>
-            </View>
-            <View flexDirection="column" mb={20}>
-              <Text fontSize={16} color="white" mb={8}>Método de locomoção preferido?</Text>
-              <View flexDirection="row" flexWrap="wrap" rowGap={8} ml={5}>
-                {(["Car", "Motorcycle", "Foot", "Train", "Boat", "Bicycle"] as const).map(type => (
-                  <Checkbox
-                    key={type}
-                    isDisabled={locomotionMethod.length >= 5 && !locomotionMethod.includes(type)}
-                    isInvalid={false}
-                    size="lg"
-                    value={locomotionMethod.includes(type) ? "checked" : ""}
+              <FormControl isInvalid={!!errors.acconpanyingType}>
+                <FormControlLabel>
+                  <FormControlLabelText fontSize={16} color="white" mb={8}>
+                    Quem te acompanha?
+                  </FormControlLabelText>
+                </FormControlLabel>
+                <View flexDirection="row" ml={5}>
+                  <Checkbox 
+                    isDisabled={false} 
+                    isInvalid={false} 
+                    size="lg" 
+                    value={acconpanyingType === "Family" ? "checked" : ""}
                     mr={20}
-                    onPress={() => handleLocomotion(type)}
+                    onPress={() => handleAccompanying("Family")}
+                  >
+                    <CheckboxIndicator 
+                      borderColor="white" 
+                      borderWidth={2}
+                      borderRadius={6}
+                      bgColor="transparent"
+                    >
+                      <CheckboxIcon as={Check} color="white" />
+                    </CheckboxIndicator>
+                    <CheckboxLabel ml={5} color="white" fontSize={16}>Família</CheckboxLabel>
+                  </Checkbox>
+                  <Checkbox 
+                    isDisabled={false} 
+                    isInvalid={false} 
+                    size="lg" 
+                    value={acconpanyingType === "Friends" ? "checked" : ""}
+                    mr={20}
+                    onPress={() => handleAccompanying("Friends")}
+                  >
+                    <CheckboxIndicator 
+                      borderColor="white" 
+                      borderWidth={2}
+                      borderRadius={6}
+                      bgColor="transparent"
+                    >
+                      <CheckboxIcon as={Check} color="white" />
+                    </CheckboxIndicator>
+                    <CheckboxLabel ml={5} color="white" fontSize={16}>Amigos</CheckboxLabel>
+                  </Checkbox>
+                </View>
+                {errors.acconpanyingType && (
+                  <FormControlError>
+                    <FormControlErrorText style={{ color: '#fbbf24' }}>
+                      {errors.acconpanyingType}
+                    </FormControlErrorText>
+                  </FormControlError>
+                )}
+              </FormControl>
+            </View>
+            <View flexDirection="column" mb={20}>
+              <FormControl isInvalid={!!errors.tripStyle}>
+                <FormControlLabel>
+                  <FormControlLabelText fontSize={16} color="white" mb={8}>
+                    Qual estilo de viagem você prefere?
+                  </FormControlLabelText>
+                </FormControlLabel>
+                <View flexDirection="row" ml={5}>
+                  <Checkbox 
+                    isDisabled={false}
+                    isInvalid={false} 
+                    size="lg" 
+                    value={tripStyle.includes("Urban") ? "Urban" : ""} 
+                    isChecked={tripStyle.includes("Urban")}
+                    mr={20}
+                    onPress={() => handleTripStyle("Urban")}
                   >
                     <CheckboxIndicator borderColor="white" borderWidth={2} borderRadius={6} bgColor="transparent">
                       <CheckboxIcon as={Check} color="white" />
                     </CheckboxIndicator>
-                    <CheckboxLabel ml={5} color="white" fontSize={16}>{type === "Foot" ? "Caminhada" : type === "Motorcycle" ? "Moto" : type === "Car" ? "Carro" : type === "Train" ? "Trem" : type === "Boat" ? "Barco" : "Bicicleta"}</CheckboxLabel>
+                    <CheckboxLabel ml={5} color="white" fontSize={16}>Urbana</CheckboxLabel>
                   </Checkbox>
-                ))}
-              </View>
+                  <Checkbox 
+                    isDisabled={false}
+                    isInvalid={false} 
+                    size="lg" 
+                    value={tripStyle.includes("Countryside") ? "Countryside" : ""} 
+                    isChecked={tripStyle.includes("Countryside")}
+                    mr={20}
+                    onPress={() => handleTripStyle("Countryside")}
+                  >
+                    <CheckboxIndicator borderColor="white" borderWidth={2} borderRadius={6} bgColor="transparent">
+                      <CheckboxIcon as={Check} color="white" />
+                    </CheckboxIndicator>
+                    <CheckboxLabel ml={5} color="white" fontSize={16}>Rural</CheckboxLabel>
+                  </Checkbox>
+                  <Checkbox 
+                    isDisabled={tripStyle.includes("Urban") || tripStyle.includes("Countryside")}
+                    isInvalid={false} 
+                    size="lg" 
+                    value={tripStyle.includes("Urban") && tripStyle.includes("Countryside") ? "Both" : ""}
+                    isChecked={tripStyle.includes("Urban") && tripStyle.includes("Countryside")}
+                    onPress={() => handleTripStyle("Both")}
+                  >
+                    <CheckboxIndicator borderColor="white" borderWidth={2} borderRadius={6} bgColor="transparent">
+                      <CheckboxIcon as={Check} color="white" />
+                    </CheckboxIndicator>
+                    <CheckboxLabel ml={5} color="white" fontSize={16}>Ambos</CheckboxLabel>
+                  </Checkbox>
+                </View>
+                {errors.tripStyle && (
+                  <FormControlError>
+                    <FormControlErrorText style={{ color: '#fbbf24' }}>
+                      {errors.tripStyle}
+                    </FormControlErrorText>
+                  </FormControlError>
+                )}
+              </FormControl>
+            </View>
+            <View flexDirection="column" mb={20}>
+              <FormControl isInvalid={!!errors.locomotionMethod}>
+                <FormControlLabel>
+                  <FormControlLabelText fontSize={16} color="white" mb={8}>
+                    Método de locomoção preferido?
+                  </FormControlLabelText>
+                </FormControlLabel>
+                <View flexDirection="row" flexWrap="wrap" rowGap={8} ml={5}>
+                  {(["Car", "Motorcycle", "Foot", "Train", "Boat", "Bicycle"] as const).map(type => (
+                    <Checkbox
+                      key={type}
+                      isDisabled={locomotionMethod.length >= 5 && !locomotionMethod.includes(type)}
+                      isInvalid={false}
+                      size="lg"
+                      value={locomotionMethod.includes(type) ? "checked" : ""}
+                      mr={20}
+                      onPress={() => handleLocomotion(type)}
+                    >
+                      <CheckboxIndicator borderColor="white" borderWidth={2} borderRadius={6} bgColor="transparent">
+                        <CheckboxIcon as={Check} color="white" />
+                      </CheckboxIndicator>
+                      <CheckboxLabel ml={5} color="white" fontSize={16}>{type === "Foot" ? "Caminhada" : type === "Motorcycle" ? "Moto" : type === "Car" ? "Carro" : type === "Train" ? "Trem" : type === "Boat" ? "Barco" : "Bicicleta"}</CheckboxLabel>
+                    </Checkbox>
+                  ))}
+                </View>
+                {errors.locomotionMethod && (
+                  <FormControlError>
+                    <FormControlErrorText style={{ color: '#fbbf24' }}>
+                      {errors.locomotionMethod}
+                    </FormControlErrorText>
+                  </FormControlError>
+                )}
+              </FormControl>
             </View>
             <View mb={20}>
               <Text fontSize={16} color="white" mb={8}>Algum desejo especial para esta viagem?</Text>
@@ -273,24 +400,29 @@ export function GenerateItineraryPreferences() {
                 </Button>
                 <Button
                   onPress={ 
-                    () => navigation.navigate("UserPreferences", {
-                      title,
-                      dateBegin,
-                      dateEnd,
-                      days,
-                      continent,
-                      countries,
-                      originCountry,
-                      contacts,
-                      budget,
-                      peopleQuantity,
-                      acconpanying: acconpanyingType!,
-                      tripStyleTypes: tripStyle[0] || "Urban",
-                      tripStyle,
-                      vehicleLocomotionTypes: locomotionMethod[0] || "Car",
-                      locomotionMethod,
-                      specialWish
-                    })
+                    () => {
+                      if (!validateForm()) {
+                        return;
+                      }
+                      navigation.navigate("UserPreferences", {
+                        title,
+                        dateBegin,
+                        dateEnd,
+                        days,
+                        continent,
+                        countries,
+                        originCountry,
+                        contacts,
+                        budget,
+                        peopleQuantity,
+                        acconpanying: acconpanyingType!,
+                        tripStyleTypes: tripStyle[0] || "Urban",
+                        tripStyle,
+                        vehicleLocomotionTypes: locomotionMethod[0] || "Car",
+                        locomotionMethod,
+                        specialWish
+                      });
+                    }
                   }
                   w="48%"
                   bgColor="#fff"
