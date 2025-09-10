@@ -48,7 +48,6 @@ export function ItineraryVisaCheck(){
         }
 
         const data = await response.json();
-        console.log("Dados => ", data);
 
         if(data.category.code === "VR" || data.category.code === "VOA" || data.category.code === "EV"){
           setIsVisaNecessary("Negative");

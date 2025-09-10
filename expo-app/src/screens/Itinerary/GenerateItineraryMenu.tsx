@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from "react";
-import { Platform, SafeAreaView, StatusBar, Modal, Image, Dimensions } from "react-native";
+import { Platform, SafeAreaView, StatusBar } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 
 import Constants from 'expo-constants';
@@ -21,22 +21,28 @@ if (!isExpoGo) {
 import { Button, ButtonText, ScrollView, Text, View } from "@gluestack-ui/themed";
 
 import { ButtonIconLeft } from "@components/Buttons/ButtonIconLeft";
-import { ItineraryCreateDialog } from "@components/Dialogs/ItineraryCreateDialog";
+import { ItineraryCreateDialog } from "@components/Itinerary/ItineraryCreateDialog";
 import { UnlockProgressModal } from "@components/Itinerary/UnlockProgressModal";
 import { ItinerariesError } from "@components/Errors/ItinerariesError";
 import { IconButton } from "@components/Buttons/IconButton";
+import { SimulatedAd } from "@components/SimulatedAd";
+import { ChooseGenerateStyle } from "@components/Itinerary/ChooseGenerateStyle";
 
 import { AuthNavigationProp } from "@routes/auth.routes";
 
 import { ArrowLeft, ChevronRight, Coins, Crown, Heart, Plus } from "lucide-react-native";
+import { ItineraryPreferencesModal } from "@components/Itinerary/ItineraryPreferencesModal";
 
 type MenuItineraryTypes = {
   dialog: boolean,
-  filters: "Planejados" | "Rascunhos" | "Passados"
+  filters: "Planejados" | "Rascunhos" | "Passados",
+  itineraryType: "Surpresa" | "Definido" | undefined
 }
 
 export function GenerateItineraryMenu(){
   const [showAlertDialog, setShowAlertDialog] = useState<MenuItineraryTypes["dialog"]>(false);
+  const [showRandomItineraryModal, setShowRandomItineraryModal] = useState<MenuItineraryTypes["dialog"]>(false);
+  const [showChooseGenerateModal, setShowChooseGenerateModal] = useState(false);
   const [selectedFilter, setSelectedFilter] = useState<MenuItineraryTypes["filters"]>("Planejados");
   const [adLoaded, setAdLoaded] = useState<boolean>(false);
   const [disableAdIsLoading, setDisableAdIsLoading] = useState<boolean>(false);
@@ -44,6 +50,7 @@ export function GenerateItineraryMenu(){
   const [showAdProgressModal, setShowAdProgressModal] = useState<boolean>(false);
   const [watchedAdsCount, setWatchedAdsCount] = useState<number>(0);
   const [isAdPlaying, setIsAdPlaying] = useState<boolean>(false);
+  const [itineraryTypeSelected, setItineraryTypeSelected] = useState<MenuItineraryTypes["itineraryType"]>(undefined);
 
   const totalAdsRequired = 3;
   
@@ -140,7 +147,7 @@ export function GenerateItineraryMenu(){
     if (watchedAdsCount === totalAdsRequired) {
       setDisableAdIsLoading(false);
       setWatchedAdsCount(0);
-      setShowAlertDialog(true);
+      setShowChooseGenerateModal(true);
     } else {
       setShowAdProgressModal(true);
     }
@@ -180,7 +187,7 @@ export function GenerateItineraryMenu(){
     } else {
       setShowAdProgressModal(false);
       setDisableAdIsLoading(false);
-      setShowAlertDialog(true);
+      setShowChooseGenerateModal(true);
     }
   };
 
@@ -197,9 +204,13 @@ export function GenerateItineraryMenu(){
     setShowAdProgressModal(true);
   };
 
+  const handleCloseChooseGenerateModal = () => {
+    setShowChooseGenerateModal(false);
+  };
+
   const handleOnFinishAdProgress = () => {
     setShowAdProgressModal(false);
-    setShowAlertDialog(true);
+    setShowChooseGenerateModal(true);
   }
 
   useEffect(() => {
@@ -435,6 +446,24 @@ export function GenerateItineraryMenu(){
         </View>
       </ScrollView>
 
+      <ChooseGenerateStyle 
+        showModal={ showChooseGenerateModal }
+        setShowModal={ handleCloseChooseGenerateModal }
+        onDefinedItinerary={ () => {
+          setShowChooseGenerateModal(false);
+          setShowAlertDialog(true);
+        }}
+        onRandomItinerary={ () => {
+          setShowChooseGenerateModal(false);
+          setShowRandomItineraryModal(true);
+        }}
+      />
+
+      {
+        showRandomItineraryModal
+          ? <ItineraryPreferencesModal showAlertDialog={ showRandomItineraryModal } setShowAlertDialog={ setShowRandomItineraryModal } />
+          : null
+      }
       {
         showAlertDialog
           ? <ItineraryCreateDialog showAlertDialog={ showAlertDialog } setShowAlertDialog={ setShowAlertDialog } />
@@ -442,47 +471,19 @@ export function GenerateItineraryMenu(){
       }
 
       <UnlockProgressModal
-        visible={showAdProgressModal}
-        onClose={handleCloseAdProgressModal}
-        onContinue={handleContinueAfterAd}
-        showItineraryCreate={handleOnFinishAdProgress}
-        onUpgradeToPremium={handleUpgradeToPremium}
-        watchedAds={watchedAdsCount}
-        totalAds={totalAdsRequired}
+        visible={ showAdProgressModal }
+        onClose={ handleCloseAdProgressModal }
+        onContinue={ handleContinueAfterAd }
+        showItineraryCreate={ handleOnFinishAdProgress }
+        onUpgradeToPremium={ handleUpgradeToPremium }
+        watchedAds={ watchedAdsCount }
+        totalAds={ totalAdsRequired }
       />
 
-      <Modal
-        visible={showAdImage}
-        animationType="fade"
-        presentationStyle="fullScreen"
-        onRequestClose={handleCloseAdImage}
-      >
-        <View flex={1} backgroundColor="#000000">
-          <Image
-            source={{ uri: 'https://developers.google.com/static/admob/images/ios-testad-0-admob.png' }}
-            style={{
-              width: Dimensions.get('window').width,
-              height: Dimensions.get('window').height,
-              resizeMode: 'cover'
-            }}
-          />
-          <Button
-            position="absolute"
-            top={50}
-            right={20}
-            width={40}
-            height={40}
-            borderRadius={20}
-            backgroundColor="#000000"
-            opacity={0.7}
-            onPress={handleCloseAdImage}
-            justifyContent="center"
-            alignItems="center"
-          >
-            <ButtonText color="#FFFFFF" fontSize={18} fontWeight="bold">✕</ButtonText>
-          </Button>
-        </View>
-      </Modal>
+      <SimulatedAd 
+        showAdImage={ showAdImage }
+        handleCloseAdImage={ handleCloseAdImage }
+      />
     </SafeAreaView>
   )
 }

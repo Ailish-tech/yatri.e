@@ -18,34 +18,47 @@ import RNDateTimePicker from "@react-native-community/datetimepicker";
 
 import { styles } from './styles/itineraryStyles';
 
-import { continents, countries, originCountries } from "../../data/places";
-import { getCountryCode } from "../../data/countryCodes";
+import { originCountries } from "../../data/places";
 
 import { AuthNavigationProp } from "@routes/auth.routes";
 
 import { X, Plus, Minus, ChevronDown } from "lucide-react-native";
 
-type showAlertDialogTypes = {
+type GenerateItineraryPreferencesFormTypes = {
+  budget: number,
+  peopleQuantity: number,
+  acconpanying: "Family" | "Friends",
+  tripStyle: "Urban" | "Countryside",
+  vehicleLocomotionTypes: "Car" | "Motorcycle" | "Foot" | "Train" | "Boat" | "Bicycle",
+  locomotionMethod: Array<GenerateItineraryPreferencesFormTypes["vehicleLocomotionTypes"]>,
+  specialWish: string
+}
+
+type ItineraryPreferencesModalTypes = {
   showAlertDialog: boolean,
   setShowAlertDialog: (show: boolean) => void
 }
 
-export function ItineraryCreateDialog({ showAlertDialog, setShowAlertDialog }: showAlertDialogTypes) {
+export function ItineraryPreferencesModal({ showAlertDialog, setShowAlertDialog }: ItineraryPreferencesModalTypes) {
   const [itineraryTitle, setItineraryTitle] = useState<string>("");
   const [startDate, setStartDate] = useState<Date>(new Date());
   const [endDate, setEndDate] = useState<Date>(new Date(new Date().getTime() + 24 * 60 * 60 * 1000));
   const [showDatePickers, setShowDatePickers] = useState<boolean>(false);
   const [days, setDays] = useState<number>(1);
-  const [selectedContinent, setSelectedContinent] = useState<string>("");
-  const [selectedCountries, setSelectedCountries] = useState<string[]>([]);
   const [originCountry, setOriginCountry] = useState<string>("");
   const [showOriginCountrySelector, setShowOriginCountrySelector] = useState<boolean>(false);
   const [includeContacts, setIncludeContacts] = useState<boolean>(false);
   const [listContacts, setListContacts] = useState<Contact[]>([]);
   const [selectedContacts, setSelectedContacts] = useState<Contact[]>([]);
   const [showContacts, setShowContacts] = useState<boolean>(false);
-  const [showContinentSelector, setShowContinentSelector] = useState<boolean>(false);
-  const [showCountrySelector, setShowCountrySelector] = useState<boolean>(false);
+
+  // Campos de preferências da viagem
+  const [budget, setBudget] = useState<GenerateItineraryPreferencesFormTypes["budget"]>(0);
+  const [peopleQuantity, setPeopleQuantity] = useState<GenerateItineraryPreferencesFormTypes["peopleQuantity"]>(0);
+  const [acconpanyingType, setAcconpanyingType] = useState<GenerateItineraryPreferencesFormTypes["acconpanying"]>();
+  const [tripStyle, setTripStyle] = useState<Array<"Urban" | "Countryside">>([]);
+  const [specialWish, setSpecialWish] = useState<GenerateItineraryPreferencesFormTypes["specialWish"]>("");
+  const [locomotionMethod, setLocomotionMethod] = useState<Array<GenerateItineraryPreferencesFormTypes["vehicleLocomotionTypes"]>>([]);
 
   const navigation = useNavigation<AuthNavigationProp>();
 
@@ -97,20 +110,33 @@ export function ItineraryCreateDialog({ showAlertDialog, setShowAlertDialog }: s
     });
   };
 
-  const selectContinent = (continent: string) => {
-    setSelectedContinent(continent);
-    setSelectedCountries([]);
-    setShowContinentSelector(false);
+  const handleAccompanying = (type: "Family" | "Friends") => {
+    setAcconpanyingType(type);
   };
 
-  const toggleCountrySelection = (country: string) => {
-    setSelectedCountries(prev => {
-      if (prev.includes(country)) {
-        return prev.filter(c => c !== country);
+  const handleTripStyle = (type: "Urban" | "Countryside" | "Both") => {
+    if (type === "Both") {
+      if (tripStyle.includes("Urban") && tripStyle.includes("Countryside")) {
+        setTripStyle([]);
       } else {
-        return [...prev, country];
+        setTripStyle(["Urban", "Countryside"]);
       }
-    });
+    } else {
+      if (tripStyle.includes(type)) {
+        setTripStyle(tripStyle.filter(item => item !== type));
+      } else {
+        const newTripStyle = [...tripStyle, type];
+        setTripStyle(newTripStyle);
+      }
+    }
+  };
+
+  const handleLocomotion = (type: GenerateItineraryPreferencesFormTypes["vehicleLocomotionTypes"]) => {
+    if (locomotionMethod.includes(type)) {
+      setLocomotionMethod(locomotionMethod.filter(item => item !== type));
+    } else if (locomotionMethod.length < 5) {
+      setLocomotionMethod([...locomotionMethod, type]);
+    }
   };
 
   useEffect(() => {
@@ -134,7 +160,6 @@ export function ItineraryCreateDialog({ showAlertDialog, setShowAlertDialog }: s
     if (newValue) {
       setShowContacts(true);
     } else {
-      // Limpa os contatos selecionados quando desabilita a opção
       setSelectedContacts([]);
     }
   };
@@ -154,6 +179,18 @@ export function ItineraryCreateDialog({ showAlertDialog, setShowAlertDialog }: s
     return selectedContacts.some(c => c.id === contact.id);
   };
 
+  const getLocomotionLabel = (type: GenerateItineraryPreferencesFormTypes["vehicleLocomotionTypes"]) => {
+    const labels = {
+      "Car": "Carro",
+      "Motorcycle": "Moto", 
+      "Foot": "Caminhada",
+      "Train": "Trem",
+      "Boat": "Barco",
+      "Bicycle": "Bicicleta"
+    };
+    return labels[type];
+  };
+
   const handleClose = () => setShowAlertDialog(false);
 
   return (
@@ -170,24 +207,32 @@ export function ItineraryCreateDialog({ showAlertDialog, setShowAlertDialog }: s
               <TouchableOpacity onPress={handleClose} style={styles.closeButton}>
                 <X size={24} color="#000" />
               </TouchableOpacity>
-              <Text style={styles.headerTitle}>Criar Itinerário</Text>
+              <Text style={styles.headerTitle}>Itinerário Surpresa</Text>
               <TouchableOpacity 
                 style={styles.nextButton} 
-                onPress={ () => {
+                onPress={() => {
                   handleClose();
-                  navigation.navigate("GenerateItineraryPreferences", { 
-                    title: itineraryTitle, 
-                    dateBegin: startDate, 
-                    dateEnd: endDate, 
-                    days: days, 
-                    continent: selectedContinent, 
-                    countries: selectedCountries, 
+                  navigation.navigate("UserPreferences", {
+                    title: itineraryTitle,
+                    dateBegin: startDate,
+                    dateEnd: endDate,
+                    days: days,
+                    continent: "",
+                    countries: [],
                     originCountry: originCountry,
-                    contacts: selectedContacts 
-                  } );
-                } }
+                    contacts: selectedContacts,
+                    budget,
+                    peopleQuantity,
+                    acconpanying: acconpanyingType!,
+                    tripStyleTypes: tripStyle[0] || "Urban",
+                    tripStyle,
+                    vehicleLocomotionTypes: locomotionMethod[0] || "Car",
+                    locomotionMethod,
+                    specialWish
+                  });
+                }}
               >
-                <Text style={styles.nextButtonText}>Próximo</Text>
+                <Text style={styles.nextButtonText}>Criar</Text>
               </TouchableOpacity>
             </View>
 
@@ -322,86 +367,144 @@ export function ItineraryCreateDialog({ showAlertDialog, setShowAlertDialog }: s
               </View>
 
               <View style={styles.section}>
-                <Text style={styles.sectionLabel}>Continente</Text>
-                <TouchableOpacity
-                  style={styles.selector}
-                  onPress={() => setShowContinentSelector(!showContinentSelector)}
-                >
-                  <Text style={[styles.selectorText, selectedContinent && styles.selectorTextSelected]}>
-                    {selectedContinent || "Selecione um continente"}
-                  </Text>
-                  <ChevronDown size={16} color="#666" />
-                </TouchableOpacity>
-
-                {showContinentSelector && (
-                  <View style={styles.dropdownContainer}>
-                    <ScrollView style={styles.dropdown}>
-                      {continents.map((continent) => (
-                        <TouchableOpacity
-                          key={continent}
-                          style={styles.dropdownItem}
-                          onPress={() => selectContinent(continent)}
-                        >
-                          <Text style={styles.dropdownItemText}>{continent}</Text>
-                        </TouchableOpacity>
-                      ))}
-                    </ScrollView>
-                  </View>
-                )}
+                <Text style={styles.sectionLabel}>Orçamento máximo a ser gasto nesta viagem</Text>
+                <TextInput
+                  style={styles.textInput}
+                  placeholder="0"
+                  keyboardType="numeric"
+                  value={String(budget)}
+                  onChangeText={text => setBudget(Number(text.replace(/[^0-9]/g, "")))}
+                  placeholderTextColor="#9CA3AF"
+                />
               </View>
 
-              {selectedContinent && (
-                <View style={styles.section}>
-                  <Text style={styles.sectionLabel}>Países</Text>
+              <View style={styles.section}>
+                <Text style={styles.sectionLabel}>Quantas pessoas te acompanham?</Text>
+                <TextInput
+                  style={styles.textInput}
+                  placeholder="0"
+                  keyboardType="numeric"
+                  value={String(peopleQuantity)}
+                  onChangeText={text => setPeopleQuantity(Number(text.replace(/[^0-9]/g, "")))}
+                  placeholderTextColor="#9CA3AF"
+                />
+              </View>
+
+              <View style={styles.section}>
+                <Text style={styles.sectionLabel}>Quem te acompanha?</Text>
+                <View style={{ flexDirection: 'row', gap: 16 }}>
                   <TouchableOpacity
-                    style={styles.selector}
-                    onPress={() => setShowCountrySelector(!showCountrySelector)}
+                    style={[
+                      styles.contactOption,
+                      acconpanyingType === "Family" && styles.contactOptionSelected,
+                      { paddingHorizontal: 16, paddingVertical: 12 }
+                    ]}
+                    onPress={() => handleAccompanying("Family")}
                   >
-                    <Text style={[styles.selectorText, selectedCountries.length > 0 && styles.selectorTextSelected]}>
-                      {selectedCountries.length > 0 
-                        ? `${selectedCountries.length} país${selectedCountries.length > 1 ? 'es' : ''} selecionado${selectedCountries.length > 1 ? 's' : ''}`
-                        : "Selecione países"
-                      }
-                    </Text>
-                    <ChevronDown size={16} color="#666" />
+                    <Text style={[styles.contactOptionTitle, { fontSize: 16, flex: 1 }]}>Família</Text>
+                    <View style={[styles.checkbox, acconpanyingType === "Family" && styles.checkboxSelected, { marginLeft: 12 }]}>
+                      {acconpanyingType === "Family" && <Text style={styles.checkboxText}>✓</Text>}
+                    </View>
                   </TouchableOpacity>
-
-                  {selectedCountries.length > 0 && (
-                    <View style={styles.selectedCountriesContainer}>
-                      {selectedCountries.map((country) => (
-                        <View key={country} style={styles.selectedCountryTag}>
-                          <Text style={styles.selectedCountryText}>{country}</Text>
-                          <TouchableOpacity 
-                            onPress={() => toggleCountrySelection(country)}
-                            style={styles.removeCountryButton}
-                          >
-                            <X size={14} color="#666" />
-                          </TouchableOpacity>
-                        </View>
-                      ))}
+                  
+                  <TouchableOpacity
+                    style={[
+                      styles.contactOption,
+                      acconpanyingType === "Friends" && styles.contactOptionSelected,
+                      { paddingHorizontal: 16, paddingVertical: 12 }
+                    ]}
+                    onPress={() => handleAccompanying("Friends")}
+                  >
+                    <Text style={[styles.contactOptionTitle, { fontSize: 16, flex: 1 }]}>Amigos</Text>
+                    <View style={[styles.checkbox, acconpanyingType === "Friends" && styles.checkboxSelected, { marginLeft: 12 }]}>
+                      {acconpanyingType === "Friends" && <Text style={styles.checkboxText}>✓</Text>}
                     </View>
-                  )}
-
-                  {showCountrySelector && (
-                    <View style={styles.dropdownContainer}>
-                      <ScrollView style={styles.dropdown}>
-                        {countries[selectedContinent as keyof typeof countries]?.map((country) => (
-                          <TouchableOpacity
-                            key={country}
-                            style={styles.dropdownItem}
-                            onPress={() => toggleCountrySelection(country)}
-                          >
-                            <Text style={styles.dropdownItemText}>{country}</Text>
-                            <View style={[styles.checkbox, selectedCountries.includes(country) && styles.checkboxSelected]}>
-                              {selectedCountries.includes(country) && <Text style={styles.checkboxText}>✓</Text>}
-                            </View>
-                          </TouchableOpacity>
-                        ))}
-                      </ScrollView>
-                    </View>
-                  )}
+                  </TouchableOpacity>
                 </View>
-              )}
+              </View>
+
+              <View style={styles.section}>
+                <Text style={styles.sectionLabel}>Qual estilo de viagem você prefere?</Text>
+                <View style={{ flexDirection: 'column', gap: 8 }}>
+                  <TouchableOpacity
+                    style={[
+                      styles.contactOption,
+                      tripStyle.includes("Urban") && styles.contactOptionSelected
+                    ]}
+                    onPress={() => handleTripStyle("Urban")}
+                  >
+                    <Text style={[styles.contactOptionTitle, { fontSize: 16 }]}>Urbana</Text>
+                    <View style={[styles.checkbox, tripStyle.includes("Urban") && styles.checkboxSelected]}>
+                      {tripStyle.includes("Urban") && <Text style={styles.checkboxText}>✓</Text>}
+                    </View>
+                  </TouchableOpacity>
+                  
+                  <TouchableOpacity
+                    style={[
+                      styles.contactOption,
+                      tripStyle.includes("Countryside") && styles.contactOptionSelected
+                    ]}
+                    onPress={() => handleTripStyle("Countryside")}
+                  >
+                    <Text style={[styles.contactOptionTitle, { fontSize: 16 }]}>Rural</Text>
+                    <View style={[styles.checkbox, tripStyle.includes("Countryside") && styles.checkboxSelected]}>
+                      {tripStyle.includes("Countryside") && <Text style={styles.checkboxText}>✓</Text>}
+                    </View>
+                  </TouchableOpacity>
+                  
+                  <TouchableOpacity
+                    style={[
+                      styles.contactOption,
+                      (tripStyle.includes("Urban") && tripStyle.includes("Countryside")) && styles.contactOptionSelected
+                    ]}
+                    onPress={() => handleTripStyle("Both")}
+                  >
+                    <Text style={[styles.contactOptionTitle, { fontSize: 16 }]}>Ambos</Text>
+                    <View style={[styles.checkbox, (tripStyle.includes("Urban") && tripStyle.includes("Countryside")) && styles.checkboxSelected]}>
+                      {(tripStyle.includes("Urban") && tripStyle.includes("Countryside")) && <Text style={styles.checkboxText}>✓</Text>}
+                    </View>
+                  </TouchableOpacity>
+                </View>
+              </View>
+
+              <View style={styles.section}>
+                <Text style={styles.sectionLabel}>Método de locomoção preferido? (máximo 5)</Text>
+                <View style={{ flexDirection: 'column', gap: 8 }}>
+                  {(["Car", "Motorcycle", "Foot", "Train", "Boat", "Bicycle"] as const).map(type => (
+                    <TouchableOpacity
+                      key={type}
+                      style={[
+                        styles.contactOption,
+                        locomotionMethod.includes(type) && styles.contactOptionSelected,
+                        locomotionMethod.length >= 5 && !locomotionMethod.includes(type) && { opacity: 0.5 }
+                      ]}
+                      onPress={() => handleLocomotion(type)}
+                      disabled={locomotionMethod.length >= 5 && !locomotionMethod.includes(type)}
+                    >
+                      <Text style={[styles.contactOptionTitle, { fontSize: 16 }]}>
+                        {getLocomotionLabel(type)}
+                      </Text>
+                      <View style={[styles.checkbox, locomotionMethod.includes(type) && styles.checkboxSelected]}>
+                        {locomotionMethod.includes(type) && <Text style={styles.checkboxText}>✓</Text>}
+                      </View>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </View>
+
+              <View style={styles.section}>
+                <Text style={styles.sectionLabel}>Algum desejo especial para esta viagem?</Text>
+                <TextInput
+                  style={styles.textInput}
+                  placeholder="Eu gostaria de fazer algo específico nesta viagem..."
+                  maxLength={100}
+                  value={specialWish}
+                  onChangeText={setSpecialWish}
+                  placeholderTextColor="#9CA3AF"
+                  multiline={true}
+                  numberOfLines={3}
+                />
+              </View>
 
               <View style={styles.section}>
                 <Text style={styles.sectionLabel}>Opções Avançadas</Text>
