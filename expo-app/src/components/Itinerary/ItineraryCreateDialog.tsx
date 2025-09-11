@@ -22,8 +22,6 @@ import {
   FormControlLabelText,
   FormControlError,
   FormControlErrorText,
-  FormControlHelper,
-  FormControlHelperText,
   Input,
   InputField
 } from '@gluestack-ui/themed';

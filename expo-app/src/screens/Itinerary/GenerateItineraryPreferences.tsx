@@ -416,10 +416,8 @@ export function GenerateItineraryPreferences() {
                         budget,
                         peopleQuantity,
                         acconpanying: acconpanyingType!,
-                        tripStyleTypes: tripStyle[0] || "Urban",
                         tripStyle,
-                        vehicleLocomotionTypes: locomotionMethod[0] || "Car",
-                        locomotionMethod,
+                        locomotionMethod: locomotionMethod,
                         specialWish
                       });
                     }

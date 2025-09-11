@@ -5,7 +5,6 @@ import { Home } from "@screens/HomePage/Home";
 import { Profile } from "@screens/UserProfile/Profile";
 import { EditProfile } from "@screens/UserProfile/EditProfile";
 import { UserPreferences } from "@screens/UserProfile/UserPreferences";
-import { GenerateItinerary } from "@screens/Itinerary/GenerateItinerary";
 import { GenerateItineraryMenu } from "@screens/Itinerary/GenerateItineraryMenu";
 import { GenerateItineraryFeaturesIntroduction } from "@screens/Itinerary/GenerateItineraryFeaturesIntroduction";
 import { GenerateItineraryPreferences } from "@screens/Itinerary/GenerateItineraryPreferences";
@@ -41,7 +40,6 @@ type AuthStackParamList = {
   CancelPremiumPlan: undefined,
   DestinationDetail: { destinationId: number },
   EditProfile: undefined,
-  GenerateItinerary: undefined,
   GenerateItineraryFeaturesIntroduction: undefined,
   GenerateItineraryMenu: undefined,
   GenerateItineraryPreferences: { title: CreatingItinerary["title"], dateBegin: CreatingItinerary["dateBegin"], dateEnd: CreatingItinerary["dateEnd"], days: CreatingItinerary["days"], continent: CreatingItinerary["continent"], countries: CreatingItinerary["countries"], originCountry: CreatingItinerary["originCountry"], contacts: CreatingItinerary["contacts"] },
@@ -81,14 +79,6 @@ function ProfileWithNavBar() {
   return (
     <ScreenWrapper>
       <Profile />
-    </ScreenWrapper>
-  );
-}
-
-function GenerateItineraryWithNavBar() {
-  return (
-    <ScreenWrapper>
-      <GenerateItinerary />
     </ScreenWrapper>
   );
 }
@@ -177,11 +167,6 @@ export function AuthRoute() {
       <Stack.Screen 
         name="GenerateItineraryPreferences" 
         component={ GenerateItineraryPreferences } 
-        options={{ animation: 'none' }}
-      />
-      <Stack.Screen 
-        name="GenerateItinerary" 
-        component={ GenerateItineraryWithNavBar } 
         options={{ animation: 'none' }}
       />
       <Stack.Screen 
