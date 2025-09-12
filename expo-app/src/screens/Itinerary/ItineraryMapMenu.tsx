@@ -29,7 +29,7 @@ export function ItineraryMapMenu() {
   const [allVehicleTypesTogether, setAllVehicleTypesTogether] = useState<string>("");
 
   const navigation = useNavigation<AuthNavigationProp>();
-  const route = useRoute<RouteProp<{ params: CreatingItinerary }, 'params'>>();
+  const route = useRoute<RouteProp<{ params: { itineraryData: CreatingItinerary, userPreferences: string[], visaIssue: any } }, 'params'>>();
 
   const addNotification = useNotificationStore(state => state.addNotification);
 
@@ -54,40 +54,40 @@ export function ItineraryMapMenu() {
     specialWish,
     visitPreferences,
     contacts
-  } = route.params;
+  } = route.params.itineraryData;
 
   // Preparando lista de países se não for o Modo Surpresa e também estilo de viagem e os métodos de locomoção que serão utilizados
   useEffect(() => {
-    if (countries) {
+    if (countries && countries.length > 0) {
       var finalText = "";
-      for (let i = 0; i <= countries?.length; i++) {
+      for (let i = 0; i < countries.length; i++) {
         finalText += (countries[i] + ", ")
       }
       setAllCountriesTogether(finalText);
     }
 
-    if (tripStyle) {
+    if (tripStyle && tripStyle.length > 0) {
       var finalText = "";
-      for (let i = 0; i <= tripStyle?.length; i++) {
-        finalText += (tripStyle[i] + "e ")
+      for (let i = 0; i < tripStyle.length; i++) {
+        finalText += (tripStyle[i] + " e ")
       }
       setAllTripStylesTogether(finalText);
     }
 
-    if (locomotionMethod) {
+    if (locomotionMethod && locomotionMethod.length > 0) {
       var finalText = "";
-      for (let i = 0; i <= tripStyle?.length; i++) {
-        finalText += (tripStyle[i] + ", ")
+      for (let i = 0; i < locomotionMethod.length; i++) {
+        finalText += (locomotionMethod[i] + ", ")
       }
       setAllVehicleTypesTogether(finalText);
     }
-  }, []);
+  }, [countries, tripStyle, locomotionMethod]);
 
   // Texto final do "Preparando os parâmetros inseridos pelo usuário"
-  const preferencesText = `Início da viagem em ${ dateBegin } e o fim em ${ dateEnd }, possuindo ${ days } dias de viagem.
+  const preferencesAllDefinedText = `Início da viagem em ${ dateBegin } e o fim em ${ dateEnd }, possuindo ${ days } dias de viagem.
   Iremos para ${ continent } e aos países ${ allCountriesTogether }. Somos ${ acconpanying } com ${ peopleQuantity } pessoas e
-  de ${ originCountry }. Temos um orçamento de ${ budget }. Viagem com foco em ${ allTripStylesTogether }, utilizaremos ${ locomotionMethod }
-  e temos um desejo para a viagem: ${ specialWish }. Gostamos de ${ visitPreferences }.`;
+  de ${ originCountry }. Temos um orçamento de ${ budget }. Viagem com foco em ${ allTripStylesTogether }, utilizaremos ${ allVehicleTypesTogether }
+  e temos um desejo para a viagem: ${ specialWish }. Gostamos de ${ route.params.userPreferences?.join(', ') }.`;
 
   // Padrão de resposta que deve ser retornado para colocar no Object itineraries:
   const answerPattern = `
@@ -99,7 +99,8 @@ export function ItineraryMapMenu() {
         {
           "time": "HH:MM",
           "activity": "Descrição da atividade",
-          "details": "Detalhes adicionais"
+          "details": "Detalhes adicionais",
+          "coordinates" "-18.245; 09.237"
         }
       ],
       "suggestedActivities": ["Atividade extra recomendada 1", "Atividade extra recomendada 2"]
@@ -107,12 +108,7 @@ export function ItineraryMapMenu() {
   `;
 
   const generateDetailed = async () => {
-    const prompt =
-      `Gere um itinerário turístico completo e detalhado para a viagem abaixo, retornando em formato Object.
-      Cada dia deve conter, considerando tempos de deslocamento realistas (não invente dados, apenas estime com base em trajetos comuns),
-      o seguinte padrão de resposta sua: ${ answerPattern }.
-      Use apenas os dados fornecidos do usuário para esta viagem: ${ preferencesText }.
-      Retorne apenas este padrão de resposta, nada além disso.`;
+    const prompt = `Gere um itinerário turístico completo e detalhado para a viagem abaixo, retornando um Object. Cada dia deve conter, considerando tempos de deslocamento realistas (não invente dados, apenas estime com base em trajetos comuns), o seguinte padrão de resposta: ${ answerPattern }. Use apenas os dados fornecidos do usuário para esta viagem: ${ preferencesAllDefinedText }. Retorne apenas este padrão de resposta, nada além disso. Seja bem específico no nome dos locais a serem visitados. Só não especifique nome de hotéis.`;
 
     console.log("Prompt completo que foi enviado a IA ==> ", prompt);
 
@@ -124,22 +120,22 @@ export function ItineraryMapMenu() {
       setItinerary(JSON.parse(result));
 
       let trip: CreatingItinerary = {
-        title: title,
-        dateBegin: dateBegin,
-        dateEnd: dateEnd,
-        days: days,
-        continent: continent,
-        countries: countries,
-        originCountry: originCountry,
-        visa: visa,
-        budget: budget,
-        peopleQuantity: peopleQuantity,
-        acconpanying: acconpanying,
-        tripStyle: tripStyle,
-        locomotionMethod: locomotionMethod,
-        specialWish: specialWish,
-        visitPreferences: visitPreferences,
-        contacts: contacts,
+        title: route.params.itineraryData.title,
+        dateBegin: route.params.itineraryData.dateBegin,
+        dateEnd: route.params.itineraryData.dateEnd,
+        days: route.params.itineraryData.days,
+        continent: route.params.itineraryData.continent,
+        countries: route.params.itineraryData.countries,
+        originCountry: route.params.itineraryData.originCountry,
+        visa: route.params.itineraryData.visa,
+        budget: route.params.itineraryData.budget,
+        peopleQuantity: route.params.itineraryData.peopleQuantity,
+        acconpanying: route.params.itineraryData.acconpanying,
+        tripStyle: route.params.itineraryData.tripStyle,
+        locomotionMethod: route.params.itineraryData.locomotionMethod,
+        specialWish: route.params.itineraryData.specialWish,
+        visitPreferences: route.params.userPreferences,
+        contacts: route.params.itineraryData.contacts,
         itinerary: itinerary
       }
       userTrips.push(trip);
@@ -159,10 +155,11 @@ export function ItineraryMapMenu() {
   }
 
   useEffect(() => {
-    if (countries) {
-      generateDetailed();
-    }
-  }, [countries]);
+    console.log("Parâmetros recebidos: ", route.params);
+    console.log("Dados do itinerário: ", route.params.itineraryData);
+    console.log("Preferências do usuário: ", route.params.userPreferences);
+    generateDetailed();
+  }, []);
 
   return (
     <View flex={1} position="relative">
