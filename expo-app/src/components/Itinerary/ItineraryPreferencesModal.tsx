@@ -295,9 +295,7 @@ export function ItineraryPreferencesModal({ showAlertDialog, setShowAlertDialog 
                     budget,
                     peopleQuantity,
                     acconpanying: acconpanyingType!,
-                    tripStyleTypes: tripStyle[0] || "Urban",
                     tripStyle,
-                    vehicleLocomotionTypes: locomotionMethod[0] || "Car",
                     locomotionMethod,
                     specialWish
                   });
@@ -323,6 +321,7 @@ export function ItineraryPreferencesModal({ showAlertDialog, setShowAlertDialog 
                         setItineraryTitle(text);
                         clearFieldError('itineraryTitle');
                       }}
+                      maxLength={20}
                       style={{ fontSize: 16 }}
                     />
                   </Input>

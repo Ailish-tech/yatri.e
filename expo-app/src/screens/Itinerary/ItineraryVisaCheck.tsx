@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { RouteProp, useNavigation, useRoute } from "@react-navigation/native";
 
-import { VisaModel } from "@components/Itinerary/VisalModel";
+import { VisaModel } from "@components/Itinerary/VisaModel";
 
 import { AuthNavigationProp } from "@routes/auth.routes";
 

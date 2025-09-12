@@ -187,7 +187,7 @@ export function PremiumPlans(){
                       minHeight={65}
                     >
                       <View 
-                        bg="rgba(255,255,255,0.2)" 
+                        bg="rgba(255,215,0,0.3)" 
                         borderRadius={20} 
                         p={8} 
                         mr={15}

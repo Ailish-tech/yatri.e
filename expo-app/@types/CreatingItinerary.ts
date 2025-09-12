@@ -44,5 +44,7 @@ export type CreatingItinerary = {
   locomotionMethod: Array<CreatingItinerary["vehiclesTypes"]>,
   specialWish: string,
   visitPreferences?: Array<string>,
-  itinerary?: Object
+  itinerary?: Object,
+  pixabayTags?: string,
+  images?: Object
 }

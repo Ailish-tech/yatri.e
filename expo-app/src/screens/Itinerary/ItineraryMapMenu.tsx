@@ -105,17 +105,16 @@ export function ItineraryMapMenu() {
           "time": "HH:MM",
           "activity": "Descrição da atividade",
           "details": "Detalhes adicionais",
-          "coordinates" "-18.245; 09.237"
+          "coordinates" "-xx°.xxx'; yy°.yyy'"
         }
       ],
-      "suggestedActivities": ["Atividade extra recomendada 1", "Atividade extra recomendada 2"]
+      "suggestedActivities": ["Atividade extra recomendada 1", "Atividade extra recomendada 2"],
+      "pixabayTags": "Tags relevantes para encontrar uma imgaem na API do Pixabay"
     },
   `;
 
   const generateDetailed = async () => {
     const prompt = `Gere um itinerário turístico completo e detalhado para a viagem abaixo, retornando um Object. Cada dia deve conter, considerando tempos de deslocamento realistas (não invente dados, apenas estime com base em trajetos comuns), o seguinte padrão de resposta: ${ answerPattern }. Use apenas os dados fornecidos do usuário para esta viagem: ${ preferencesAllDefinedText }. Retorne apenas este padrão de resposta, nada além disso. Seja bem específico no nome dos locais a serem visitados. Só não especifique nome de hotéis.`;
-
-    console.log("Prompt completo que foi enviado a IA ==> ", prompt);
 
     try {
       setLoading(true);

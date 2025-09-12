@@ -72,7 +72,9 @@ export const userTrips: CreatingItinerary[] = [
           "Provar macarons na Ladurée",
           "Visitar livrarias históricas próximas ao Sena",
           "Comprar souvenirs na Rue de Rivoli"
-        ]
+        ],
+        pixabayTags: "Landscape, Paris, City View",
+        images: [ "https://cdn.pixabay.com/photo/2021/06/22/16/39/arch-6356637_1280.jpg" ]
       },
       {
         day: 2,
@@ -119,7 +121,9 @@ export const userTrips: CreatingItinerary[] = [
         suggestedActivities: [
           "Comprar doces típicos em Versailles",
           "Visitar lojas de antiguidades próximas ao palácio"
-        ]
+        ],
+        pixabayTags: "Landscape, Versailles, Palace",
+        images: [ "https://cdn.pixabay.com/photo/2024/09/19/07/46/versailles-9057981_1280.jpg" ]
       },
       {
         day: 3,
@@ -161,7 +165,9 @@ export const userTrips: CreatingItinerary[] = [
           "Passeio de barco pelo Rio Ródano",
           "Visitar o mercado Les Halles de Lyon-Paul Bocuse",
           "Explorar as lojas de seda de Lyon"
-        ]
+        ],
+        pixabayTags: "Landscape, Lyon, City View",
+        images: [ "https://cdn.pixabay.com/photo/2023/05/15/22/09/city-7996136_1280.jpg" ]
       },
       {
         day: 4,
@@ -209,7 +215,9 @@ export const userTrips: CreatingItinerary[] = [
           "Passeio de barco pelo Lago de Genebra",
           "Visitar o Jardim Inglês",
           "Explorar as lojas de relógios suíços"
-        ]
+        ],
+        pixabayTags: "Landscape, Geneva, Switzerland, City",
+        images: [ "https://cdn.pixabay.com/photo/2023/09/17/21/08/geneva-8259296_1280.jpg" ]
       },
       {
         day: 5,
@@ -257,7 +265,9 @@ export const userTrips: CreatingItinerary[] = [
           "Passeio de barco pelos lagos Thun e Brienz",
           "Visitar o Harder Kulm para vistas panorâmicas",
           "Explorar as trilhas ao redor de Interlaken"
-        ]
+        ],
+        pixabayTags: "Landscape, Interlaken, Switzerland",
+        images: [ "https://cdn.pixabay.com/photo/2019/01/10/21/03/landscape-3926066_1280.jpg" ]
       },
       {
         day: 6,
@@ -311,7 +321,9 @@ export const userTrips: CreatingItinerary[] = [
           "Passeio noturno pela London Eye",
           "Visitar o Big Ben e o Parlamento",
           "Explorar o Soho para vida noturna"
-        ]
+        ],
+        pixabayTags: "Landscape, London, Queen, City, Palace",
+        images: [ "https://cdn.pixabay.com/photo/2016/08/05/15/02/london-1572444_640.jpg" ]
       }
     ]
   }
