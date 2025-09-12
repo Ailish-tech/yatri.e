@@ -11,7 +11,7 @@ import { Maps } from "@components/Maps/Maps";
 
 import { generateItinerary } from '@utils/gptRequests';
 import { useNotificationStore } from '@utils/notificationStore';
-import { removeEmojis, filterItineraryData, filterUserPreferences } from '@utils/dataFilters';
+import { filterItineraryData, filterUserPreferences } from '@utils/dataFilters';
 
 import { userTrips } from "@data/itineraries";
 
@@ -160,12 +160,6 @@ export function ItineraryMapMenu() {
   }
 
   useEffect(() => {
-    console.log("Parâmetros recebidos: ", route.params);
-    console.log("Dados do itinerário ORIGINAIS: ", route.params.itineraryData);
-    console.log("Dados do itinerário FILTRADOS: ", filteredItineraryData);
-    console.log("Preferências do usuário ORIGINAIS: ", route.params.userPreferences);
-    console.log("Preferências do usuário FILTRADAS: ", filteredUserPreferences);
-    console.log("Texto final que será enviado para IA: ", preferencesAllDefinedText);
     generateDetailed();
   }, [preferencesAllDefinedText]);
 
