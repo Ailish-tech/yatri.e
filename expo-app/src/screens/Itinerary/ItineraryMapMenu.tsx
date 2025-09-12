@@ -11,6 +11,7 @@ import { Maps } from "@components/Maps/Maps";
 
 import { generateItinerary } from '@utils/gptRequests';
 import { useNotificationStore } from '@utils/notificationStore';
+import { removeEmojis, filterItineraryData, filterUserPreferences } from '@utils/dataFilters';
 
 import { userTrips } from "@data/itineraries";
 
@@ -37,6 +38,10 @@ export function ItineraryMapMenu() {
 
   const ITINERARY_STORAGE_KEY = '@eztripai_allUserTripItineraries';
 
+  // Aplicando filtros aos dados recebidos
+  const filteredItineraryData = filterItineraryData(route.params.itineraryData);
+  const filteredUserPreferences = filterUserPreferences(route.params.userPreferences || []);
+
   const { 
     title, 
     dateBegin, 
@@ -54,7 +59,7 @@ export function ItineraryMapMenu() {
     specialWish,
     visitPreferences,
     contacts
-  } = route.params.itineraryData;
+  } = filteredItineraryData;
 
   // Preparando lista de países se não for o Modo Surpresa e também estilo de viagem e os métodos de locomoção que serão utilizados
   useEffect(() => {
@@ -87,7 +92,7 @@ export function ItineraryMapMenu() {
   const preferencesAllDefinedText = `Início da viagem em ${ dateBegin } e o fim em ${ dateEnd }, possuindo ${ days } dias de viagem.
   Iremos para ${ continent } e aos países ${ allCountriesTogether }. Somos ${ acconpanying } com ${ peopleQuantity } pessoas e
   de ${ originCountry }. Temos um orçamento de ${ budget }. Viagem com foco em ${ allTripStylesTogether }, utilizaremos ${ allVehicleTypesTogether }
-  e temos um desejo para a viagem: ${ specialWish }. Gostamos de ${ route.params.userPreferences?.join(', ') }.`;
+  e temos um desejo para a viagem: ${ specialWish }. Gostamos de ${ filteredUserPreferences?.join(', ') }.`;
 
   // Padrão de resposta que deve ser retornado para colocar no Object itineraries:
   const answerPattern = `
@@ -120,22 +125,22 @@ export function ItineraryMapMenu() {
       setItinerary(JSON.parse(result));
 
       let trip: CreatingItinerary = {
-        title: route.params.itineraryData.title,
+        title: filteredItineraryData.title,
         dateBegin: route.params.itineraryData.dateBegin,
         dateEnd: route.params.itineraryData.dateEnd,
-        days: route.params.itineraryData.days,
-        continent: route.params.itineraryData.continent,
-        countries: route.params.itineraryData.countries,
-        originCountry: route.params.itineraryData.originCountry,
-        visa: route.params.itineraryData.visa,
-        budget: route.params.itineraryData.budget,
-        peopleQuantity: route.params.itineraryData.peopleQuantity,
-        acconpanying: route.params.itineraryData.acconpanying,
-        tripStyle: route.params.itineraryData.tripStyle,
-        locomotionMethod: route.params.itineraryData.locomotionMethod,
-        specialWish: route.params.itineraryData.specialWish,
-        visitPreferences: route.params.userPreferences,
-        contacts: route.params.itineraryData.contacts,
+        days: filteredItineraryData.days,
+        continent: filteredItineraryData.continent,
+        countries: filteredItineraryData.countries,
+        originCountry: filteredItineraryData.originCountry,
+        visa: filteredItineraryData.visa,
+        budget: filteredItineraryData.budget,
+        peopleQuantity: filteredItineraryData.peopleQuantity,
+        acconpanying: filteredItineraryData.acconpanying,
+        tripStyle: filteredItineraryData.tripStyle,
+        locomotionMethod: filteredItineraryData.locomotionMethod,
+        specialWish: filteredItineraryData.specialWish,
+        visitPreferences: filteredUserPreferences,
+        contacts: filteredItineraryData.contacts,
         itinerary: itinerary
       }
       userTrips.push(trip);
@@ -156,10 +161,13 @@ export function ItineraryMapMenu() {
 
   useEffect(() => {
     console.log("Parâmetros recebidos: ", route.params);
-    console.log("Dados do itinerário: ", route.params.itineraryData);
-    console.log("Preferências do usuário: ", route.params.userPreferences);
+    console.log("Dados do itinerário ORIGINAIS: ", route.params.itineraryData);
+    console.log("Dados do itinerário FILTRADOS: ", filteredItineraryData);
+    console.log("Preferências do usuário ORIGINAIS: ", route.params.userPreferences);
+    console.log("Preferências do usuário FILTRADAS: ", filteredUserPreferences);
+    console.log("Texto final que será enviado para IA: ", preferencesAllDefinedText);
     generateDetailed();
-  }, []);
+  }, [preferencesAllDefinedText]);
 
   return (
     <View flex={1} position="relative">
