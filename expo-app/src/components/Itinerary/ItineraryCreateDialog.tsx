@@ -264,7 +264,7 @@ export function ItineraryCreateDialog({ showAlertDialog, setShowAlertDialog }: s
                         setItineraryTitle(text);
                         clearFieldError('itineraryTitle');
                       }}
-                      maxLength={20}
+                      maxLength={19}
                       style={{ fontSize: 16 }}
                     />
                   </Input>

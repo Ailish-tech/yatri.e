@@ -6,8 +6,27 @@ export const removeEmojis = (text: string): string => {
 };
 
 // Função para formatar data no formato "MMM DD YYYY"
-export const formatDateToString = (date: Date): string => {
-  return date.toLocaleDateString('en-US', {
+export const formatDateToString = (date: Date | string | undefined): string => {
+  if (!date) {
+    return 'Data não definida';
+  }
+  
+  let dateObj: Date;
+  
+  if (date instanceof Date) {
+    dateObj = date;
+  } else if (typeof date === 'string') {
+    dateObj = new Date(date);
+  } else {
+    return 'Data inválida';
+  }
+  
+  // Verificar se a data é válida
+  if (isNaN(dateObj.getTime())) {
+    return 'Data inválida';
+  }
+  
+  return dateObj.toLocaleDateString('en-US', {
     month: 'short',
     day: '2-digit',
     year: 'numeric'
@@ -24,8 +43,8 @@ export const filterItineraryData = (data: CreatingItinerary): any => {
     specialWish: removeEmojis(data.specialWish),
     tripStyle: data.tripStyle?.map(style => style ? removeEmojis(style) : style),
     locomotionMethod: data.locomotionMethod?.map(method => method ? removeEmojis(method) : method),
-    dateBegin: formatDateToString(data.dateBegin),
-    dateEnd: formatDateToString(data.dateEnd)
+    dateBegin: data.dateBegin ? formatDateToString(data.dateBegin) : 'Data não definida',
+    dateEnd: data.dateEnd ? formatDateToString(data.dateEnd) : 'Data não definida'
   };
 };
 

@@ -117,40 +117,42 @@ export function ItineraryMapMenu() {
     const prompt = `Gere um itinerário turístico completo e detalhado para a viagem abaixo, retornando um Object. Cada dia deve conter, considerando tempos de deslocamento realistas (não invente dados, apenas estime com base em trajetos comuns), o seguinte padrão de resposta: ${ answerPattern }. Use apenas os dados fornecidos do usuário para esta viagem: ${ preferencesAllDefinedText }. Retorne apenas este padrão de resposta, nada além disso. Seja bem específico no nome dos locais a serem visitados. Só não especifique nome de hotéis.`;
 
     try {
-      setLoading(true);
-      setItinerary('');
-
-      const result = await generateItinerary(prompt);
-      setItinerary(JSON.parse(result));
-
-      let trip: CreatingItinerary = {
-        title: filteredItineraryData.title,
-        dateBegin: route.params.itineraryData.dateBegin,
-        dateEnd: route.params.itineraryData.dateEnd,
-        days: filteredItineraryData.days,
-        continent: filteredItineraryData.continent,
-        countries: filteredItineraryData.countries,
-        originCountry: filteredItineraryData.originCountry,
-        visa: filteredItineraryData.visa,
-        budget: filteredItineraryData.budget,
-        peopleQuantity: filteredItineraryData.peopleQuantity,
-        acconpanying: filteredItineraryData.acconpanying,
-        tripStyle: filteredItineraryData.tripStyle,
-        locomotionMethod: filteredItineraryData.locomotionMethod,
-        specialWish: filteredItineraryData.specialWish,
-        visitPreferences: filteredUserPreferences,
-        contacts: filteredItineraryData.contacts,
-        itinerary: itinerary
+      if (!route.params?.itineraryData?.itinerary || Object.keys(route.params.itineraryData.itinerary).length === 0) {
+        setLoading(true);
+        setItinerary('');
+  
+        const result = await generateItinerary(prompt);
+        setItinerary(JSON.parse(result));
+  
+        let trip: CreatingItinerary = {
+          title: filteredItineraryData.title,
+          dateBegin: route.params.itineraryData.dateBegin,
+          dateEnd: route.params.itineraryData.dateEnd,
+          days: filteredItineraryData.days,
+          continent: filteredItineraryData.continent,
+          countries: filteredItineraryData.countries,
+          originCountry: filteredItineraryData.originCountry,
+          visa: filteredItineraryData.visa,
+          budget: filteredItineraryData.budget,
+          peopleQuantity: filteredItineraryData.peopleQuantity,
+          acconpanying: filteredItineraryData.acconpanying,
+          tripStyle: filteredItineraryData.tripStyle,
+          locomotionMethod: filteredItineraryData.locomotionMethod,
+          specialWish: filteredItineraryData.specialWish,
+          visitPreferences: filteredUserPreferences,
+          contacts: filteredItineraryData.contacts,
+          itinerary: itinerary
+        }
+        userTrips.push(trip);
+  
+        addNotification({
+          title: "Novo Roteiro Pronto",
+          description: "Um novo roteiro para a sua incrível próxima viagem foi gerado pela Inteligência Artificial. Confira já!",
+          routeIcon: Globe
+        });
+  
+        await AsyncStorage.setItem(ITINERARY_STORAGE_KEY, JSON.stringify(userTrips));
       }
-      userTrips.push(trip);
-
-      addNotification({
-        title: "Novo Roteiro Pronto",
-        description: "Um novo roteiro para a sua incrível próxima viagem foi gerado pela Inteligência Artificial. Confira já!",
-        routeIcon: Globe
-      });
-
-      await AsyncStorage.setItem(ITINERARY_STORAGE_KEY, JSON.stringify(userTrips));
     } catch (error) {
       setItinerary('Erro ao gerar roteiro. Tente novamente.');
     } finally {

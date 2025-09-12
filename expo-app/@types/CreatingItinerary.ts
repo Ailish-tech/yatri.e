@@ -1,4 +1,6 @@
-import { Contact } from "expo-contacts"
+import { Contact } from "expo-contacts";
+
+import { VisaModelTypes } from "./VisaModelTypes";
 
 /**
  * Represents the structure for creating a travel itinerary.
@@ -27,12 +29,12 @@ import { Contact } from "expo-contacts"
  */
 export type CreatingItinerary = {
   title: string, 
-  dateBegin: Date, 
-  dateEnd: Date, 
+  dateBegin: Date | string, 
+  dateEnd: Date | string, 
   days: number, 
   continent?: string, 
   countries?: Array<string>,
-  visa?: boolean,
+  visa?: boolean | VisaModelTypes["results"],
   originCountry: string,
   contacts?: Contact[],
   budget: number,

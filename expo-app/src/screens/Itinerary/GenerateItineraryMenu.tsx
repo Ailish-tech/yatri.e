@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from "react";
-import { Platform, SafeAreaView, StatusBar, Image as RNImage } from "react-native";
+import { Platform, SafeAreaView, StatusBar, Image as RNImage, TouchableOpacity } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
@@ -39,6 +39,7 @@ import { CreatingItinerary } from "../../../@types/CreatingItinerary";
 import DefaultImage from '@assets/adaptive-icon.png';
 
 import { ArrowLeft, ChevronRight, Coins, Crown, Heart, Plus } from "lucide-react-native";
+import { utilsGetSelectedTags } from "@utils/selectedTagsStore";
 
 type MenuItineraryTypes = {
   dialog: boolean,
@@ -293,7 +294,6 @@ export function GenerateItineraryMenu(){
   }, []);
 
   useEffect(() => {
-    console.log("=== ALL USER ITINERARIES ===");
     console.log(JSON.stringify(allUserItineraries, null, 2));
   }, [allUserItineraries]);
   
@@ -325,19 +325,33 @@ export function GenerateItineraryMenu(){
 
         <Text color='#2752B7' ml={25} mt={20} fontSize="$3xl" fontWeight="$bold">Itinerários</Text>
 
-        <View
-          bgColor="#ffffff"
-          borderRadius={15}
-          shadowColor="#000"
-          shadowOffset={{ width: 0, height: 4 }}
-          shadowOpacity={0.2}
-          shadowRadius={5}
-          elevation={5}
-          justifyContent="center"
-          alignItems="center"
-          alignSelf="center"
-          w="95%"
-          mt={15}
+        <TouchableOpacity
+          style={{
+            backgroundColor: "#ffffff",
+            borderRadius: 15,
+            shadowColor: "#000",
+            shadowOffset: { width: 0, height: 4 },
+            shadowOpacity: 0.2,
+            shadowRadius: 5,
+            elevation: 5,
+            justifyContent: "center",
+            alignItems: "center",
+            alignSelf: "center",
+            width: "95%",
+            minHeight: 260,
+            marginTop: 15
+          }}
+          onPress={ () => { 
+            const itineraryData = allUserItineraries[0];
+            if (itineraryData) {
+              navigation.navigate("ItineraryMapMenu", { 
+                itineraryData: itineraryData, 
+                userPreferences: utilsGetSelectedTags(), 
+                visaIssue: itineraryData.visa === true ? "Positive" : itineraryData.visa === false ? "Negative" : itineraryData.visa 
+              });
+            }
+          }}
+          activeOpacity={0.8}
         >
           <View>
             {(() => {
@@ -351,7 +365,7 @@ export function GenerateItineraryMenu(){
                   borderRadius={10}
                   style={{
                     alignSelf: 'center',
-                    marginTop: -8
+                    marginTop: 13
                   }}
                 />
               ) : (
@@ -361,7 +375,8 @@ export function GenerateItineraryMenu(){
                   height={210}
                   borderRadius={10}
                   style={{
-                    alignSelf: 'center'
+                    alignSelf: 'center',
+                    marginTop: 13
                   }}
                 />
               );
@@ -372,7 +387,7 @@ export function GenerateItineraryMenu(){
                 const firstItinerary = itineraries?.[0];
                 return firstItinerary ? (
                   <>
-                    <View flexDirection="row" alignItems="center" justifyContent="space-between" mb={-10}>
+                    <View flexDirection="row" alignItems="center" justifyContent="space-between" my={10}>
                       <Text fontSize="$2xl" fontWeight="$bold" color="$black">{firstItinerary.title}</Text>
                       <Text fontSize="$md" fontWeight="$semibold" color="$gray600" mr={8}>
                         Em {daysUntilTravel(firstItinerary.dateBegin)} dias
@@ -383,7 +398,7 @@ export function GenerateItineraryMenu(){
               })()}
             </View>
           </View>
-        </View>
+        </TouchableOpacity>
 
         <Button
           bgColor="#ffffff"

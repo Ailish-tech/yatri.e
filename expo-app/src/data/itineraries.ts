@@ -2,7 +2,7 @@ import { CreatingItinerary } from "../../@types/CreatingItinerary";
 
 export const userTrips: CreatingItinerary[] = [
   {
-    title: "Vive la France",
+    title: "Vive la France (Demo)",
     dateBegin: new Date("2025-12-01"),
     dateEnd: new Date("2025-12-15"),
     days: 16,
@@ -11,7 +11,7 @@ export const userTrips: CreatingItinerary[] = [
       "France", "Switzerland", "United Kingdon"
     ],
     originCountry: "BR",
-    visa: false,
+    visa: "Negative",
     budget: 15000,
     peopleQuantity: 4,
     acconpanying: "Friends",
