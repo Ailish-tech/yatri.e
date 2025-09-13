@@ -122,7 +122,6 @@ export function GenerateItineraryMenu(){
       const unsubscribeEarned = newRewarded.addAdEventListener(
         RewardedAdEventType.EARNED_REWARD,
         (reward: any) => {
-          console.log('User watched another Rewarded AD', reward);
           setWatchedAdsCount(prev => prev + 1);
           setDisableAdIsLoading(false);
           setTimeout(() => {
@@ -134,7 +133,6 @@ export function GenerateItineraryMenu(){
       const unsubscribeClosed = newRewarded.addAdEventListener(
         'onAdClosed',
         () => {
-          console.log('Ad closed');
           setIsAdPlaying(false);
           setDisableAdIsLoading(false);
         },
@@ -292,10 +290,6 @@ export function GenerateItineraryMenu(){
 
     getUserTripsData();
   }, []);
-
-  useEffect(() => {
-    console.log(JSON.stringify(allUserItineraries, null, 2));
-  }, [allUserItineraries]);
   
   return(
     <SafeAreaView style={{ flex: 1 }}>

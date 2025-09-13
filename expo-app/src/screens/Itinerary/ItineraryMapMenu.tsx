@@ -4,10 +4,11 @@ import { RouteProp, useNavigation, useRoute } from "@react-navigation/native";
 import MapView from "react-native-maps";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-import { View } from "@gluestack-ui/themed";
+import { Button, ButtonText, View, Text } from "@gluestack-ui/themed";
 
 import { ButtonIconRight } from "@components/Buttons/ButtonIconRight";
 import { Maps } from "@components/Maps/Maps";
+import { SlideUpItinerary } from "@components/Sliders/SlideUpItinerary";
 
 import { generateItinerary } from '@utils/gptRequests';
 import { useNotificationStore } from '@utils/notificationStore';
@@ -21,6 +22,10 @@ import { CreatingItinerary } from "../../../@types/CreatingItinerary";
 
 import { Globe } from 'lucide-react-native';
 
+type ShowMapStatsInformationType = {
+  show: "Map" | "Stats"
+}
+
 export function ItineraryMapMenu() {
   const [loading, setLoading] = useState(false);
   const [itinerary, setItinerary] = useState('');
@@ -28,6 +33,8 @@ export function ItineraryMapMenu() {
   const [allCountriesTogether, setAllCountriesTogether] = useState<string>("");
   const [allTripStylesTogether, setAllTripStylesTogether] = useState<string>("");
   const [allVehicleTypesTogether, setAllVehicleTypesTogether] = useState<string>("");
+  const [hideBackButton, setHideBackButton] = useState<boolean>(false);
+  const [showMapStatsInformation, setShowMapStatsInformation] = useState<ShowMapStatsInformationType["show"]>("Map");
 
   const navigation = useNavigation<AuthNavigationProp>();
   const route = useRoute<RouteProp<{ params: { itineraryData: CreatingItinerary, userPreferences: string[], visaIssue: any } }, 'params'>>();
@@ -43,7 +50,7 @@ export function ItineraryMapMenu() {
   const filteredUserPreferences = filterUserPreferences(route.params.userPreferences || []);
 
   const { 
-    title, 
+    title,
     dateBegin, 
     dateEnd, 
     days, 
@@ -166,28 +173,66 @@ export function ItineraryMapMenu() {
 
   return (
     <View flex={1} position="relative">
-      <View flexDirection="row" alignItems="center">
-        <ButtonIconRight
-          textContent="Voltar"
-          action={() => navigation.navigate("GenerateItineraryMenu")}
-          styles={{
-            position: 'absolute',
-            backgroundColor: "#FDFDFD",
-            borderRadius: 15,
-            paddingVertical: 5,
-            paddingHorizontal: 10,
-            top: 10,
-            left: 10,
-            zIndex: 1,
-            marginTop: 50
-          }}
-        />
-      </View>
+      {
+        hideBackButton === false 
+        ? 
+          <View>
+            <ButtonIconRight
+              textContent="Voltar"
+              action={() => navigation.navigate("GenerateItineraryMenu")}
+              styles={{
+                position: 'absolute',
+                backgroundColor: "#FDFDFD",
+                borderRadius: 15,
+                paddingVertical: 5,
+                paddingHorizontal: 10,
+                top: 60,
+                left: 10,
+                zIndex: 1,
+              }}
+            />
+            <View flexDirection="row" position="absolute" top={65} right={10} zIndex={1}>
+              <Button 
+                bgColor={ showMapStatsInformation === "Map" ? "#2752B7" : "lightgray" } 
+                borderTopLeftRadius={10}
+                borderBottomLeftRadius={10}
+                borderTopRightRadius={0}
+                borderBottomRightRadius={0}
+                onPress={ () => setShowMapStatsInformation("Map") }
+                marginBottom={5}
+              >
+                <ButtonText color={ showMapStatsInformation === "Map" ? "#FFF" : "#000" }>Mapa</ButtonText>
+              </Button>
+              <Button 
+                bgColor={ showMapStatsInformation === "Stats" ? "#2752B7" : "lightgray" }
+                borderTopLeftRadius={0}
+                borderBottomLeftRadius={0}
+                borderTopRightRadius={10}
+                borderBottomRightRadius={10}
+                onPress={ () => setShowMapStatsInformation("Stats") }
+              >
+                <ButtonText color={ showMapStatsInformation === "Stats" ? "#FFF" : "#000" }>Status</ButtonText>
+              </Button>
+            </View>
+          </View>
+        : null
+      }
       <StatusBar barStyle="dark-content" />
       <View style={{ flex: 1 }}>
-        <Maps ref={mapUserPositionRef} />
+        {
+          showMapStatsInformation === "Map"
+          ?
+            <Maps ref={ mapUserPositionRef } />
+          :
+            <View flex={1}></View>
+        }
+      </View>
+      <View position="absolute" bottom={0} left={0} right={0}>
         <SafeAreaView>
-
+          <SlideUpItinerary
+            isLoading={ loading }
+            hideBackButton={ setHideBackButton }
+          />
         </SafeAreaView>
       </View>
     </View>
