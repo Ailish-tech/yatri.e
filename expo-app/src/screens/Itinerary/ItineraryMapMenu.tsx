@@ -110,8 +110,8 @@ export function ItineraryMapMenu() {
       "timeline": [
         {
           "time": "HH:MM",
-          "activity": "Descrição da atividade",
-          "details": "Detalhes adicionais",
+          "title": "Descrição da atividade",
+          "description": "Detalhes adicionais",
           "coordinates" "-xx°.xxx'; yy°.yyy'"
         }
       ],
