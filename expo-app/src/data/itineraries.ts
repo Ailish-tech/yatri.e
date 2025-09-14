@@ -4,8 +4,8 @@ export const userTrips: CreatingItinerary[] = [
   {
     title: "Vive la France (Demo)",
     dateBegin: new Date("2025-12-01"),
-    dateEnd: new Date("2025-12-15"),
-    days: 16,
+    dateEnd: new Date("2025-12-06"),
+    days: 6,
     continent: "Europe",
     countries: [
       "France", "Switzerland", "United Kingdon"

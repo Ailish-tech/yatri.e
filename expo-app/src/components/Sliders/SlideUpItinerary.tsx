@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { StyleSheet, Dimensions, FlatList } from "react-native";
-import { RouteProp, useRoute } from "@react-navigation/native";
+import { RouteProp, useNavigation, useRoute } from "@react-navigation/native";
 
 import {
   Gesture,
@@ -20,9 +20,10 @@ import Timeline from 'react-native-timeline-flatlist';
 
 import { ItinerarySliderDateShow } from "@components/Itinerary/ItinerarySliderDateShow";
 
-import { User } from "lucide-react-native";
+import { MessageCircle, Pen } from "lucide-react-native";
 
 import { CreatingItinerary } from "../../../@types/CreatingItinerary";
+import { AuthNavigationProp } from "@routes/auth.routes";
 
 type ItinerarySliderProps = {
   isLoading: boolean,
@@ -56,6 +57,7 @@ export function SlideUpItinerary({ isLoading, hideBackButton }: ItinerarySliderP
   const [allTripDays, setAllTripDays] = useState<CalendarDaysTypes[]>([]); 
   const [selectedDayIndex, setSelectedDayIndex] = useState<number>(0);
 
+  const navigation = useNavigation<AuthNavigationProp>();
   const route = useRoute<RouteProp<{ params: { itineraryData: CreatingItinerary, userPreferences: string[], visaIssue: any } }, 'params'>>();
   const {
     title, 
@@ -107,7 +109,7 @@ export function SlideUpItinerary({ isLoading, hideBackButton }: ItinerarySliderP
   const animatedStyle = useAnimatedStyle(() => {
     const isExpanded = position.value !== 0;
     const collapsedHeight = 200;
-    const expandedHeight = screenHeight * 0.82; // Reduzindo para 82%
+    const expandedHeight = screenHeight * 0.82;
     
     return {
       height: withTiming(
@@ -118,7 +120,7 @@ export function SlideUpItinerary({ isLoading, hideBackButton }: ItinerarySliderP
       transform: [
         { 
           translateY: withTiming(
-            isExpanded ? -75 : 0, // Reduzindo o movimento para -75px
+            isExpanded ? -75 : 0,
             { duration: 300 }
           ) 
         }
@@ -126,19 +128,30 @@ export function SlideUpItinerary({ isLoading, hideBackButton }: ItinerarySliderP
     };
   });
 
-  function weekDaysCalendarConstruction (dateStart: Date | string) {
-    const currentSelectedDate = new Date(dateStart);
+  function parseDate(dateInput: Date | string): Date {
+    if (typeof dateInput === 'string') {
+      const dateOnly = dateInput.split('T')[0];
+      const [year, month, day] = dateOnly.split('-').map(Number);
+      return new Date(year, month - 1, day);
+    } else {
+      return new Date(dateInput.getFullYear(), dateInput.getMonth(), dateInput.getDate());
+    }
+  }
+
+  function weekDaysCalendarConstruction(dateStart: Date | string) {
+    const currentSelectedDate = parseDate(dateStart);
     const weekdays = ["DOM", "SEG", "TER", "QUA", "QUI", "SEX", "SAB"];
 
     return weekdays[currentSelectedDate.getDay()];
   }
 
   function getDatesBetween(startDate: Date | string, endDate: Date | string): Date[] {
-    const start = typeof startDate === "string" ? new Date(startDate) : new Date(startDate);
-    const end = typeof endDate === "string" ? new Date(endDate) : new Date(endDate);
+    const start = parseDate(startDate);
+    const end = parseDate(endDate);
+    
     const dates: Date[] = [];
-
     let current = new Date(start);
+    
     while (current <= end) {
       dates.push(new Date(current));
       current.setDate(current.getDate() + 1);
@@ -152,7 +165,7 @@ export function SlideUpItinerary({ isLoading, hideBackButton }: ItinerarySliderP
 
     const daysArray = possibleDays.map((date, index) => ({
       id: index.toString(),
-      numberOfDay: date.getDate(),
+      numberOfDay: index + 1,
       nameOfWeekday: weekDaysCalendarConstruction(date)
     }));
 
@@ -163,44 +176,38 @@ export function SlideUpItinerary({ isLoading, hideBackButton }: ItinerarySliderP
     loadAllDayElements();
   }, [dateBegin, dateEnd]);
 
-  const renderDetail = (rowData: TimelineItemTypes, sectionID: any, rowID: any) => {
-    const title = (
-      <Text 
-        fontSize="$lg" 
-        fontWeight="$bold" 
-        color="#2752B7" 
-        mb={2}
-      >
-        {rowData.title || 'Título não disponível'}
-      </Text>
-    );
-
-    const description = rowData.description ? (
-      <Text 
-        fontSize="$sm" 
-        color="#666" 
-        lineHeight="$sm"
-        mb={rowData.coordinates ? 2 : 0}
-      >
-        {rowData.description}
-      </Text>
-    ) : null;
-
-    const coordinates = rowData.coordinates ? (
-      <Text 
-        fontSize="$xs" 
-        color="#999" 
-        fontStyle="italic"
-      >
-        Coordenadas: {rowData.coordinates}
-      </Text>
-    ) : null;
-
+  const renderDetail = (rowData: TimelineItemTypes) => {
     return (
       <View flex={1} px={2}>
-        {title}
-        {description}
-        {coordinates}
+        <Text 
+          fontSize="$lg" 
+          fontWeight="$bold" 
+          color="#2752B7" 
+          mb={2}
+        >
+          { rowData.title || 'Atividade sem título' }
+        </Text>
+        
+        { rowData.description && (
+          <Text 
+            fontSize="$sm" 
+            color="#666" 
+            lineHeight="$sm"
+            mb={ rowData.coordinates ? 2 : 0 }
+          >
+            { rowData.description }
+          </Text>
+        )}
+        
+        { rowData.coordinates && (
+          <Text 
+            fontSize="$xs" 
+            color="#999" 
+            fontStyle="italic"
+          >
+            Coordenadas: { rowData.coordinates }
+          </Text>
+        )}
       </View>
     );
   };
@@ -256,7 +263,7 @@ export function SlideUpItinerary({ isLoading, hideBackButton }: ItinerarySliderP
         </View>
         
         <View flex={1} px={4}>
-          {isLoading ? (
+          { isLoading ? (
             <Box flex={1} justifyContent="center" alignItems="center">
               <Spinner size="large" color="#2752B7" />
               <Text mt={2} color="#666">Gerando seu itinerário...</Text>
@@ -265,7 +272,26 @@ export function SlideUpItinerary({ isLoading, hideBackButton }: ItinerarySliderP
             <View flex={1} px={8}>
               <View flexDirection="row" justifyContent="space-between" alignItems="center" mt={-5}>
                 <Text color="$black" fontSize="$2xl" fontWeight="$bold">{ title }</Text>
-                <Button bgColor="lightgray" borderRadius={100} w={25} h={40}><ButtonIcon color="#000" as={ User } /></Button>
+                <View flexDirection="row">
+                  <Button 
+                    bgColor="lightgray" 
+                    borderRadius={100} 
+                    w={25} 
+                    h={40} 
+                    mr={10}
+                    onPress={ () => navigation.navigate("AIChatMenu") }
+                  >
+                    <ButtonIcon color="#000" as={ MessageCircle } size="lg" />
+                  </Button>
+                  <Button 
+                    bgColor="lightgray" 
+                    borderRadius={100} 
+                    w={25} 
+                    h={40}
+                  >
+                    <ButtonIcon color="#000" as={ Pen } size="lg" />
+                  </Button>
+                </View>
               </View>
               
               { itinerary ? (
@@ -274,7 +300,7 @@ export function SlideUpItinerary({ isLoading, hideBackButton }: ItinerarySliderP
                     <FlatList 
                       data={ allTripDays }
                       renderItem={ ({ item, index }) => (
-                        <ItinerarySliderDateShow 
+                        <ItinerarySliderDateShow
                           nameOfWeekday={ item.nameOfWeekday } 
                           numberOfDay={ item.numberOfDay } 
                           isSelected={ selectedDayIndex === index }
@@ -287,7 +313,7 @@ export function SlideUpItinerary({ isLoading, hideBackButton }: ItinerarySliderP
                     />
                   </View>
                   <View flex={1} mt={15} pt={10}>
-                    {getTimelineDataForDay(selectedDayIndex).length > 0 ? (
+                    { getTimelineDataForDay(selectedDayIndex).length > 0 ? (
                       <Timeline
                         data={ getTimelineDataForDay(selectedDayIndex) }
                         renderDetail={ renderDetail }
@@ -301,7 +327,7 @@ export function SlideUpItinerary({ isLoading, hideBackButton }: ItinerarySliderP
                           backgroundColor: '#F5F5F5',
                           borderRadius: 8,
                           paddingHorizontal: 8,
-                          paddingVertical: 4
+                          paddingVertical: 4,
                         }}
                         timeStyle={{
                           textAlign: 'center', 
@@ -320,8 +346,11 @@ export function SlideUpItinerary({ isLoading, hideBackButton }: ItinerarySliderP
                           paddingTop: 5
                         }}
                         eventContainerStyle={{
-                          marginLeft: 8
+                          marginLeft: 8,
+                          flex: 1
                         }}
+                        titleStyle={{ display: 'none' }}
+                        descriptionStyle={{ display: 'none' }}
                         isUsingFlatlist={true}
                         options={{
                           showsVerticalScrollIndicator: false,

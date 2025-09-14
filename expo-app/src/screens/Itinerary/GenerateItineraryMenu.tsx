@@ -276,6 +276,7 @@ export function GenerateItineraryMenu(){
     
     const getUserTripsData = async () => {
       try {
+        //await AsyncStorage.clear();
         const jsonValue = await AsyncStorage.getItem('@eztripai_allUserTripItineraries');
         if (jsonValue) {
           setAllUserItineraries(JSON.parse(jsonValue));
@@ -395,7 +396,7 @@ export function GenerateItineraryMenu(){
         </TouchableOpacity>
 
         <Button
-          bgColor="#ffffff"
+          bgColor="#FFF"
           borderRadius={15}
           shadowColor="#000"
           shadowOffset={{ width: 0, height: 4 }}

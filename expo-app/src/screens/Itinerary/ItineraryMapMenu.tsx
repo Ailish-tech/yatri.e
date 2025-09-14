@@ -52,7 +52,7 @@ export function ItineraryMapMenu() {
   const { 
     title,
     dateBegin, 
-    dateEnd, 
+    dateEnd,
     days, 
     continent, 
     countries,
@@ -112,7 +112,7 @@ export function ItineraryMapMenu() {
           "time": "HH:MM",
           "title": "Descrição da atividade",
           "description": "Detalhes adicionais",
-          "coordinates" "-xx°.xxx'; yy°.yyy'"
+          "coordinates" "xx.xxxxx'; yy.yyyyy'"
         }
       ],
       "suggestedActivities": ["Atividade extra recomendada 1", "Atividade extra recomendada 2"],

@@ -17,9 +17,9 @@ export function ItinerarySliderDateShow({ numberOfDay, nameOfWeekday, isSelected
         mx={5}
         py={8}
         px={12}
-        backgroundColor={isSelected ? "#2752B7" : "transparent"}
+        backgroundColor={ isSelected ? "#2752B7" : "transparent" }
         borderRadius={12}
-        borderWidth={isSelected ? 0 : 1}
+        borderWidth={ isSelected ? 0 : 1 }
         borderColor="#E0E0E0"
       >
         <Text 
