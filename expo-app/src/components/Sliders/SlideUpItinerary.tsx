@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { StyleSheet, Dimensions, FlatList } from "react-native";
 import { RouteProp, useNavigation, useRoute } from "@react-navigation/native";
 
@@ -14,13 +14,13 @@ import Animated, {
   runOnJS,
 } from 'react-native-reanimated';
 
-import { Box, Spinner, View, Text, Button, ButtonIcon } from "@gluestack-ui/themed";
+import { Box, Spinner, View, Text, Button, ButtonIcon, ButtonText } from "@gluestack-ui/themed";
 
 import Timeline from 'react-native-timeline-flatlist';
 
 import { ItinerarySliderDateShow } from "@components/Itinerary/ItinerarySliderDateShow";
 
-import { MessageCircle, Pen } from "lucide-react-native";
+import { ArrowDown, ArrowUp, CalendarX, ChevronRight, HandCoins, MessageCircle, Pen, SquarePlus } from "lucide-react-native";
 
 import { CreatingItinerary } from "../../../@types/CreatingItinerary";
 import { AuthNavigationProp } from "@routes/auth.routes";
@@ -56,6 +56,7 @@ type DayItineraryTypes = {
 export function SlideUpItinerary({ isLoading, hideBackButton }: ItinerarySliderProps) {
   const [allTripDays, setAllTripDays] = useState<CalendarDaysTypes[]>([]); 
   const [selectedDayIndex, setSelectedDayIndex] = useState<number>(0);
+  const [isEditing, setIsEditing] = useState<boolean>(false);
 
   const navigation = useNavigation<AuthNavigationProp>();
   const route = useRoute<RouteProp<{ params: { itineraryData: CreatingItinerary, userPreferences: string[], visaIssue: any } }, 'params'>>();
@@ -176,7 +177,7 @@ export function SlideUpItinerary({ isLoading, hideBackButton }: ItinerarySliderP
     loadAllDayElements();
   }, [dateBegin, dateEnd]);
 
-  const renderDetail = (rowData: TimelineItemTypes) => {
+  const renderDetail = useCallback((rowData: TimelineItemTypes) => {
     return (
       <View flex={1} px={2}>
         <Text 
@@ -208,9 +209,52 @@ export function SlideUpItinerary({ isLoading, hideBackButton }: ItinerarySliderP
             Coordenadas: { rowData.coordinates }
           </Text>
         )}
+
+        <Button flexDirection="row" justifyContent="space-between" mt={10} bgColor="transparent" borderWidth={1} borderColor="lightgray">
+          <View flexDirection="row">
+            <ButtonIcon as={ SquarePlus } color="$black" mr={8} />
+            <ButtonText color="$black">Definir Categoria</ButtonText>
+          </View>
+          <ButtonIcon as={ ChevronRight } color="$black" />
+        </Button>
+        <Button flexDirection="row" justifyContent="space-between" mt={10} bgColor="transparent" borderWidth={1} borderColor="lightgray">
+          <View flexDirection="row">
+            <ButtonIcon as={ HandCoins } color="$black" mr={8} />
+            <ButtonText color="$black">Adicionar Custos</ButtonText>
+          </View>
+          <ButtonIcon as={ ChevronRight } color="$black" />
+        </Button>
+        {
+          isEditing
+          ?
+            <View>
+              <Button flexDirection="row" justifyContent="space-between" mt={10} bgColor="transparent" borderWidth={1} borderColor="lightgray">
+                <View flexDirection="row">
+                  <ButtonIcon as={ ArrowUp } color="$black" mr={8} />
+                  <ButtonText color="$black">Adicionar antes</ButtonText>
+                </View>
+                <ButtonIcon as={ ChevronRight } color="$black" />
+              </Button>
+              <Button flexDirection="row" justifyContent="space-between" mt={10} bgColor="transparent" borderWidth={1} borderColor="lightgray">
+                <View flexDirection="row">
+                  <ButtonIcon as={ ArrowDown } color="$black" mr={8} />
+                  <ButtonText color="$black">Adicionar depois</ButtonText>
+                </View>
+                <ButtonIcon as={ ChevronRight } color="$black" />
+              </Button>
+              <Button flexDirection="row" justifyContent="space-between" mt={10} bgColor="transparent" borderWidth={1} borderColor="lightgray">
+                <View flexDirection="row">
+                  <ButtonIcon as={ CalendarX } color="$black" mr={8} />
+                  <ButtonText color="$black">Excluir visita</ButtonText>
+                </View>
+                <ButtonIcon as={ ChevronRight } color="$black" />
+              </Button>
+            </View>
+          : null
+        }
       </View>
     );
-  };
+  }, [isEditing]);
 
   const getTimelineDataForDay = (dayIndex: number) => {
     if (!itinerary || !Array.isArray(itinerary)) return [];
@@ -271,25 +315,35 @@ export function SlideUpItinerary({ isLoading, hideBackButton }: ItinerarySliderP
           ) : (
             <View flex={1} px={8}>
               <View flexDirection="row" justifyContent="space-between" alignItems="center" mt={-5}>
-                <Text color="$black" fontSize="$2xl" fontWeight="$bold">{ title }</Text>
-                <View flexDirection="row">
+                <View flex={1}>
+                  <Text color="$black" fontSize="$2xl" fontWeight="$bold">{ title }</Text>
+                  { isEditing && (
+                    <Text color="#2752B7" fontSize="$sm" fontWeight="$medium">
+                      Modo de edição ativo
+                    </Text>
+                  )}
+                </View>
+                <View flexDirection="row" alignItems="center">
                   <Button 
                     bgColor="lightgray" 
                     borderRadius={100} 
-                    w={25} 
+                    w={40} 
                     h={40} 
                     mr={10}
+                    p={0}
                     onPress={ () => navigation.navigate("AIChatMenu") }
                   >
                     <ButtonIcon color="#000" as={ MessageCircle } size="lg" />
                   </Button>
                   <Button 
-                    bgColor="lightgray" 
+                    bgColor={isEditing ? "#2752B7" : "lightgray"} 
                     borderRadius={100} 
-                    w={25} 
+                    w={40} 
                     h={40}
+                    p={0}
+                    onPress={() => setIsEditing(!isEditing)}
                   >
-                    <ButtonIcon color="#000" as={ Pen } size="lg" />
+                    <ButtonIcon color={ isEditing ? "#fff" : "#000" } as={ Pen } size="lg" />
                   </Button>
                 </View>
               </View>
@@ -315,6 +369,7 @@ export function SlideUpItinerary({ isLoading, hideBackButton }: ItinerarySliderP
                   <View flex={1} mt={15} pt={10}>
                     { getTimelineDataForDay(selectedDayIndex).length > 0 ? (
                       <Timeline
+                        key={ `timeline-${selectedDayIndex}-${isEditing}` }
                         data={ getTimelineDataForDay(selectedDayIndex) }
                         renderDetail={ renderDetail }
                         circleSize={24}

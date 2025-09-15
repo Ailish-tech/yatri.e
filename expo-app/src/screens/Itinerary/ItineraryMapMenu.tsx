@@ -179,7 +179,7 @@ export function ItineraryMapMenu() {
           <View>
             <ButtonIconRight
               textContent="Voltar"
-              action={() => navigation.navigate("GenerateItineraryMenu")}
+              action={ () => navigation.navigate("GenerateItineraryMenu") }
               styles={{
                 position: 'absolute',
                 backgroundColor: "#FDFDFD",
