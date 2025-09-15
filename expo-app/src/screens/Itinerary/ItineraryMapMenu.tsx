@@ -104,19 +104,20 @@ export function ItineraryMapMenu() {
   // Padrão de resposta que deve ser retornado para colocar no Object itineraries:
   const answerPattern = `
     {
-      "day": 1,
-      "date": "YYYY-MM-DD",
-      "location": "Cidade, País",
-      "timeline": [
+      day: Número,
+      date: "YYYY-MM-DD",
+      location: "Cidade, País",
+      timeline: [
         {
-          "time": "HH:MM",
-          "title": "Descrição da atividade",
-          "description": "Detalhes adicionais",
-          "coordinates" "xx.xxxxx'; yy.yyyyy'"
+          time: "HH:MM",
+          title: "Descrição da atividade",
+          description: "Detalhes adicionais",
+          coordinates "xx.xxxxx'; yy.yyyyy'",
+          category: "String vazia"
         }
       ],
-      "suggestedActivities": ["Atividade extra recomendada 1", "Atividade extra recomendada 2"],
-      "pixabayTags": "Tags relevantes para encontrar uma imgaem na API do Pixabay"
+      suggestedActivities: ["Atividade extra recomendada 1", "Atividade extra recomendada 2"],
+      pixabayTags: "Tags relevantes para encontrar uma imgaem na API do Pixabay"
     },
   `;
 

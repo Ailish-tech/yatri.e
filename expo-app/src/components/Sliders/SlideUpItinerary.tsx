@@ -18,9 +18,10 @@ import { Box, Spinner, View, Text, Button, ButtonIcon, ButtonText } from "@glues
 
 import Timeline from 'react-native-timeline-flatlist';
 
+import { ItineraryCategoriesDefine } from "@components/Itinerary/ItineraryCategoriesDefine";
 import { ItinerarySliderDateShow } from "@components/Itinerary/ItinerarySliderDateShow";
 
-import { ArrowDown, ArrowUp, CalendarX, ChevronRight, HandCoins, MessageCircle, Pen, SquarePlus } from "lucide-react-native";
+import { ArrowDown, ArrowUp, CalendarX, ChevronRight, Compass, HandCoins, MessageCircle, Pen, SquarePlus, UtensilsCrossed, Bed, PartyPopper, TreePine, ShoppingBag, Landmark, Plane } from "lucide-react-native";
 
 import { CreatingItinerary } from "../../../@types/CreatingItinerary";
 import { AuthNavigationProp } from "@routes/auth.routes";
@@ -40,7 +41,8 @@ type TimelineItemTypes = {
   time: string,
   title: string,
   description: string,
-  coordinates?: string
+  coordinates?: string,
+  category: string
 }
 
 type DayItineraryTypes = {
@@ -54,25 +56,21 @@ type DayItineraryTypes = {
 }
 
 export function SlideUpItinerary({ isLoading, hideBackButton }: ItinerarySliderProps) {
-  const [allTripDays, setAllTripDays] = useState<CalendarDaysTypes[]>([]); 
-  const [selectedDayIndex, setSelectedDayIndex] = useState<number>(0);
-  const [isEditing, setIsEditing] = useState<boolean>(false);
-
   const navigation = useNavigation<AuthNavigationProp>();
   const route = useRoute<RouteProp<{ params: { itineraryData: CreatingItinerary, userPreferences: string[], visaIssue: any } }, 'params'>>();
   const {
-    title, 
-    dateBegin, 
-    dateEnd, 
+    title,
+    dateBegin,
+    dateEnd,
     days,
-    continent, 
+    continent,
     countries,
     visa,
     originCountry,
-    budget, 
-    peopleQuantity, 
+    budget,
+    peopleQuantity,
     acconpanying,
-    tripStyle, 
+    tripStyle,
     locomotionMethod,
     specialWish,
     visitPreferences,
@@ -81,6 +79,13 @@ export function SlideUpItinerary({ isLoading, hideBackButton }: ItinerarySliderP
     pixabayTags,
     images
   } = route.params.itineraryData;
+
+  const [allTripDays, setAllTripDays] = useState<CalendarDaysTypes[]>([]);
+  const [selectedDayIndex, setSelectedDayIndex] = useState<number>(0);
+  const [isEditing, setIsEditing] = useState<boolean>(false);
+  const [showCategories, setShowCategories] = useState<boolean>(false);
+  const [editingTimelineIndex, setEditingTimelineIndex] = useState<number | null>(null);
+  const [itineraryState, setItineraryState] = useState<DayItineraryTypes[]>(Array.isArray(itinerary) ? itinerary : []);
 
   const { height: screenHeight } = Dimensions.get('window');
 
@@ -111,7 +116,7 @@ export function SlideUpItinerary({ isLoading, hideBackButton }: ItinerarySliderP
     const isExpanded = position.value !== 0;
     const collapsedHeight = 200;
     const expandedHeight = screenHeight * 0.82;
-    
+
     return {
       height: withTiming(
         isExpanded ? expandedHeight : collapsedHeight,
@@ -119,15 +124,61 @@ export function SlideUpItinerary({ isLoading, hideBackButton }: ItinerarySliderP
       ),
       bottom: 0,
       transform: [
-        { 
+        {
           translateY: withTiming(
             isExpanded ? -75 : 0,
             { duration: 300 }
-          ) 
+          )
         }
       ],
     };
   });
+
+  const handleSelectCategory = (category: string) => {
+    if (editingTimelineIndex === null) return;
+
+    setItineraryState(prev => {
+      const safePrev = Array.isArray(prev) ? prev : [];
+      const newItinerary = safePrev.map((day, idx) => {
+        if (idx === selectedDayIndex) {
+          const newTimeline = [...day.timeline];
+          newTimeline[editingTimelineIndex] = {
+            ...newTimeline[editingTimelineIndex],
+            category,
+          };
+          return { ...day, timeline: newTimeline };
+        }
+        return day;
+      });
+      return newItinerary;
+    });
+
+    setShowCategories(false);
+    setEditingTimelineIndex(null);
+  };
+
+  const getCategoryIcon = (category: string) => {
+    switch (category) {
+      case "Ponto Turístico":
+        return Compass;
+      case "Gastronomia":
+        return UtensilsCrossed;
+      case "Hospedagem":
+        return Bed;
+      case "Vida Noturna":
+        return PartyPopper;
+      case "Parques":
+        return TreePine;
+      case "Shopping":
+        return ShoppingBag;
+      case "Cultura":
+        return Landmark;
+      case "Viagens":
+        return Plane;
+      default:
+        return SquarePlus;
+    }
+  };
 
   function parseDate(dateInput: Date | string): Date {
     if (typeof dateInput === 'string') {
@@ -149,10 +200,10 @@ export function SlideUpItinerary({ isLoading, hideBackButton }: ItinerarySliderP
   function getDatesBetween(startDate: Date | string, endDate: Date | string): Date[] {
     const start = parseDate(startDate);
     const end = parseDate(endDate);
-    
+
     const dates: Date[] = [];
     let current = new Date(start);
-    
+
     while (current <= end) {
       dates.push(new Date(current));
       current.setDate(current.getDate() + 1);
@@ -161,7 +212,7 @@ export function SlideUpItinerary({ isLoading, hideBackButton }: ItinerarySliderP
     return dates;
   }
 
-  function loadAllDayElements () {
+  function loadAllDayElements() {
     const possibleDays = getDatesBetween(dateBegin, dateEnd);
 
     const daysArray = possibleDays.map((date, index) => ({
@@ -177,90 +228,104 @@ export function SlideUpItinerary({ isLoading, hideBackButton }: ItinerarySliderP
     loadAllDayElements();
   }, [dateBegin, dateEnd]);
 
-  const renderDetail = useCallback((rowData: TimelineItemTypes) => {
+  const renderDetail = useCallback((rowData: TimelineItemTypes, index: number) => {
+    // Debug: verificar se a categoria está sendo salva
+    console.log(`Item ${index} - Categoria: "${rowData.category}"`);
+    
     return (
       <View flex={1} px={2}>
-        <Text 
-          fontSize="$lg" 
-          fontWeight="$bold" 
-          color="#2752B7" 
+        <Text
+          fontSize="$lg"
+          fontWeight="$bold"
+          color="#2752B7"
           mb={2}
         >
-          { rowData.title || 'Atividade sem título' }
+          {rowData.title || 'Atividade sem título'}
         </Text>
-        
+
         { rowData.description && (
-          <Text 
-            fontSize="$sm" 
-            color="#666" 
+          <Text
+            fontSize="$sm"
+            color="#666"
             lineHeight="$sm"
-            mb={ rowData.coordinates ? 2 : 0 }
+            mb={rowData.coordinates ? 2 : 0}
           >
-            { rowData.description }
-          </Text>
-        )}
-        
-        { rowData.coordinates && (
-          <Text 
-            fontSize="$xs" 
-            color="#999" 
-            fontStyle="italic"
-          >
-            Coordenadas: { rowData.coordinates }
+            {rowData.description}
           </Text>
         )}
 
-        <Button flexDirection="row" justifyContent="space-between" mt={10} bgColor="transparent" borderWidth={1} borderColor="lightgray">
+        {rowData.coordinates && (
+          <Text
+            fontSize="$xs"
+            color="#999"
+            fontStyle="italic"
+          >
+            Coordenadas: {rowData.coordinates}
+          </Text>
+        )}
+
+        <Button
+          flexDirection="row"
+          justifyContent="space-between"
+          mt={10}
+          bgColor="transparent"
+          borderWidth={1}
+          borderColor="lightgray"
+          onPress={() => {
+            setEditingTimelineIndex(index);
+            setShowCategories(true);
+          }}
+        >
           <View flexDirection="row">
-            <ButtonIcon as={ SquarePlus } color="$black" mr={8} />
-            <ButtonText color="$black">Definir Categoria</ButtonText>
+            <ButtonIcon as={ getCategoryIcon(rowData.category) } color="$black" mr={8} />
+            <ButtonText color="$black">{ rowData.category ? rowData.category : "Definir Categoria" }</ButtonText>
           </View>
           <ButtonIcon as={ ChevronRight } color="$black" />
         </Button>
         <Button flexDirection="row" justifyContent="space-between" mt={10} bgColor="transparent" borderWidth={1} borderColor="lightgray">
           <View flexDirection="row">
-            <ButtonIcon as={ HandCoins } color="$black" mr={8} />
+            <ButtonIcon as={HandCoins} color="$black" mr={8} />
             <ButtonText color="$black">Adicionar Custos</ButtonText>
           </View>
-          <ButtonIcon as={ ChevronRight } color="$black" />
+          <ButtonIcon as={ChevronRight} color="$black" />
         </Button>
         {
           isEditing
-          ?
+            ?
             <View>
               <Button flexDirection="row" justifyContent="space-between" mt={10} bgColor="transparent" borderWidth={1} borderColor="lightgray">
                 <View flexDirection="row">
-                  <ButtonIcon as={ ArrowUp } color="$black" mr={8} />
+                  <ButtonIcon as={ArrowUp} color="$black" mr={8} />
                   <ButtonText color="$black">Adicionar antes</ButtonText>
                 </View>
-                <ButtonIcon as={ ChevronRight } color="$black" />
+                <ButtonIcon as={ChevronRight} color="$black" />
               </Button>
               <Button flexDirection="row" justifyContent="space-between" mt={10} bgColor="transparent" borderWidth={1} borderColor="lightgray">
                 <View flexDirection="row">
-                  <ButtonIcon as={ ArrowDown } color="$black" mr={8} />
+                  <ButtonIcon as={ArrowDown} color="$black" mr={8} />
                   <ButtonText color="$black">Adicionar depois</ButtonText>
                 </View>
-                <ButtonIcon as={ ChevronRight } color="$black" />
+                <ButtonIcon as={ChevronRight} color="$black" />
               </Button>
               <Button flexDirection="row" justifyContent="space-between" mt={10} bgColor="transparent" borderWidth={1} borderColor="lightgray">
                 <View flexDirection="row">
-                  <ButtonIcon as={ CalendarX } color="$black" mr={8} />
+                  <ButtonIcon as={CalendarX} color="$black" mr={8} />
                   <ButtonText color="$black">Excluir visita</ButtonText>
                 </View>
-                <ButtonIcon as={ ChevronRight } color="$black" />
+                <ButtonIcon as={ChevronRight} color="$black" />
               </Button>
             </View>
-          : null
+            : null
         }
       </View>
     );
   }, [isEditing]);
 
   const getTimelineDataForDay = (dayIndex: number) => {
-    if (!itinerary || !Array.isArray(itinerary)) return [];
-    
-    const dayData = itinerary.find((day: DayItineraryTypes) => day.day === dayIndex + 1);
-    
+    if (!itineraryState || !Array.isArray(itineraryState)) return [];
+
+    const dayData = itineraryState.find((day: DayItineraryTypes) => day.day === dayIndex + 1);
+
     return dayData?.timeline || [];
   };
 
@@ -291,13 +356,13 @@ export function SlideUpItinerary({ isLoading, hideBackButton }: ItinerarySliderP
         style={[animatedStyle, styles.slider]}
       >
         <View>
-          <View 
-            style={{ 
-              borderColor: "#BBB", 
-              borderWidth: .5, 
-              width: 65, 
-              height: 6, 
-              borderRadius: 20, 
+          <View
+            style={{
+              borderColor: "#BBB",
+              borderWidth: .5,
+              width: 65,
+              height: 6,
+              borderRadius: 20,
               backgroundColor: "#BBB",
               marginTop: 15,
               marginBottom: 10,
@@ -305,9 +370,9 @@ export function SlideUpItinerary({ isLoading, hideBackButton }: ItinerarySliderP
             }}
           />
         </View>
-        
+
         <View flex={1} px={4}>
-          { isLoading ? (
+          {isLoading ? (
             <Box flex={1} justifyContent="center" alignItems="center">
               <Spinner size="large" color="#2752B7" />
               <Text mt={2} color="#666">Gerando seu itinerário...</Text>
@@ -316,62 +381,62 @@ export function SlideUpItinerary({ isLoading, hideBackButton }: ItinerarySliderP
             <View flex={1} px={8}>
               <View flexDirection="row" justifyContent="space-between" alignItems="center" mt={-5}>
                 <View flex={1}>
-                  <Text color="$black" fontSize="$2xl" fontWeight="$bold">{ title }</Text>
-                  { isEditing && (
+                  <Text color="$black" fontSize="$2xl" fontWeight="$bold">{title}</Text>
+                  {isEditing && (
                     <Text color="#2752B7" fontSize="$sm" fontWeight="$medium">
                       Modo de edição ativo
                     </Text>
                   )}
                 </View>
                 <View flexDirection="row" alignItems="center">
-                  <Button 
-                    bgColor="lightgray" 
-                    borderRadius={100} 
-                    w={40} 
-                    h={40} 
+                  <Button
+                    bgColor="lightgray"
+                    borderRadius={100}
+                    w={40}
+                    h={40}
                     mr={10}
                     p={0}
-                    onPress={ () => navigation.navigate("AIChatMenu") }
+                    onPress={() => navigation.navigate("AIChatMenu")}
                   >
-                    <ButtonIcon color="#000" as={ MessageCircle } size="lg" />
+                    <ButtonIcon color="#000" as={MessageCircle} size="lg" />
                   </Button>
-                  <Button 
-                    bgColor={isEditing ? "#2752B7" : "lightgray"} 
-                    borderRadius={100} 
-                    w={40} 
+                  <Button
+                    bgColor={isEditing ? "#2752B7" : "lightgray"}
+                    borderRadius={100}
+                    w={40}
                     h={40}
                     p={0}
                     onPress={() => setIsEditing(!isEditing)}
                   >
-                    <ButtonIcon color={ isEditing ? "#fff" : "#000" } as={ Pen } size="lg" />
+                    <ButtonIcon color={isEditing ? "#fff" : "#000"} as={Pen} size="lg" />
                   </Button>
                 </View>
               </View>
-              
-              { itinerary ? (
+
+              {itinerary ? (
                 <View flex={1} mt={15}>
                   <View>
-                    <FlatList 
-                      data={ allTripDays }
-                      renderItem={ ({ item, index }) => (
+                    <FlatList
+                      data={allTripDays}
+                      renderItem={({ item, index }) => (
                         <ItinerarySliderDateShow
-                          nameOfWeekday={ item.nameOfWeekday } 
-                          numberOfDay={ item.numberOfDay } 
-                          isSelected={ selectedDayIndex === index }
-                          onPress={ () => setSelectedDayIndex(index) }
+                          nameOfWeekday={item.nameOfWeekday}
+                          numberOfDay={item.numberOfDay}
+                          isSelected={selectedDayIndex === index}
+                          onPress={() => setSelectedDayIndex(index)}
                         />
                       )}
-                      keyExtractor={ item => item.id }
-                      horizontal={ true }
-                      showsHorizontalScrollIndicator={ false }
+                      keyExtractor={item => item.id}
+                      horizontal={true}
+                      showsHorizontalScrollIndicator={false}
                     />
                   </View>
                   <View flex={1} mt={15} pt={10}>
-                    { getTimelineDataForDay(selectedDayIndex).length > 0 ? (
+                    {getTimelineDataForDay(selectedDayIndex).length > 0 ? (
                       <Timeline
-                        key={ `timeline-${selectedDayIndex}-${isEditing}` }
-                        data={ getTimelineDataForDay(selectedDayIndex) }
-                        renderDetail={ renderDetail }
+                        key={`timeline-${selectedDayIndex}-${isEditing}`}
+                        data={getTimelineDataForDay(selectedDayIndex)}
+                        renderDetail={renderDetail}
                         circleSize={24}
                         circleColor='#2752B7'
                         lineColor='#E0E0E0'
@@ -385,8 +450,8 @@ export function SlideUpItinerary({ isLoading, hideBackButton }: ItinerarySliderP
                           paddingVertical: 4,
                         }}
                         timeStyle={{
-                          textAlign: 'center', 
-                          backgroundColor: 'transparent', 
+                          textAlign: 'center',
+                          backgroundColor: 'transparent',
                           color: '#2752B7',
                           fontSize: 14,
                           fontWeight: '600'
@@ -418,8 +483,7 @@ export function SlideUpItinerary({ isLoading, hideBackButton }: ItinerarySliderP
                           Nenhuma atividade programada para este dia
                         </Text>
                       </View>
-                    )}
-                  </View>
+                    )}</View>
                 </View>
               ) : (
                 <View flex={1} justifyContent="center" alignItems="center">
@@ -427,10 +491,16 @@ export function SlideUpItinerary({ isLoading, hideBackButton }: ItinerarySliderP
                     Nenhum itinerário disponível
                   </Text>
                 </View>
-              ) }
+              )}
             </View>
           )}
         </View>
+
+        <ItineraryCategoriesDefine 
+          showModal={ showCategories }
+          setShowModal={ () => setShowCategories(false) }
+          onSelectCategory={ handleSelectCategory }
+        />
       </Animated.View>
     </GestureDetector>
   );

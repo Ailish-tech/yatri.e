@@ -212,7 +212,7 @@ export function ChooseGenerateStyle({ showModal, setShowModal, onDefinedItinerar
                   Planejado
                 </Text>
                 <Text 
-                  color="rgba(255, 255, 255, 0.9)" 
+                  color="rgba(255, 255, 255, 0.9)"
                   fontSize={12}
                   textAlign="center"
                   mt={6}
