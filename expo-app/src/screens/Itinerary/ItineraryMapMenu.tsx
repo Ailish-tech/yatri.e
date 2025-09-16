@@ -101,6 +101,11 @@ export function ItineraryMapMenu() {
   de ${ originCountry }. Temos um orçamento de ${ budget }. Viagem com foco em ${ allTripStylesTogether }, utilizaremos ${ allVehicleTypesTogether }
   e temos um desejo para a viagem: ${ specialWish }. Gostamos de ${ filteredUserPreferences?.join(', ') }.`;
 
+  const preferencesSurpriseDestinationText = `Início da viagem em ${ dateBegin } e o fim em ${ dateEnd }, possuindo ${ days } dias de viagem.
+  Somos ${ acconpanying } com ${ peopleQuantity } pessoas e de ${ originCountry }. Temos um orçamento de ${ budget }. Viagem com foco 
+  em ${ allTripStylesTogether }, utilizaremos ${ allVehicleTypesTogether } e temos um desejo para a viagem: ${ specialWish }. 
+  Gostamos de ${ filteredUserPreferences?.join(', ') }.`;
+
   // Padrão de resposta que deve ser retornado para colocar no Object itineraries:
   const answerPattern = `
     {
@@ -122,7 +127,7 @@ export function ItineraryMapMenu() {
   `;
 
   const generateDetailed = async () => {
-    const prompt = `Gere um itinerário turístico completo e detalhado para a viagem abaixo, retornando um Object. Cada dia deve conter, considerando tempos de deslocamento realistas (não invente dados, apenas estime com base em trajetos comuns), o seguinte padrão de resposta: ${ answerPattern }. Use apenas os dados fornecidos do usuário para esta viagem: ${ preferencesAllDefinedText }. Retorne apenas este padrão de resposta, nada além disso. Seja bem específico no nome dos locais a serem visitados. Só não especifique nome de hotéis.`;
+    const prompt = `Gere um itinerário turístico completo e detalhado para uma viagem, retornando um Object. Cada dia deve conter, considerando tempos de deslocamento realistas (não invente dados, apenas estime com base em trajetos comuns), o seguinte padrão de resposta: ${ answerPattern }. Use apenas os dados fornecidos do usuário para esta viagem: ${ preferencesAllDefinedText }. Retorne apenas este padrão de resposta, nada além disso. Seja bem específico no nome dos locais a serem visitados. Não especifique nome de hotéis.`;
 
     try {
       if (!route.params?.itineraryData?.itinerary || Object.keys(route.params.itineraryData.itinerary).length === 0) {
@@ -162,14 +167,65 @@ export function ItineraryMapMenu() {
         await AsyncStorage.setItem(ITINERARY_STORAGE_KEY, JSON.stringify(userTrips));
       }
     } catch (error) {
-      setItinerary('Erro ao gerar roteiro. Tente novamente.');
+      setItinerary('Erro ao gerar roteiro com informações definidas. Tente novamente.');
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  const generateSurprise = async () => {
+    const prompt = `Gere um itinerário turístico completo e detalhado para uma viagem com um destino surpresa em qualquer local do mundo, retornando um Object. Cada dia deve conter, considerando tempos de deslocamento realistas (não invente dados, apenas estime com base em trajetos comuns), o seguinte padrão de resposta: ${ answerPattern }. Use apenas os dados fornecidos do usuário para esta viagem: ${ preferencesSurpriseDestinationText }. Retorne apenas este padrão de resposta, nada além disso. Seja bem específico no nome dos locais a serem visitados. Não especifique nome de hotéis.`;
+
+    try {
+      if (!route.params?.itineraryData?.itinerary || Object.keys(route.params.itineraryData.itinerary).length === 0) {
+        setLoading(true);
+        setItinerary('');
+  
+        const result = await generateItinerary(prompt);
+        setItinerary(JSON.parse(result));
+  
+        let trip: CreatingItinerary = {
+          title: filteredItineraryData.title,
+          dateBegin: route.params.itineraryData.dateBegin,
+          dateEnd: route.params.itineraryData.dateEnd,
+          days: filteredItineraryData.days,
+          continent: filteredItineraryData.continent,
+          countries: filteredItineraryData.countries,
+          originCountry: filteredItineraryData.originCountry,
+          visa: filteredItineraryData.visa,
+          budget: filteredItineraryData.budget,
+          peopleQuantity: filteredItineraryData.peopleQuantity,
+          acconpanying: filteredItineraryData.acconpanying,
+          tripStyle: filteredItineraryData.tripStyle,
+          locomotionMethod: filteredItineraryData.locomotionMethod,
+          specialWish: filteredItineraryData.specialWish,
+          visitPreferences: filteredUserPreferences,
+          contacts: filteredItineraryData.contacts,
+          itinerary: itinerary
+        }
+        userTrips.push(trip);
+  
+        addNotification({
+          title: "Novo Roteiro Pronto",
+          description: "Um novo roteiro para a sua incrível próxima viagem foi gerado pela Inteligência Artificial. Confira já!",
+          routeIcon: Globe
+        });
+  
+        await AsyncStorage.setItem(ITINERARY_STORAGE_KEY, JSON.stringify(userTrips));
+      }
+    } catch (error) {
+      setItinerary('Erro ao gerar roteiro surpresa. Tente novamente.');
     } finally {
       setLoading(false);
     }
   }
 
   useEffect(() => {
-    generateDetailed();
+    if (countries && countries.length > 0) {
+      generateDetailed();
+    } else {
+      generateSurprise();
+    }
   }, [preferencesAllDefinedText]);
 
   return (

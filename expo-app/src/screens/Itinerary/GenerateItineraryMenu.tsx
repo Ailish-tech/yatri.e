@@ -237,7 +237,6 @@ export function GenerateItineraryMenu(){
     }
 
     if (isNaN(dateObj.getTime())) {
-      console.warn('Data inválida após conversão:', targetDate);
       return 0;
     }
 
@@ -263,7 +262,7 @@ export function GenerateItineraryMenu(){
   }, [showAdProgressModal, showAdImage, showAlertDialog, isAdPlaying]);
 
   useEffect(() => {
-    const ifEmptyRestoreUserTripData = async (value: Object) => {
+    const ifEmptyRestoreDefaultUserTripData = async (value: Object) => {
       try {
         const jsonValue = JSON.stringify(value);
         await AsyncStorage.setItem('@eztripai_allUserTripItineraries', jsonValue);
@@ -281,7 +280,7 @@ export function GenerateItineraryMenu(){
         if (jsonValue) {
           setAllUserItineraries(JSON.parse(jsonValue));
         } else {
-          await ifEmptyRestoreUserTripData(userTrips);
+          await ifEmptyRestoreDefaultUserTripData(userTrips);
           setAllUserItineraries(userTrips);
         }
       } catch (e) {
@@ -295,7 +294,7 @@ export function GenerateItineraryMenu(){
   return(
     <SafeAreaView style={{ flex: 1 }}>
       <StatusBar barStyle="dark-content" />
-      <ScrollView showsVerticalScrollIndicator={false}>
+      <ScrollView showsVerticalScrollIndicator={ false }>
         <View px={15} mt={5} flexDirection="row" justifyContent="space-between" alignItems="center">
           <IconButton 
             icon={ ArrowLeft }

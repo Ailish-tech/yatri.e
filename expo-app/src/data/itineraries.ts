@@ -1,6 +1,6 @@
 import { CreatingItinerary } from "../../@types/CreatingItinerary";
 
-export const userTrips: CreatingItinerary[] = [
+export let userTrips: CreatingItinerary[] = [
   {
     title: "Vive la France (Demo)",
     dateBegin: new Date("2025-12-01"),

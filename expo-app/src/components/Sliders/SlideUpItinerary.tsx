@@ -229,9 +229,6 @@ export function SlideUpItinerary({ isLoading, hideBackButton }: ItinerarySliderP
   }, [dateBegin, dateEnd]);
 
   const renderDetail = useCallback((rowData: TimelineItemTypes, index: number) => {
-    // Debug: verificar se a categoria está sendo salva
-    console.log(`Item ${index} - Categoria: "${rowData.category}"`);
-    
     return (
       <View flex={1} px={2}>
         <Text
