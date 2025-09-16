@@ -28,7 +28,7 @@ type ShowMapStatsInformationType = {
 
 export function ItineraryMapMenu() {
   const [loading, setLoading] = useState(false);
-  const [itinerary, setItinerary] = useState('');
+  const [itinerary, setItinerary] = useState<any[]>([]);
   const [isExporting, setIsExporting] = useState(false);
   const [allCountriesTogether, setAllCountriesTogether] = useState<string>("");
   const [allTripStylesTogether, setAllTripStylesTogether] = useState<string>("");
@@ -106,28 +106,102 @@ export function ItineraryMapMenu() {
   em ${ allTripStylesTogether }, utilizaremos ${ allVehicleTypesTogether } e temos um desejo para a viagem: ${ specialWish }. 
   Gostamos de ${ filteredUserPreferences?.join(', ') }.`;
 
-  // Padrão de resposta que deve ser retornado para colocar no Object itineraries:
-  const answerPattern = `
-    {
-      day: Número,
-      date: "YYYY-MM-DD",
-      location: "Cidade, País",
-      timeline: [
-        {
-          time: "HH:MM",
-          title: "Descrição da atividade",
-          description: "Detalhes adicionais",
-          coordinates "xx.xxxxx'; yy.yyyyy'",
-          category: "String vazia"
-        }
-      ],
-      suggestedActivities: ["Atividade extra recomendada 1", "Atividade extra recomendada 2"],
-      pixabayTags: "Tags relevantes para encontrar uma imgaem na API do Pixabay separadas por vírgula"
-    },
-  `;
+  const answerPattern = `DAY-> Número do dia; DATE-> YYYY-MM-DD; LOCATION-> Cidade, País; 
+  TIMELINE-> { TIME-> HH:MM; TITLE-> Descrição da atividade; DESCRIPTION-> Detalhes adicionais
+  COORDINATES-> xx.xxxxx e yy.yyyyy; CATEGORY-> String vazia; };
+  SUGGESTEDACTIVITIES->[Atividade extra recomendada 1, Atividade extra recomendada 2];
+  PIXABAYTAGS->Tags relevantes para encontrar uma imgaem na API do Pixabay separadas por vírgula`
+
+  // Função para converter o PlainText estruturado em Object
+  const parseAnswerPatternToItinerary = (textResponse: string): any[] => {
+    const itinerary: any[] = [];
+    
+    // Divide por DAY-> para separar cada dia
+    const dayBlocks = textResponse.split(/DAY->/g).filter(block => block.trim());
+    
+    dayBlocks.forEach((dayBlock, index) => {
+      const dayNumber = index + 1;
+      let currentDay: any = {
+        day: dayNumber,
+        date: "",
+        location: "",
+        timeline: [],
+        suggestedActivities: [],
+        pixabayTags: "",
+        images: []
+      };
+
+      // Parse da data
+      const dateMatch = dayBlock.match(/DATE->\s*([\d-]+)/);
+      if (dateMatch) {
+        currentDay.date = dateMatch[1].trim();
+      }
+
+      // Parse da localização
+      const locationMatch = dayBlock.match(/LOCATION->\s*([^;]+)/);
+      if (locationMatch) {
+        currentDay.location = locationMatch[1].trim();
+      }
+
+      // Parse das atividades do timeline - busca por cada bloco { ... }
+      const timelineMatches = dayBlock.match(/\{[^}]+\}/g);
+      if (timelineMatches) {
+        timelineMatches.forEach(timelineBlock => {
+          console.log('🔍 Processando bloco timeline:', timelineBlock);
+          
+          const timeMatch = timelineBlock.match(/TIME->\s*(\d{1,2}:\d{2})/);
+          const titleMatch = timelineBlock.match(/TITLE->\s*([^;]+)/);
+          const descMatch = timelineBlock.match(/DESCRIPTION->\s*([^;]+)/);
+          const coordMatch = timelineBlock.match(/COORDINATES->\s*([-\d.]+)\s*e\s*([-\d.]+)/);
+          const categoryMatch = timelineBlock.match(/CATEGORY->\s*([^;}]*)/);
+
+          console.log('📍 coordMatch:', coordMatch);
+          console.log('🏷️ categoryMatch:', categoryMatch);
+
+          if (timeMatch && titleMatch) {
+            const coordinates = coordMatch 
+              ? `${coordMatch[1]},${coordMatch[2]}` 
+              : "0.0000,0.0000";
+
+            const activity = {
+              time: timeMatch[1].trim(),
+              title: titleMatch[1].trim(),
+              description: descMatch ? descMatch[1].trim() : titleMatch[1].trim(),
+              coordinates: coordinates,
+              category: categoryMatch ? categoryMatch[1].trim() : ""
+            };
+            
+            console.log('✅ Atividade criada:', activity);
+            currentDay.timeline.push(activity);
+          }
+        });
+      }
+
+      // Parse das atividades sugeridas
+      const activitiesMatch = dayBlock.match(/SUGGESTEDACTIVITIES->\s*\[([^\]]+)\]/);
+      if (activitiesMatch) {
+        currentDay.suggestedActivities = activitiesMatch[1]
+          .split(',')
+          .map(activity => activity.trim());
+      }
+
+      // Parse das tags do Pixabay
+      const tagsMatch = dayBlock.match(/PIXABAYTAGS->\s*([^;]+)/);
+      if (tagsMatch) {
+        currentDay.pixabayTags = tagsMatch[1].trim();
+      }
+
+      // Só adiciona o dia se tiver pelo menos uma atividade
+      if (currentDay.timeline.length > 0) {
+        itinerary.push(currentDay);
+      }
+    });
+
+    return itinerary;
+  };
 
   const generateDetailed = async () => {
-    const prompt = `Gere um itinerário turístico completo e detalhado para uma viagem, retornando um Object. Cada dia deve conter, considerando tempos de deslocamento realistas (não invente dados, apenas estime com base em trajetos comuns), o seguinte padrão de resposta: ${ answerPattern }. Use apenas os dados fornecidos do usuário para esta viagem: ${ preferencesAllDefinedText }. Retorne apenas este padrão de resposta, nada além disso. Seja bem específico no nome dos locais a serem visitados. Não especifique nome de hotéis. Cada dia deve conter no mínimo 5 atividades e no máximo 8 dentro de timeline.`;
+    const prompt = `Gere um itinerário turístico completo e detalhado para uma viagem. Para cada dia, use EXATAMENTE este formato: ${answerPattern}. Use apenas os dados fornecidos do usuário: ${preferencesAllDefinedText}. Retorne apenas o texto no formato mostrado, sem explicações extras. Seja específico nos nomes dos locais. Cada dia deve ter entre 5-8 atividades no TIMELINE. Retorne descrições ricas em detalhes com no mínimo 10 palavras`;
 
     try {
       // Verifica se já existe itinerário nos parâmetros
@@ -137,46 +211,24 @@ export function ItineraryMapMenu() {
 
       if (!hasExistingItinerary) {
         setLoading(true);
-        setItinerary('');
+        setItinerary([]);
   
         const result = await generateItinerary(prompt);
-        console.log("Resposta da IA pro Itinerário: ", result);
+        console.log("Resposta da IA (PlainText estruturado):", result);
         
         if (!result || typeof result !== 'string') {
           throw new Error('Resposta inválida da API');
         }
 
-        // Corrige o formato da resposta da IA para ser um array JSON válido
-        let jsonString = result.trim();
-        let generatedItinerary;
+        // Converte PlainText estruturado para Object
+        const generatedItinerary = parseAnswerPatternToItinerary(result);
+        console.log("Itinerário convertido:", generatedItinerary);
         
-        // Detecta e corrige diferentes formatos de resposta da IA
-        if (jsonString.startsWith('[') && jsonString.endsWith(']')) {
-          // Já é um array válido, não precisa fazer nada
-          console.log("IA retornou array válido");
-        } else if (jsonString.startsWith('{')) {
-          // Objetos separados por vírgula, precisa envolver em array
-          jsonString = `[${jsonString}]`;
-          console.log("IA retornou objetos separados, convertendo para array");
-        } else {
-          // Formato inesperado, tenta encontrar JSON válido na resposta
-          const jsonMatch = jsonString.match(/\{[\s\S]*\}/);
-          if (jsonMatch) {
-            jsonString = `[${jsonMatch[0]}]`;
-            console.log("IA retornou formato inesperado, extraindo JSON");
-          } else {
-            throw new Error('Não foi possível extrair JSON válido da resposta da IA');
-          }
+        if (generatedItinerary.length === 0) {
+          throw new Error('Não foi possível processar o formato da resposta da IA');
         }
-
-        try {
-          generatedItinerary = JSON.parse(jsonString);
-          setItinerary(generatedItinerary);
-        } catch (parseError) {
-          console.error('Erro ao fazer parse do JSON:', parseError);
-          console.error('JSON que causou erro:', jsonString);
-          throw new Error('Resposta da IA não está em formato JSON válido');
-        }
+        
+        setItinerary(generatedItinerary);
 
         navigation.setParams({
           itineraryData: {
@@ -217,14 +269,14 @@ export function ItineraryMapMenu() {
       }
     } catch (error) {
       console.error('Erro ao gerar roteiro detalhado:', error);
-      setItinerary('Erro ao gerar roteiro com informações definidas. Tente novamente.');
+      setItinerary([]);
     } finally {
       setLoading(false);
     }
   }
 
   const generateSurprise = async () => {
-    const prompt = `Gere um itinerário turístico completo e detalhado para uma viagem com um destino surpresa em qualquer local do mundo, retornando um Object. Cada dia deve conter, considerando tempos de deslocamento realistas (não invente dados, apenas estime com base em trajetos comuns), o seguinte padrão de resposta: ${ answerPattern }. Use apenas os dados fornecidos do usuário para esta viagem: ${ preferencesSurpriseDestinationText }. Retorne apenas este padrão de resposta, nada além disso. Seja bem específico no nome dos locais a serem visitados. Não especifique nome de hotéis. Cada dia deve conter no mínimo 5 atividades e no máximo 8 dentro de timeline.`;
+    const prompt = `Gere um itinerário turístico completo e detalhado para uma viagem com um destino surpresa em qualquer local do mundo. Para cada dia, use EXATAMENTE este formato: ${answerPattern}. Use apenas os dados fornecidos do usuário: ${preferencesSurpriseDestinationText}. Retorne apenas o texto no formato mostrado, sem explicações extras. Seja específico nos nomes dos locais. Cada dia deve ter entre 5-8 atividades no TIMELINE.  Retorne descrições ricas em detalhes com no mínimo 10 palavras`;
 
     try {
       // Verifica se já existe itinerário nos parâmetros
@@ -234,46 +286,24 @@ export function ItineraryMapMenu() {
 
       if (!hasExistingItinerary) {
         setLoading(true);
-        setItinerary('');
+        setItinerary([]);
   
         const result = await generateItinerary(prompt);
-        console.log("Resposta da IA pro Itinerário: ", result);
+        console.log("Resposta da IA (PlainText estruturado):", result);
         
         if (!result || typeof result !== 'string') {
           throw new Error('Resposta inválida da API');
         }
 
-        // Corrige o formato da resposta da IA para ser um array JSON válido
-        let jsonString = result.trim();
-        let generatedItinerary;
+        // Parse do PlainText estruturado para formato de objeto
+        const generatedItinerary = parseAnswerPatternToItinerary(result);
+        console.log("Itinerário parseado:", generatedItinerary);
         
-        // Detecta e corrige diferentes formatos de resposta da IA
-        if (jsonString.startsWith('[') && jsonString.endsWith(']')) {
-          // Já é um array válido, não precisa fazer nada
-          console.log("IA retornou array válido");
-        } else if (jsonString.startsWith('{')) {
-          // Objetos separados por vírgula, precisa envolver em array
-          jsonString = `[${jsonString}]`;
-          console.log("IA retornou objetos separados, convertendo para array");
-        } else {
-          // Formato inesperado, tenta encontrar JSON válido na resposta
-          const jsonMatch = jsonString.match(/\{[\s\S]*\}/);
-          if (jsonMatch) {
-            jsonString = `[${jsonMatch[0]}]`;
-            console.log("IA retornou formato inesperado, extraindo JSON");
-          } else {
-            throw new Error('Não foi possível extrair JSON válido da resposta da IA');
-          }
+        if (generatedItinerary.length === 0) {
+          throw new Error('Não foi possível processar o formato da resposta da IA');
         }
-
-        try {
-          generatedItinerary = JSON.parse(jsonString);
-          setItinerary(generatedItinerary);
-        } catch (parseError) {
-          console.error('Erro ao fazer parse do JSON:', parseError);
-          console.error('JSON que causou erro:', jsonString);
-          throw new Error('Resposta da IA não está em formato JSON válido');
-        }
+        
+        setItinerary(generatedItinerary);
 
         navigation.setParams({
           itineraryData: {
@@ -314,7 +344,7 @@ export function ItineraryMapMenu() {
       }
     } catch (error) {
       console.error('Erro ao gerar roteiro surpresa:', error);
-      setItinerary('Erro ao gerar roteiro surpresa. Tente novamente.');
+      setItinerary([]);
     } finally {
       setLoading(false);
     }
