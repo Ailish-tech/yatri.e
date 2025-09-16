@@ -35,6 +35,9 @@ export function ItineraryMapMenu() {
   const [allVehicleTypesTogether, setAllVehicleTypesTogether] = useState<string>("");
   const [hideBackButton, setHideBackButton] = useState<boolean>(false);
   const [showMapStatsInformation, setShowMapStatsInformation] = useState<ShowMapStatsInformationType["show"]>("Map");
+  const [firstLatitude, setFirstLatitude] = useState<number>();
+  const [firstLongitude, setFirstLongitude] = useState<number>();
+  const [selectedDay, setSelectedDay] = useState<number>(0);
 
   const categoriesOptions = ["Ponto Turístico", "Gastronomia", "Hospedagem", "Vida Noturna", "Parques", "Shopping", "Cultura", "Viagens"]
 
@@ -99,7 +102,7 @@ export function ItineraryMapMenu() {
 
   // Texto final do "Preparando os parâmetros inseridos pelo usuário"
   const preferencesAllDefinedText = `Início da viagem em ${ dateBegin } e o fim em ${ dateEnd }, possuindo ${ days } dias de viagem.
-  Iremos para ${ continent } e aos países ${ allCountriesTogether }. Somos ${ acconpanying } com ${ peopleQuantity } pessoas e
+  Iremos para ${ continent } e aos países ${ allCountriesTogether } (Não acrescente outros locais). Somos ${ acconpanying } com ${ peopleQuantity } pessoas e
   de ${ originCountry }. Temos um orçamento de ${ budget }. Viagem com foco em ${ allTripStylesTogether }, utilizaremos ${ allVehicleTypesTogether }
   e temos um desejo para a viagem: ${ specialWish }. Gostamos de ${ filteredUserPreferences?.join(', ') }.`;
 
@@ -349,8 +352,48 @@ export function ItineraryMapMenu() {
     }
   }
 
+  // Função para converter itinerário em pontos para o mapa em um dia específico que estará selecionado
+  const convertItineraryToMapPoints = (itineraryData: any[], dayIndex: number): Array<{title: string, description: string, coordinate: {latitude: number, longitude: number}}> => {    
+    const points: Array<{title: string, description: string, coordinate: {latitude: number, longitude: number}}> = [];
+    
+    if (!Array.isArray(itineraryData)) {
+      return points;
+    }
+
+    // Busca o dia específico pelo index dele
+    const selectedDayData = itineraryData.find(day => day.day === dayIndex + 1);
+    
+    if (selectedDayData && selectedDayData.timeline && Array.isArray(selectedDayData.timeline)) {
+      selectedDayData.timeline.forEach((activity: any) => {
+        if (activity.coordinates && activity.coordinates !== "0.0000,0.0000") {
+          const [lat, lng] = activity.coordinates.split(',').map(Number);
+          if (!isNaN(lat) && !isNaN(lng)) {
+            const point = {
+              title: activity.title || 'Atividade',
+              description: `${activity.time} - ${activity.description || activity.title}`,
+              coordinate: {
+                latitude: lat,
+                longitude: lng
+              }
+            };
+            points.push(point);
+          }
+        }
+      });
+    }
+    return points;
+  };
+
   useEffect(() => {
-    // Só executa se não há itinerário nos parâmetros
+    // Verifica se há itinerário nos parâmetros e define no estado local
+    const existingItinerary = route.params?.itineraryData?.itinerary;
+    
+    if (existingItinerary && Array.isArray(existingItinerary) && existingItinerary.length > 0) {
+      setItinerary(existingItinerary);
+      return;
+    }
+
+    // Só executa geração se não há itinerário nos parâmetros
     const hasExistingItinerary = route.params?.itineraryData?.itinerary && 
       typeof route.params.itineraryData.itinerary === 'object' &&
       Object.keys(route.params.itineraryData.itinerary).length > 0;
@@ -406,7 +449,7 @@ export function ItineraryMapMenu() {
                 borderBottomRightRadius={10}
                 onPress={ () => setShowMapStatsInformation("Stats") }
               >
-                <ButtonText color={ showMapStatsInformation === "Stats" ? "#FFF" : "#000" }>Status</ButtonText>
+                <ButtonText color={ showMapStatsInformation === "Stats" ? "#FFF" : "#000" }>Stats</ButtonText>
               </Button>
             </View>
           </View>
@@ -417,7 +460,12 @@ export function ItineraryMapMenu() {
         {
           showMapStatsInformation === "Map"
           ?
-            <Maps ref={ mapUserPositionRef } />
+            <Maps 
+              ref={ mapUserPositionRef } 
+              initialLatitude={ firstLatitude?.toString() } 
+              initialLongitude={ firstLongitude?.toString() } 
+              itineraryPlaces={ convertItineraryToMapPoints(itinerary, selectedDay) } 
+            />
           :
             <View flex={1}></View>
         }
@@ -427,6 +475,9 @@ export function ItineraryMapMenu() {
           <SlideUpItinerary
             isLoading={ loading }
             hideBackButton={ setHideBackButton }
+            setFirstLatitude={ setFirstLatitude }
+            setFirstLongitude={ setFirstLongitude }
+            setSelectedDay={ setSelectedDay }
           />
         </SafeAreaView>
       </View>

@@ -21,14 +21,18 @@ import Timeline from 'react-native-timeline-flatlist';
 import { ItineraryCategoriesDefine } from "@components/Itinerary/ItineraryCategoriesDefine";
 import { ItinerarySliderDateShow } from "@components/Itinerary/ItinerarySliderDateShow";
 
+import { AuthNavigationProp } from "@routes/auth.routes";
+
 import { ArrowDown, ArrowUp, CalendarX, ChevronRight, Compass, HandCoins, MessageCircle, Pen, SquarePlus, UtensilsCrossed, Bed, PartyPopper, TreePine, ShoppingBag, Landmark, Plane } from "lucide-react-native";
 
 import { CreatingItinerary } from "../../../@types/CreatingItinerary";
-import { AuthNavigationProp } from "@routes/auth.routes";
 
 type ItinerarySliderProps = {
   isLoading: boolean,
-  hideBackButton: (hide: boolean) => void
+  hideBackButton: (hide: boolean) => void,
+  setFirstLatitude: (latitude: number) => void,
+  setFirstLongitude: (longitude: number) => void,
+  setSelectedDay?: (dayIndex: number) => void
 }
 
 type CalendarDaysTypes = {
@@ -55,7 +59,7 @@ type DayItineraryTypes = {
   images?: string[]
 }
 
-export function SlideUpItinerary({ isLoading, hideBackButton }: ItinerarySliderProps) {
+export function SlideUpItinerary({ isLoading, hideBackButton, setFirstLatitude, setFirstLongitude, setSelectedDay }: ItinerarySliderProps) {
   const navigation = useNavigation<AuthNavigationProp>();
   const route = useRoute<RouteProp<{ params: { itineraryData: CreatingItinerary, userPreferences: string[], visaIssue: any } }, 'params'>>();
   const {
@@ -235,6 +239,34 @@ export function SlideUpItinerary({ isLoading, hideBackButton }: ItinerarySliderP
     }
   }, [itinerary]);
 
+  useEffect(() => {
+    if (setSelectedDay) {
+      setSelectedDay(selectedDayIndex);
+    }
+  }, [selectedDayIndex, setSelectedDay]);
+
+  useEffect(() => {
+    if (!Array.isArray(itinerary)) return;
+    const dayOne = itinerary.find((day: any) => day.day === 1);
+
+    let firstLatitude: number | undefined;
+    let firstLongitude: number | undefined;
+
+    if (dayOne && dayOne.timeline && dayOne.timeline.length > 0) {
+      const firstTimelineItem = dayOne.timeline[0];
+      if (firstTimelineItem.coordinates) {
+        const [lat, lng] = firstTimelineItem.coordinates.split(',').map(Number);
+        firstLatitude = lat;
+        firstLongitude = lng;
+      }
+    }
+
+    if (typeof firstLatitude === "number" && typeof firstLongitude === "number") {
+      setFirstLatitude(firstLatitude);
+      setFirstLongitude(firstLongitude);
+    }
+  }, [itinerary]);
+
   const renderDetail = useCallback((rowData: TimelineItemTypes, index: number) => {
     return (
       <View flex={1} px={2}>
@@ -244,7 +276,7 @@ export function SlideUpItinerary({ isLoading, hideBackButton }: ItinerarySliderP
           color="#2752B7"
           mb={2}
         >
-          {rowData.title || 'Atividade sem título'}
+          { rowData.title || 'Atividade sem título' }
         </Text>
 
         { rowData.description && (
@@ -254,17 +286,17 @@ export function SlideUpItinerary({ isLoading, hideBackButton }: ItinerarySliderP
             lineHeight="$sm"
             mb={rowData.coordinates ? 2 : 0}
           >
-            {rowData.description}
+            { rowData.description }
           </Text>
         )}
 
-        {rowData.coordinates && (
+        { rowData.coordinates && (
           <Text
             fontSize="$xs"
             color="#999"
             fontStyle="italic"
           >
-            Coordenadas: {rowData.coordinates}
+            Coordenadas: { rowData.coordinates }
           </Text>
         )}
 
@@ -299,24 +331,24 @@ export function SlideUpItinerary({ isLoading, hideBackButton }: ItinerarySliderP
             <View>
               <Button flexDirection="row" justifyContent="space-between" mt={10} bgColor="transparent" borderWidth={1} borderColor="lightgray">
                 <View flexDirection="row">
-                  <ButtonIcon as={ArrowUp} color="$black" mr={8} />
+                  <ButtonIcon as={ ArrowUp } color="$black" mr={8} />
                   <ButtonText color="$black">Adicionar antes</ButtonText>
                 </View>
-                <ButtonIcon as={ChevronRight} color="$black" />
+                <ButtonIcon as={ ChevronRight } color="$black" />
               </Button>
               <Button flexDirection="row" justifyContent="space-between" mt={10} bgColor="transparent" borderWidth={1} borderColor="lightgray">
                 <View flexDirection="row">
-                  <ButtonIcon as={ArrowDown} color="$black" mr={8} />
+                  <ButtonIcon as={ ArrowDown } color="$black" mr={8} />
                   <ButtonText color="$black">Adicionar depois</ButtonText>
                 </View>
-                <ButtonIcon as={ChevronRight} color="$black" />
+                <ButtonIcon as={ ChevronRight } color="$black" />
               </Button>
               <Button flexDirection="row" justifyContent="space-between" mt={10} bgColor="transparent" borderWidth={1} borderColor="lightgray">
                 <View flexDirection="row">
-                  <ButtonIcon as={CalendarX} color="$black" mr={8} />
+                  <ButtonIcon as={ CalendarX } color="$black" mr={8} />
                   <ButtonText color="$black">Excluir visita</ButtonText>
                 </View>
-                <ButtonIcon as={ChevronRight} color="$black" />
+                <ButtonIcon as={ ChevronRight } color="$black" />
               </Button>
             </View>
             : null
@@ -380,7 +412,7 @@ export function SlideUpItinerary({ isLoading, hideBackButton }: ItinerarySliderP
         </View>
 
         <View flex={1} px={4}>
-          {isLoading ? (
+          { isLoading ? (
             <Box flex={1} justifyContent="center" alignItems="center">
               <Spinner size="large" color="#2752B7" />
               <Text mt={2} color="#666">Gerando seu itinerário...</Text>
@@ -421,7 +453,7 @@ export function SlideUpItinerary({ isLoading, hideBackButton }: ItinerarySliderP
                 </View>
               </View>
 
-              {itinerary ? (
+              { itinerary ? (
                 <View flex={1} mt={15}>
                   <View>
                     <FlatList
