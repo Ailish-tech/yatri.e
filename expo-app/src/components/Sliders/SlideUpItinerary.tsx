@@ -217,7 +217,7 @@ export function SlideUpItinerary({ isLoading, hideBackButton }: ItinerarySliderP
 
     const daysArray = possibleDays.map((date, index) => ({
       id: index.toString(),
-      numberOfDay: index + 1,
+      numberOfDay: date.getDate(),
       nameOfWeekday: weekDaysCalendarConstruction(date)
     }));
 
@@ -230,17 +230,10 @@ export function SlideUpItinerary({ isLoading, hideBackButton }: ItinerarySliderP
 
   // Atualiza itineraryState quando itinerary muda
   useEffect(() => {
-    console.log("itinerary recebido via params:", itinerary);
     if (Array.isArray(itinerary)) {
-      console.log("Atualizando itineraryState com:", itinerary);
       setItineraryState(itinerary);
     }
   }, [itinerary]);
-
-  // Debug: Log do estado atual
-  useEffect(() => {
-    console.log("itineraryState atual:", itineraryState);
-  }, [itineraryState]);
 
   const renderDetail = useCallback((rowData: TimelineItemTypes, index: number) => {
     return (
@@ -332,20 +325,14 @@ export function SlideUpItinerary({ isLoading, hideBackButton }: ItinerarySliderP
     );
   }, [isEditing]);
 
-  const getTimelineDataForDay = (dayIndex: number) => {
-    console.log(`getTimelineDataForDay chamado com dayIndex: ${dayIndex}`);
-    console.log("itineraryState disponível:", itineraryState);
-    
+  const getTimelineDataForDay = (dayIndex: number) => {  
     if (!itineraryState || !Array.isArray(itineraryState)) {
-      console.log("itineraryState não é um array válido");
       return [];
     }
 
     const dayData = itineraryState.find((day: DayItineraryTypes) => day.day === dayIndex + 1);
-    console.log(`Procurando dia ${dayIndex + 1}, encontrado:`, dayData);
     
     const timelineData = dayData?.timeline || [];
-    console.log(`Timeline data para o dia ${dayIndex + 1}:`, timelineData);
 
     return timelineData;
   };
@@ -455,7 +442,6 @@ export function SlideUpItinerary({ isLoading, hideBackButton }: ItinerarySliderP
                   <View flex={1} mt={15} pt={10}>
                     {(() => {
                       const timelineData = getTimelineDataForDay(selectedDayIndex);
-                      console.log(`Renderização: selectedDayIndex=${selectedDayIndex}, timelineData.length=${timelineData.length}`);
                       return timelineData.length > 0;
                     })() ? (
                       <Timeline

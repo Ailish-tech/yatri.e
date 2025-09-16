@@ -36,6 +36,8 @@ export function ItineraryMapMenu() {
   const [hideBackButton, setHideBackButton] = useState<boolean>(false);
   const [showMapStatsInformation, setShowMapStatsInformation] = useState<ShowMapStatsInformationType["show"]>("Map");
 
+  const categoriesOptions = ["Ponto Turístico", "Gastronomia", "Hospedagem", "Vida Noturna", "Parques", "Shopping", "Cultura", "Viagens"]
+
   const navigation = useNavigation<AuthNavigationProp>();
   const route = useRoute<RouteProp<{ params: { itineraryData: CreatingItinerary, userPreferences: string[], visaIssue: any } }, 'params'>>();
 
@@ -110,7 +112,16 @@ export function ItineraryMapMenu() {
   TIMELINE-> { TIME-> HH:MM; TITLE-> Descrição da atividade; DESCRIPTION-> Detalhes adicionais
   COORDINATES-> xx.xxxxx e yy.yyyyy; CATEGORY-> String vazia; };
   SUGGESTEDACTIVITIES->[Atividade extra recomendada 1, Atividade extra recomendada 2];
-  PIXABAYTAGS->Tags relevantes para encontrar uma imgaem na API do Pixabay separadas por vírgula`
+  PIXABAYTAGS->Tags relevantes para encontrar uma imgaem na API do Pixabay separadas por vírgula`;
+
+  function possibleCategoriesOptionsTogether(){
+    let options = "";
+    categoriesOptions.forEach(element => {
+      options += (element + ", ");
+    });
+
+    return options;
+  }
 
   // Função para converter o PlainText estruturado em Object
   const parseAnswerPatternToItinerary = (textResponse: string): any[] => {
@@ -143,20 +154,15 @@ export function ItineraryMapMenu() {
         currentDay.location = locationMatch[1].trim();
       }
 
-      // Parse das atividades do timeline - busca por cada bloco { ... }
+      // Parse das atividades do timeline - busca por cada bloco entre chaves
       const timelineMatches = dayBlock.match(/\{[^}]+\}/g);
       if (timelineMatches) {
         timelineMatches.forEach(timelineBlock => {
-          console.log('🔍 Processando bloco timeline:', timelineBlock);
-          
           const timeMatch = timelineBlock.match(/TIME->\s*(\d{1,2}:\d{2})/);
           const titleMatch = timelineBlock.match(/TITLE->\s*([^;]+)/);
           const descMatch = timelineBlock.match(/DESCRIPTION->\s*([^;]+)/);
           const coordMatch = timelineBlock.match(/COORDINATES->\s*([-\d.]+)\s*e\s*([-\d.]+)/);
           const categoryMatch = timelineBlock.match(/CATEGORY->\s*([^;}]*)/);
-
-          console.log('📍 coordMatch:', coordMatch);
-          console.log('🏷️ categoryMatch:', categoryMatch);
 
           if (timeMatch && titleMatch) {
             const coordinates = coordMatch 
@@ -170,8 +176,7 @@ export function ItineraryMapMenu() {
               coordinates: coordinates,
               category: categoryMatch ? categoryMatch[1].trim() : ""
             };
-            
-            console.log('✅ Atividade criada:', activity);
+
             currentDay.timeline.push(activity);
           }
         });
@@ -201,7 +206,7 @@ export function ItineraryMapMenu() {
   };
 
   const generateDetailed = async () => {
-    const prompt = `Gere um itinerário turístico completo e detalhado para uma viagem. Para cada dia, use EXATAMENTE este formato: ${answerPattern}. Use apenas os dados fornecidos do usuário: ${preferencesAllDefinedText}. Retorne apenas o texto no formato mostrado, sem explicações extras. Seja específico nos nomes dos locais. Cada dia deve ter entre 5-8 atividades no TIMELINE. Retorne descrições ricas em detalhes com no mínimo 10 palavras`;
+    const prompt = `Gere um itinerário turístico completo e detalhado para uma viagem. Para cada dia, use EXATAMENTE este formato: ${ answerPattern }. Use apenas os dados fornecidos do usuário: ${ preferencesAllDefinedText }. Retorne apenas o texto no formato mostrado, sem explicações extras. Seja específico nos nomes dos locais. Cada dia deve ter entre 5-8 atividades no TIMELINE. Retorne descrições ricas em detalhes com no mínimo 10 palavras. As opções de categorias são (retorne apenas 1): ${ possibleCategoriesOptionsTogether() }`;
 
     try {
       // Verifica se já existe itinerário nos parâmetros
@@ -214,7 +219,6 @@ export function ItineraryMapMenu() {
         setItinerary([]);
   
         const result = await generateItinerary(prompt);
-        console.log("Resposta da IA (PlainText estruturado):", result);
         
         if (!result || typeof result !== 'string') {
           throw new Error('Resposta inválida da API');
@@ -222,7 +226,6 @@ export function ItineraryMapMenu() {
 
         // Converte PlainText estruturado para Object
         const generatedItinerary = parseAnswerPatternToItinerary(result);
-        console.log("Itinerário convertido:", generatedItinerary);
         
         if (generatedItinerary.length === 0) {
           throw new Error('Não foi possível processar o formato da resposta da IA');
@@ -257,7 +260,6 @@ export function ItineraryMapMenu() {
           itinerary: generatedItinerary
         }
         userTrips.push(trip);
-        console.log("O que foi enviado como push: ", trip);
   
         addNotification({
           title: "Novo Roteiro Pronto",
@@ -276,7 +278,7 @@ export function ItineraryMapMenu() {
   }
 
   const generateSurprise = async () => {
-    const prompt = `Gere um itinerário turístico completo e detalhado para uma viagem com um destino surpresa em qualquer local do mundo. Para cada dia, use EXATAMENTE este formato: ${answerPattern}. Use apenas os dados fornecidos do usuário: ${preferencesSurpriseDestinationText}. Retorne apenas o texto no formato mostrado, sem explicações extras. Seja específico nos nomes dos locais. Cada dia deve ter entre 5-8 atividades no TIMELINE.  Retorne descrições ricas em detalhes com no mínimo 10 palavras`;
+    const prompt = `Gere um itinerário turístico completo e detalhado para uma viagem com um destino surpresa em qualquer local do mundo. Para cada dia, use EXATAMENTE este formato: ${answerPattern}. Use apenas os dados fornecidos do usuário: ${preferencesSurpriseDestinationText}. Retorne apenas o texto no formato mostrado, sem explicações extras. Seja específico nos nomes dos locais. Cada dia deve ter entre 5-8 atividades no TIMELINE.  Retorne descrições ricas em detalhes com no mínimo 10 palavras. As opções de categorias são (retorne apenas 1): ${ possibleCategoriesOptionsTogether() }`;
 
     try {
       // Verifica se já existe itinerário nos parâmetros
@@ -289,7 +291,6 @@ export function ItineraryMapMenu() {
         setItinerary([]);
   
         const result = await generateItinerary(prompt);
-        console.log("Resposta da IA (PlainText estruturado):", result);
         
         if (!result || typeof result !== 'string') {
           throw new Error('Resposta inválida da API');
@@ -297,7 +298,6 @@ export function ItineraryMapMenu() {
 
         // Parse do PlainText estruturado para formato de objeto
         const generatedItinerary = parseAnswerPatternToItinerary(result);
-        console.log("Itinerário parseado:", generatedItinerary);
         
         if (generatedItinerary.length === 0) {
           throw new Error('Não foi possível processar o formato da resposta da IA');
@@ -332,7 +332,6 @@ export function ItineraryMapMenu() {
           itinerary: generatedItinerary
         }
         userTrips.push(trip);
-        console.log("O que foi enviado como push: ", trip);
   
         addNotification({
           title: "Novo Roteiro Pronto",
