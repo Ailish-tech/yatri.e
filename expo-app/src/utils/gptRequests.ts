@@ -14,7 +14,7 @@
  */
 export const generateItinerary = async (prompt: string) => {
   try {
-    const response = await fetch(`http://SEU-IP-AQUI:3000/api/generateItinerary`, {
+    const response = await fetch(`http://192.168.1.156:3000/api/generateItinerary`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

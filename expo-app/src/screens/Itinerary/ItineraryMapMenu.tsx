@@ -122,20 +122,68 @@ export function ItineraryMapMenu() {
         }
       ],
       suggestedActivities: ["Atividade extra recomendada 1", "Atividade extra recomendada 2"],
-      pixabayTags: "Tags relevantes para encontrar uma imgaem na API do Pixabay"
+      pixabayTags: "Tags relevantes para encontrar uma imgaem na API do Pixabay separadas por vírgula"
     },
   `;
 
   const generateDetailed = async () => {
-    const prompt = `Gere um itinerário turístico completo e detalhado para uma viagem, retornando um Object. Cada dia deve conter, considerando tempos de deslocamento realistas (não invente dados, apenas estime com base em trajetos comuns), o seguinte padrão de resposta: ${ answerPattern }. Use apenas os dados fornecidos do usuário para esta viagem: ${ preferencesAllDefinedText }. Retorne apenas este padrão de resposta, nada além disso. Seja bem específico no nome dos locais a serem visitados. Não especifique nome de hotéis.`;
+    const prompt = `Gere um itinerário turístico completo e detalhado para uma viagem, retornando um Object. Cada dia deve conter, considerando tempos de deslocamento realistas (não invente dados, apenas estime com base em trajetos comuns), o seguinte padrão de resposta: ${ answerPattern }. Use apenas os dados fornecidos do usuário para esta viagem: ${ preferencesAllDefinedText }. Retorne apenas este padrão de resposta, nada além disso. Seja bem específico no nome dos locais a serem visitados. Não especifique nome de hotéis. Cada dia deve conter no mínimo 5 atividades e no máximo 8 dentro de timeline.`;
 
     try {
-      if (!route.params?.itineraryData?.itinerary || Object.keys(route.params.itineraryData.itinerary).length === 0) {
+      // Verifica se já existe itinerário nos parâmetros
+      const hasExistingItinerary = route.params?.itineraryData?.itinerary && 
+        typeof route.params.itineraryData.itinerary === 'object' &&
+        Object.keys(route.params.itineraryData.itinerary).length > 0;
+
+      if (!hasExistingItinerary) {
         setLoading(true);
         setItinerary('');
   
         const result = await generateItinerary(prompt);
-        setItinerary(JSON.parse(result));
+        console.log("Resposta da IA pro Itinerário: ", result);
+        
+        if (!result || typeof result !== 'string') {
+          throw new Error('Resposta inválida da API');
+        }
+
+        // Corrige o formato da resposta da IA para ser um array JSON válido
+        let jsonString = result.trim();
+        let generatedItinerary;
+        
+        // Detecta e corrige diferentes formatos de resposta da IA
+        if (jsonString.startsWith('[') && jsonString.endsWith(']')) {
+          // Já é um array válido, não precisa fazer nada
+          console.log("IA retornou array válido");
+        } else if (jsonString.startsWith('{')) {
+          // Objetos separados por vírgula, precisa envolver em array
+          jsonString = `[${jsonString}]`;
+          console.log("IA retornou objetos separados, convertendo para array");
+        } else {
+          // Formato inesperado, tenta encontrar JSON válido na resposta
+          const jsonMatch = jsonString.match(/\{[\s\S]*\}/);
+          if (jsonMatch) {
+            jsonString = `[${jsonMatch[0]}]`;
+            console.log("IA retornou formato inesperado, extraindo JSON");
+          } else {
+            throw new Error('Não foi possível extrair JSON válido da resposta da IA');
+          }
+        }
+
+        try {
+          generatedItinerary = JSON.parse(jsonString);
+          setItinerary(generatedItinerary);
+        } catch (parseError) {
+          console.error('Erro ao fazer parse do JSON:', parseError);
+          console.error('JSON que causou erro:', jsonString);
+          throw new Error('Resposta da IA não está em formato JSON válido');
+        }
+
+        navigation.setParams({
+          itineraryData: {
+            ...route.params.itineraryData,
+            itinerary: generatedItinerary
+          }
+        });
   
         let trip: CreatingItinerary = {
           title: filteredItineraryData.title,
@@ -154,9 +202,10 @@ export function ItineraryMapMenu() {
           specialWish: filteredItineraryData.specialWish,
           visitPreferences: filteredUserPreferences,
           contacts: filteredItineraryData.contacts,
-          itinerary: itinerary
+          itinerary: generatedItinerary
         }
         userTrips.push(trip);
+        console.log("O que foi enviado como push: ", trip);
   
         addNotification({
           title: "Novo Roteiro Pronto",
@@ -167,6 +216,7 @@ export function ItineraryMapMenu() {
         await AsyncStorage.setItem(ITINERARY_STORAGE_KEY, JSON.stringify(userTrips));
       }
     } catch (error) {
+      console.error('Erro ao gerar roteiro detalhado:', error);
       setItinerary('Erro ao gerar roteiro com informações definidas. Tente novamente.');
     } finally {
       setLoading(false);
@@ -174,15 +224,63 @@ export function ItineraryMapMenu() {
   }
 
   const generateSurprise = async () => {
-    const prompt = `Gere um itinerário turístico completo e detalhado para uma viagem com um destino surpresa em qualquer local do mundo, retornando um Object. Cada dia deve conter, considerando tempos de deslocamento realistas (não invente dados, apenas estime com base em trajetos comuns), o seguinte padrão de resposta: ${ answerPattern }. Use apenas os dados fornecidos do usuário para esta viagem: ${ preferencesSurpriseDestinationText }. Retorne apenas este padrão de resposta, nada além disso. Seja bem específico no nome dos locais a serem visitados. Não especifique nome de hotéis.`;
+    const prompt = `Gere um itinerário turístico completo e detalhado para uma viagem com um destino surpresa em qualquer local do mundo, retornando um Object. Cada dia deve conter, considerando tempos de deslocamento realistas (não invente dados, apenas estime com base em trajetos comuns), o seguinte padrão de resposta: ${ answerPattern }. Use apenas os dados fornecidos do usuário para esta viagem: ${ preferencesSurpriseDestinationText }. Retorne apenas este padrão de resposta, nada além disso. Seja bem específico no nome dos locais a serem visitados. Não especifique nome de hotéis. Cada dia deve conter no mínimo 5 atividades e no máximo 8 dentro de timeline.`;
 
     try {
-      if (!route.params?.itineraryData?.itinerary || Object.keys(route.params.itineraryData.itinerary).length === 0) {
+      // Verifica se já existe itinerário nos parâmetros
+      const hasExistingItinerary = route.params?.itineraryData?.itinerary && 
+        typeof route.params.itineraryData.itinerary === 'object' &&
+        Object.keys(route.params.itineraryData.itinerary).length > 0;
+
+      if (!hasExistingItinerary) {
         setLoading(true);
         setItinerary('');
   
         const result = await generateItinerary(prompt);
-        setItinerary(JSON.parse(result));
+        console.log("Resposta da IA pro Itinerário: ", result);
+        
+        if (!result || typeof result !== 'string') {
+          throw new Error('Resposta inválida da API');
+        }
+
+        // Corrige o formato da resposta da IA para ser um array JSON válido
+        let jsonString = result.trim();
+        let generatedItinerary;
+        
+        // Detecta e corrige diferentes formatos de resposta da IA
+        if (jsonString.startsWith('[') && jsonString.endsWith(']')) {
+          // Já é um array válido, não precisa fazer nada
+          console.log("IA retornou array válido");
+        } else if (jsonString.startsWith('{')) {
+          // Objetos separados por vírgula, precisa envolver em array
+          jsonString = `[${jsonString}]`;
+          console.log("IA retornou objetos separados, convertendo para array");
+        } else {
+          // Formato inesperado, tenta encontrar JSON válido na resposta
+          const jsonMatch = jsonString.match(/\{[\s\S]*\}/);
+          if (jsonMatch) {
+            jsonString = `[${jsonMatch[0]}]`;
+            console.log("IA retornou formato inesperado, extraindo JSON");
+          } else {
+            throw new Error('Não foi possível extrair JSON válido da resposta da IA');
+          }
+        }
+
+        try {
+          generatedItinerary = JSON.parse(jsonString);
+          setItinerary(generatedItinerary);
+        } catch (parseError) {
+          console.error('Erro ao fazer parse do JSON:', parseError);
+          console.error('JSON que causou erro:', jsonString);
+          throw new Error('Resposta da IA não está em formato JSON válido');
+        }
+
+        navigation.setParams({
+          itineraryData: {
+            ...route.params.itineraryData,
+            itinerary: generatedItinerary
+          }
+        });
   
         let trip: CreatingItinerary = {
           title: filteredItineraryData.title,
@@ -201,9 +299,10 @@ export function ItineraryMapMenu() {
           specialWish: filteredItineraryData.specialWish,
           visitPreferences: filteredUserPreferences,
           contacts: filteredItineraryData.contacts,
-          itinerary: itinerary
+          itinerary: generatedItinerary
         }
         userTrips.push(trip);
+        console.log("O que foi enviado como push: ", trip);
   
         addNotification({
           title: "Novo Roteiro Pronto",
@@ -214,6 +313,7 @@ export function ItineraryMapMenu() {
         await AsyncStorage.setItem(ITINERARY_STORAGE_KEY, JSON.stringify(userTrips));
       }
     } catch (error) {
+      console.error('Erro ao gerar roteiro surpresa:', error);
       setItinerary('Erro ao gerar roteiro surpresa. Tente novamente.');
     } finally {
       setLoading(false);
@@ -221,12 +321,21 @@ export function ItineraryMapMenu() {
   }
 
   useEffect(() => {
-    if (countries && countries.length > 0) {
-      generateDetailed();
-    } else {
-      generateSurprise();
+    // Só executa se não há itinerário nos parâmetros
+    const hasExistingItinerary = route.params?.itineraryData?.itinerary && 
+      typeof route.params.itineraryData.itinerary === 'object' &&
+      Object.keys(route.params.itineraryData.itinerary).length > 0;
+
+    if (!hasExistingItinerary && allTripStylesTogether !== "" && allVehicleTypesTogether !== "") {
+      if (countries && countries.length > 0) {
+        if (allCountriesTogether !== "") {
+          generateDetailed();
+        }
+      } else {
+        generateSurprise();
+      }
     }
-  }, [preferencesAllDefinedText]);
+  }, [allCountriesTogether, allTripStylesTogether, allVehicleTypesTogether]);
 
   return (
     <View flex={1} position="relative">
