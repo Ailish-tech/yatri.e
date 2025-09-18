@@ -1,12 +1,13 @@
 import { useEffect, useRef, useState } from "react";
-import { SafeAreaView, StatusBar } from "react-native";
+import { SafeAreaView, StatusBar, StyleSheet, Image } from "react-native";
 import { RouteProp, useNavigation, useRoute } from "@react-navigation/native";
 import MapView from "react-native-maps";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-import { Button, ButtonText, View, Text } from "@gluestack-ui/themed";
+import { Button, ButtonText, View, Text, ButtonIcon } from "@gluestack-ui/themed";
 
-import { ButtonIconRight } from "@components/Buttons/ButtonIconRight";
+import { GlassView, GlassContainer, isLiquidGlassAvailable } from 'expo-glass-effect';
+
 import { Maps } from "@components/Maps/Maps";
 import { SlideUpItinerary } from "@components/Sliders/SlideUpItinerary";
 
@@ -20,7 +21,9 @@ import { AuthNavigationProp } from "@routes/auth.routes";
 
 import { CreatingItinerary } from "../../../@types/CreatingItinerary";
 
-import { Globe } from 'lucide-react-native';
+import DefaultStatsBackground from "@assets/background.webp";
+
+import { Bed, ChevronLeft, Compass, Globe, UtensilsCrossed } from 'lucide-react-native';
 
 type ShowMapStatsInformationType = {
   show: "Map" | "Stats"
@@ -409,27 +412,43 @@ export function ItineraryMapMenu() {
     }
   }, [allCountriesTogether, allTripStylesTogether, allVehicleTypesTogether]);
 
+  const styles = StyleSheet.create({
+    containerStyle: {
+      marginTop: 135,
+      marginHorizontal: 15,
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      alignItems: 'center',
+      justifyContent: 'space-around',
+      gap: 10,
+    },
+    glass: {
+      width: 166,
+      height: 140,
+      borderRadius: 15,
+      flexDirection: 'column',
+      margin: 5,
+    }
+  });
+
   return (
     <View flex={1} position="relative">
       {
         hideBackButton === false 
         ? 
           <View>
-            <ButtonIconRight
-              textContent="Voltar"
-              action={ () => navigation.navigate("GenerateItineraryMenu") }
-              styles={{
-                position: 'absolute',
-                backgroundColor: "#FDFDFD",
-                borderRadius: 15,
-                paddingVertical: 5,
-                paddingHorizontal: 10,
-                top: 60,
-                left: 10,
-                zIndex: 1,
-              }}
-            />
-            <View flexDirection="row" position="absolute" top={65} right={10} zIndex={1}>
+            <Button 
+              bgColor="lightgray"
+              borderRadius={100}
+              zIndex={10}
+              w={50}
+              h={50}
+              style={{ position: "absolute", top: 65, left: 10 }} 
+              onPress={ () => navigation.navigate("GenerateItineraryMenu") }
+            >
+              <ButtonIcon as={ ChevronLeft } color="#000" size="xl" />
+            </Button>
+            <View flexDirection="row" position="absolute" top={70} right={10} zIndex={1}>
               <Button 
                 bgColor={ showMapStatsInformation === "Map" ? "#2752B7" : "lightgray" } 
                 borderTopLeftRadius={10}
@@ -467,7 +486,132 @@ export function ItineraryMapMenu() {
               itineraryPlaces={ convertItineraryToMapPoints(itinerary, selectedDay) } 
             />
           :
-            <View flex={1}></View>
+            <View flex={1}>
+              <Image
+                source={DefaultStatsBackground}
+                style={{ position: "absolute", width: "100%", height: "100%" }}
+                resizeMode="cover"
+              />
+              <GlassContainer spacing={10} style={styles.containerStyle}>
+                <GlassView style={styles.glass} glassEffectStyle="clear">
+                  {
+                    isLiquidGlassAvailable()
+                      ?
+                      <View flex={1} p={12} borderRadius={20} justifyContent="center" alignItems="center">
+                        <View
+                          p={12}
+                          borderRadius={50}
+                          bgColor="rgba(255, 255, 255, 0.2)"
+                          mb={12}
+                          flexDirection="row"
+                          justifyContent="space-between"
+                          alignItems="center"
+                          width="100%"
+                        >
+                          <Compass size={45} color="#FFF" strokeWidth={2.25} />
+                          <Text fontSize="$4xl" fontWeight="$semibold" color="#FDFDFD">0</Text>
+                        </View>
+                        <Text fontSize="$lg" fontWeight="$semibold" color="#FDFDFD" textAlign="center">Pontos Turísticos</Text>
+                      </View>
+                      :
+                      <View flex={1} bgColor="rgba(255, 255, 255, 0.452)" p={12} borderRadius={20} justifyContent="center" alignItems="center">
+                        <View
+                          p={12}
+                          borderRadius={50}
+                          bgColor="rgba(255, 255, 255, 0.2)"
+                          mb={12}
+                          flexDirection="row"
+                          justifyContent="space-between"
+                          alignItems="center"
+                          width="100%"
+                        >
+                          <Compass size={45} color="#FFF" strokeWidth={2.25} />
+                          <Text fontSize="$4xl" fontWeight="$semibold" color="#FDFDFD">0</Text>
+                        </View>
+                        <Text fontSize="$lg" fontWeight="$semibold" color="#FDFDFD" textAlign="center">Pontos Turísticos</Text>
+                      </View>
+                  }
+                </GlassView>
+                <GlassView style={styles.glass} glassEffectStyle="clear">
+                  {
+                    isLiquidGlassAvailable()
+                      ?
+                      <View flex={1} p={12} borderRadius={20} justifyContent="center" alignItems="center">
+                        <View
+                          p={12}
+                          borderRadius={50}
+                          bgColor="rgba(255, 255, 255, 0.2)"
+                          mb={12}
+                          flexDirection="row"
+                          justifyContent="space-between"
+                          alignItems="center"
+                          width="100%"
+                        >
+                          <UtensilsCrossed size={45} color="#FFF" strokeWidth={2.25} />
+                          <Text fontSize="$4xl" fontWeight="$semibold" color="#FDFDFD">0</Text>
+                        </View>
+                        <Text fontSize="$lg" fontWeight="$semibold" color="#FDFDFD" textAlign="center">Restaurantes</Text>
+                      </View>
+                      :
+                      <View flex={1} bgColor="rgba(255, 255, 255, 0.452)" p={12} borderRadius={20} justifyContent="center" alignItems="center">
+                        <View
+                          p={12}
+                          borderRadius={50}
+                          bgColor="rgba(255, 255, 255, 0.2)"
+                          mb={12}
+                          flexDirection="row"
+                          justifyContent="space-between"
+                          alignItems="center"
+                          width="100%"
+                        >
+                          <UtensilsCrossed size={45} color="#FFF" strokeWidth={2.25} />
+                          <Text fontSize="$4xl" fontWeight="$semibold" color="#FDFDFD">0</Text>
+                        </View>
+                        <Text fontSize="$lg" fontWeight="$semibold" color="#FDFDFD" textAlign="center">Restaurantes</Text>
+                      </View>
+                  }
+                </GlassView>
+                <GlassView style={styles.glass} glassEffectStyle="clear">
+                  {
+                    isLiquidGlassAvailable()
+                      ?
+                      <View flex={1} p={12} borderRadius={20} justifyContent="center" alignItems="center">
+                        <View
+                          p={12}
+                          borderRadius={50}
+                          bgColor="rgba(255, 255, 255, 0.2)"
+                          mb={12}
+                          flexDirection="row"
+                          justifyContent="space-between"
+                          alignItems="center"
+                          width="100%"
+                        >
+                          <Bed size={45} color="#FFF" strokeWidth={2.25} />
+                          <Text fontSize="$4xl" fontWeight="$semibold" color="#FDFDFD">0</Text>
+                        </View>
+                        <Text fontSize="$lg" fontWeight="$semibold" color="#FDFDFD" textAlign="center">Hospedagens</Text>
+                      </View>
+                      :
+                      <View flex={1} bgColor="rgba(255, 255, 255, 0.452)" p={12} borderRadius={20} justifyContent="center" alignItems="center">
+                        <View
+                          p={12}
+                          borderRadius={50}
+                          bgColor="rgba(255, 255, 255, 0.2)"
+                          mb={12}
+                          flexDirection="row"
+                          justifyContent="space-between"
+                          alignItems="center"
+                          width="100%"
+                        >
+                          <Bed size={45} color="#FFF" strokeWidth={2.25} />
+                          <Text fontSize="$4xl" fontWeight="$semibold" color="#FDFDFD">0</Text>
+                        </View>
+                        <Text fontSize="$lg" fontWeight="$semibold" color="#FDFDFD" textAlign="center">Hospedagens</Text>
+                      </View>
+                  }
+                </GlassView>
+              </GlassContainer>
+            </View>
         }
       </View>
       <View position="absolute" bottom={0} left={0} right={0}>
