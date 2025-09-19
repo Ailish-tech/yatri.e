@@ -1,7 +1,6 @@
 import { Alert } from 'react-native';
 import Constants from 'expo-constants';
 import { NoAuthNavigationProp } from '@routes/noauth.routes';
-import { WEB_CLIENT_ID, IOS_CLIENT_ID } from "@env";
 
 let GoogleSignin: any = null;
 if (Constants.appOwnership !== 'expo') {
@@ -11,8 +10,8 @@ if (Constants.appOwnership !== 'expo') {
 if (Constants.appOwnership !== 'expo' && GoogleSignin) {
   GoogleSignin.configure({
     scopes: ['email', 'profile'],
-    webClientId: WEB_CLIENT_ID,
-    iosClientId: IOS_CLIENT_ID,
+    webClientId: process.env.WEB_CLIENT_ID,
+    iosClientId: process.env.IOS_CLIENT_ID,
     profileImageSize: 150
   });
 }
