@@ -52,7 +52,7 @@ export function LoginScreen() {
   const possibleBakcgrkounds = [
     require("@assets/CredentialsBackgrounds/gaztelugatxe-4377342_640.png"),
     require("@assets/CredentialsBackgrounds/italy-2725346_640.png"),
-    require("@assets/CredentialsBackgrounds/lisbon-8275994_640.png"),
+    require("@assets/CredentialsBackgrounds/waterfall-6574302_640.jpg"),
     require("@assets/CredentialsBackgrounds/river-7447346_640.png")
   ]
 

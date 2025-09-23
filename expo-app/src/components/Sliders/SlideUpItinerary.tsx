@@ -23,7 +23,7 @@ import { ItinerarySliderDateShow } from "@components/Itinerary/ItinerarySliderDa
 
 import { AuthNavigationProp } from "@routes/auth.routes";
 
-import { ArrowDown, ArrowUp, CalendarX, ChevronRight, Compass, HandCoins, MessageCircle, Pen, SquarePlus, UtensilsCrossed, Bed, PartyPopper, TreePine, ShoppingBag, Landmark, Plane } from "lucide-react-native";
+import { ArrowDown, ArrowUp, CalendarX, ChevronRight, Compass, HandCoins, MessageCircle, Pen, SquarePlus, UtensilsCrossed, Bed, PartyPopper, TreePine, ShoppingBag, Landmark, Plane, Heart } from "lucide-react-native";
 
 import { CreatingItinerary } from "../../../@types/CreatingItinerary";
 
@@ -320,10 +320,17 @@ export function SlideUpItinerary({ isLoading, hideBackButton, setFirstLatitude, 
         </Button>
         <Button flexDirection="row" justifyContent="space-between" mt={10} bgColor="transparent" borderWidth={1} borderColor="lightgray">
           <View flexDirection="row">
-            <ButtonIcon as={HandCoins} color="$black" mr={8} />
+            <ButtonIcon as={ HandCoins } color="$black" mr={8} />
             <ButtonText color="$black">Adicionar Custos</ButtonText>
           </View>
-          <ButtonIcon as={ChevronRight} color="$black" />
+          <ButtonIcon as={ ChevronRight } color="$black" />
+        </Button>
+        <Button flexDirection="row" justifyContent="space-between" mt={10} bgColor="transparent" borderWidth={1} borderColor="lightgray">
+          <View flexDirection="row">
+            <ButtonIcon as={ Heart } color="$black" mr={8} />
+            <ButtonText color="$black">Favoritar Local</ButtonText>
+          </View>
+          <ButtonIcon as={ ChevronRight } color="$black" />
         </Button>
         {
           isEditing

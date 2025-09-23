@@ -415,7 +415,7 @@ export function ItineraryMapMenu() {
   const styles = StyleSheet.create({
     containerStyle: {
       marginTop: 135,
-      marginBottom: 225,
+      marginBottom: 175,
       marginHorizontal: 15,
       flexDirection: 'row',
       flexWrap: 'wrap',
@@ -811,7 +811,13 @@ export function ItineraryMapMenu() {
                     {
                       isLiquidGlassAvailable()
                         ?
-                        <View borderRadius={100} justifyContent="center" alignItems="center" w={90} h={90}>
+                        <Button 
+                          borderRadius={100} 
+                          justifyContent="center" 
+                          alignItems="center" 
+                          w={90} 
+                          h={90}
+                        >
                           <View
                             p={12}
                             borderRadius={100}
@@ -822,9 +828,16 @@ export function ItineraryMapMenu() {
                           >
                             <Images size={40} color="#FFF" strokeWidth={2.25} />
                           </View>
-                        </View>
+                        </Button>
                         :
-                        <View bgColor="rgba(255, 255, 255, 0.452)" borderRadius={100} justifyContent="center" alignItems="center" w={90} h={90}>
+                        <Button 
+                          bgColor="rgba(255, 255, 255, 0.452)" 
+                          borderRadius={100} 
+                          justifyContent="center" 
+                          alignItems="center" 
+                          w={90} 
+                          h={90}
+                        >
                           <View
                             p={12}
                             borderRadius={100}
@@ -835,7 +848,7 @@ export function ItineraryMapMenu() {
                           >
                             <Images size={40} color="#FFF" strokeWidth={2.25} />
                           </View>
-                        </View>
+                        </Button>
                     }
                   </GlassView>
                   <GlassView style={styles.glass} glassEffectStyle="clear">
