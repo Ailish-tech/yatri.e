@@ -90,8 +90,8 @@ export function SignUpScreen() {
             <View flexDirection='row' alignItems='center' justifyContent='space-between' p={15}>
               <IconButton buttonBgColor='transparent' icon={ ArrowLeft } iconColor='white' iconSize='xl' buttonFunctionality={() => navigation.goBack()} />
               <View flexDirection='row' alignItems='center'>
-                <Text color='$white' mr={10} size='sm'>Já possui uma conta?</Text>
-                <Button bgColor='#8a8a9d72' size='sm' onPress={ () => navigation.navigate('Login') }>
+                <Text color='$white' mr={10} size='sm' fontWeight="$semibold">Já possui uma conta?</Text>
+                <Button bgColor='#8a8a9db1' size='sm' onPress={ () => navigation.navigate('Login') }>
                   <ButtonText>Entrar</ButtonText>
                 </Button>
               </View>
@@ -130,18 +130,18 @@ export function SignUpScreen() {
               <FormControlLabel>
                 <FormControlLabelText>Nome</FormControlLabelText>
               </FormControlLabel>
-              <Input my={1}>
+              <Input my={1} borderColor='#8a8a8a'>
                 <InputField
                   type="text"
                   placeholder="Insira Seu Nome"
-                  value={name}
-                  onChangeText={(name) => setName(name)}
+                  value={ name }
+                  onChangeText={ (name) => setName(name) }
                 />
               </Input>
               <FormControlHelper>
               </FormControlHelper>
               <FormControlError>
-                <FormControlErrorIcon as={CircleAlert} />
+                <FormControlErrorIcon as={ CircleAlert } />
                 <FormControlErrorText>
                   Insira um nome válido
                 </FormControlErrorText>
@@ -149,12 +149,12 @@ export function SignUpScreen() {
               <FormControlLabel>
                 <FormControlLabelText>Email</FormControlLabelText>
               </FormControlLabel>
-              <Input my={1}>
+              <Input my={1} borderColor='#8a8a8a'>
                 <InputField
                   type="text"
                   placeholder="Insira seu melhor Email"
-                  value={email}
-                  onChangeText={(mail) => setEmail(mail)}
+                  value={ email }
+                  onChangeText={ (mail) => setEmail(mail) }
                 />
               </Input>
               <FormControlHelper>
@@ -168,12 +168,12 @@ export function SignUpScreen() {
               <FormControlLabel>
                 <FormControlLabelText mt={10}>Senha</FormControlLabelText>
               </FormControlLabel>
-              <Input my={1}>
+              <Input my={1} borderColor='#8a8a8a'>
                 <InputField
                   type="password"
                   placeholder="Memorize sua Senha"
-                  value={password}
-                  onChangeText={(pass) => setPassword(pass)}
+                  value={ password }
+                  onChangeText={ (pass) => setPassword(pass) }
                 />
               </Input>
               <FormControlHelper>

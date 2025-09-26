@@ -19,7 +19,6 @@ import {
   Input,
   InputField,
   FormControlHelper,
-  FormControlHelperText,
   FormControlError,
   FormControlErrorIcon,
   FormControlErrorText
@@ -37,6 +36,7 @@ import { handleGoogleSignIn } from '@services/login/googleLogin';
 
 import { useAuth } from '@contexts/AuthContext';
 
+import { AuthNavigationProp } from '@routes/auth.routes';
 import { NoAuthNavigationProp } from '@routes/noauth.routes';
 
 export function LoginScreen() {
@@ -47,6 +47,7 @@ export function LoginScreen() {
 
   const { login } = useAuth();
   const navigation = useNavigation<NoAuthNavigationProp>();
+
   const fontsLoaded = useFonts({ LibreBodoni_700Bold });
 
   const possibleBakcgrkounds = [
@@ -132,18 +133,18 @@ export function LoginScreen() {
               <FormControlLabel>
                 <FormControlLabelText>Email</FormControlLabelText>
               </FormControlLabel>
-              <Input my={1}>
+              <Input my={1} borderColor='#8a8a8a'>
                 <InputField
                   type="text"
                   placeholder="Email"
-                  value={email}
-                  onChangeText={(mail) => setEmail(mail)}
+                  value={ email }
+                  onChangeText={ (mail) => setEmail(mail) }
                 />
               </Input>
               <FormControlHelper>
               </FormControlHelper>
               <FormControlError>
-                <FormControlErrorIcon as={CircleAlert} />
+                <FormControlErrorIcon as={ CircleAlert } />
                 <FormControlErrorText>
                   Insira um email válido
                 </FormControlErrorText>
@@ -151,19 +152,14 @@ export function LoginScreen() {
               <FormControlLabel>
                 <FormControlLabelText mt={10}>Senha</FormControlLabelText>
               </FormControlLabel>
-              <Input my={1}>
+              <Input my={1} borderColor='#8a8a8a'>
                 <InputField
                   type="password"
                   placeholder="Senha"
-                  value={password}
-                  onChangeText={(pass) => setPassword(pass)}
+                  value={ password }
+                  onChangeText={ (pass) => setPassword(pass) }
                 />
               </Input>
-              <FormControlHelper>
-                <FormControlHelperText>
-                  Mínimo 8 caracteres
-                </FormControlHelperText>
-              </FormControlHelper>
               <FormControlError>
                 <FormControlErrorIcon as={CircleAlert} />
                 <FormControlErrorText>
@@ -176,7 +172,8 @@ export function LoginScreen() {
                   w="100%"
                   borderRadius={25}
                   size="xl"
-                  onPress={handleSubmit}
+                  onPress={ handleSubmit }
+                  disabled={ isAuthenticating ? true : false }
                   style={{
                     shadowColor: "#000",
                     shadowOffset: {
@@ -195,7 +192,8 @@ export function LoginScreen() {
             <Button
               bgColor="transparent"
               size="lg"
-              onPress={login}
+              onPress={ login }
+              disabled={ isAuthenticating ? true : false }
             >
               <ButtonText fontWeight="$medium" color="#000">Esqueceu sua senha?</ButtonText>
             </Button>

@@ -1,5 +1,5 @@
 import { useContext, useEffect, useState, useImperativeHandle, forwardRef, useRef } from "react";
-import MapView, { Marker } from "react-native-maps";
+import MapView, { Marker, Polyline } from "react-native-maps";
 import * as Linking from 'expo-linking';
 
 import { View, Text } from "@gluestack-ui/themed";
@@ -135,20 +135,32 @@ export const Maps = forwardRef<MapView, MapsProps>((props, ref) => {
         {
           itineraryPlaces && itineraryPlaces.length > 0
             ?
-            itineraryPlaces.map((points, index) => (
-              <Marker
-                key={ index }
-                coordinate={{
-                  latitude: points.coordinate.latitude,
-                  longitude: points.coordinate.longitude,
-                }}
-                title={ points.title }
-                description={ points.description }
-                onPress={ () => { 
-                  Linking.openURL(`https://www.google.com/maps/search/?api=1&query=${points.coordinate.latitude},${points.coordinate.longitude}`) 
-                }}
-              />
-            ))
+            <>
+              {itineraryPlaces.map((points, index) => (
+                <Marker
+                  key={index}
+                  coordinate={{
+                    latitude: points.coordinate.latitude,
+                    longitude: points.coordinate.longitude,
+                  }}
+                  title={points.title}
+                  description={points.description}
+                  onPress={() => {
+                    Linking.openURL(`https://www.google.com/maps/search/?api=1&query=${points.coordinate.latitude},${points.coordinate.longitude}`)
+                  }}
+                />
+              ))}
+              {itineraryPlaces.length > 1 && (
+                <Polyline
+                  coordinates={itineraryPlaces.map(place => ({
+                    latitude: place.coordinate.latitude,
+                    longitude: place.coordinate.longitude,
+                  }))}
+                  strokeColor="#FF0000"
+                  strokeWidth={3}
+                />
+              )}
+            </>
             :
             places.map((place, index) => (
               <Marker

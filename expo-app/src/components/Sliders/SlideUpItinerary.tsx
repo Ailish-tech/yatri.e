@@ -26,12 +26,14 @@ import { AuthNavigationProp } from "@routes/auth.routes";
 import { ArrowDown, ArrowUp, CalendarX, ChevronRight, Compass, HandCoins, MessageCircle, Pen, SquarePlus, UtensilsCrossed, Bed, PartyPopper, TreePine, ShoppingBag, Landmark, Plane, Heart } from "lucide-react-native";
 
 import { CreatingItinerary } from "../../../@types/CreatingItinerary";
+import { CategoriesCounterTypes } from "../../../@types/CategoriesCounterTypes";
 
 type ItinerarySliderProps = {
   isLoading: boolean,
   hideBackButton: (hide: boolean) => void,
   setFirstLatitude: (latitude: number) => void,
   setFirstLongitude: (longitude: number) => void,
+  setCategoriesCounter: React.Dispatch<React.SetStateAction<CategoriesCounterTypes>>,
   setSelectedDay?: (dayIndex: number) => void
 }
 
@@ -59,29 +61,14 @@ type DayItineraryTypes = {
   images?: string[]
 }
 
-export function SlideUpItinerary({ isLoading, hideBackButton, setFirstLatitude, setFirstLongitude, setSelectedDay }: ItinerarySliderProps) {
+export function SlideUpItinerary({ isLoading, hideBackButton, setFirstLatitude, setFirstLongitude, setSelectedDay, setCategoriesCounter }: ItinerarySliderProps) {
   const navigation = useNavigation<AuthNavigationProp>();
   const route = useRoute<RouteProp<{ params: { itineraryData: CreatingItinerary, userPreferences: string[], visaIssue: any } }, 'params'>>();
   const {
     title,
     dateBegin,
     dateEnd,
-    days,
-    continent,
-    countries,
-    visa,
-    originCountry,
-    budget,
-    peopleQuantity,
-    acconpanying,
-    tripStyle,
-    locomotionMethod,
-    specialWish,
-    visitPreferences,
-    contacts,
     itinerary,
-    pixabayTags,
-    images
   } = route.params.itineraryData;
 
   const [allTripDays, setAllTripDays] = useState<CalendarDaysTypes[]>([]);
@@ -140,6 +127,73 @@ export function SlideUpItinerary({ isLoading, hideBackButton, setFirstLatitude, 
 
   const handleSelectCategory = (category: string) => {
     if (editingTimelineIndex === null) return;
+
+    // Obtém a categoria atual antes da mudança para decrementar se necessário
+    const currentActivity = itineraryState[selectedDayIndex]?.timeline?.[editingTimelineIndex];
+    const oldCategory = currentActivity?.category;
+
+    setCategoriesCounter((prev: CategoriesCounterTypes) => {
+      const newCounter = { ...prev };
+      
+      // Decrementa a categoria antiga se ela existir
+      if (oldCategory) {
+        switch (oldCategory) {
+          case "Ponto Turístico":
+            newCounter.touristAttractions = Math.max(0, newCounter.touristAttractions - 1);
+            break;
+          case "Gastronomia":
+            newCounter.restaurant = Math.max(0, newCounter.restaurant - 1);
+            break;
+          case "Hospedagem":
+            newCounter.accomodation = Math.max(0, newCounter.accomodation - 1);
+            break;
+          case "Vida Noturna":
+            newCounter.nightLife = Math.max(0, newCounter.nightLife - 1);
+            break;
+          case "Parques":
+            newCounter.parks = Math.max(0, newCounter.parks - 1);
+            break;
+          case "Shopping":
+            newCounter.shopping = Math.max(0, newCounter.shopping - 1);
+            break;
+          case "Cultura":
+            newCounter.culture = Math.max(0, newCounter.culture - 1);
+            break;
+          case "Viagens":
+            newCounter.travel = Math.max(0, newCounter.travel - 1);
+            break;
+        }
+      }
+
+      // Incrementa a nova categoria
+      switch (category) {
+        case "Ponto Turístico":
+          newCounter.touristAttractions += 1;
+          break;
+        case "Gastronomia":
+          newCounter.restaurant += 1;
+          break;
+        case "Hospedagem":
+          newCounter.accomodation += 1;
+          break;
+        case "Vida Noturna":
+          newCounter.nightLife += 1;
+          break;
+        case "Parques":
+          newCounter.parks += 1;
+          break;
+        case "Shopping":
+          newCounter.shopping += 1;
+          break;
+        case "Cultura":
+          newCounter.culture += 1;
+          break;
+        case "Viagens":
+          newCounter.travel += 1;
+          break;
+      }
+      return newCounter;
+    });
 
     setItineraryState(prev => {
       const safePrev = Array.isArray(prev) ? prev : [];
@@ -238,6 +292,59 @@ export function SlideUpItinerary({ isLoading, hideBackButton, setFirstLatitude, 
       setItineraryState(itinerary);
     }
   }, [itinerary]);
+
+  // Conta as categorias existentes no itinerário quando ele é carregado
+  useEffect(() => {
+    if (!Array.isArray(itineraryState) || itineraryState.length === 0) return;
+
+    const categoryCount = {
+      touristAttractions: 0,
+      restaurant: 0,
+      accomodation: 0,
+      nightLife: 0,
+      parks: 0,
+      shopping: 0,
+      culture: 0,
+      travel: 0
+    };
+
+    itineraryState.forEach((day) => {
+      if (day.timeline && Array.isArray(day.timeline)) {
+        day.timeline.forEach((activity) => {
+          if (activity.category) {
+            switch (activity.category) {
+              case "Ponto Turístico":
+                categoryCount.touristAttractions += 1;
+                break;
+              case "Gastronomia":
+                categoryCount.restaurant += 1;
+                break;
+              case "Hospedagem":
+                categoryCount.accomodation += 1;
+                break;
+              case "Vida Noturna":
+                categoryCount.nightLife += 1;
+                break;
+              case "Parques":
+                categoryCount.parks += 1;
+                break;
+              case "Shopping":
+                categoryCount.shopping += 1;
+                break;
+              case "Cultura":
+                categoryCount.culture += 1;
+                break;
+              case "Viagens":
+                categoryCount.travel += 1;
+                break;
+            }
+          }
+        });
+      }
+    });
+
+    setCategoriesCounter(categoryCount);
+  }, [itineraryState]);
 
   useEffect(() => {
     if (setSelectedDay) {

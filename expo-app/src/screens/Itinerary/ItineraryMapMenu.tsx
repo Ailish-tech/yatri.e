@@ -20,10 +20,11 @@ import { userTrips } from "@data/itineraries";
 import { AuthNavigationProp } from "@routes/auth.routes";
 
 import { CreatingItinerary } from "../../../@types/CreatingItinerary";
+import { CategoriesCounterTypes } from "../../../@types/CategoriesCounterTypes";
 
 import DefaultStatsBackground from "@assets/background.webp";
 
-import { Bed, ChevronLeft, Coins, Compass, Globe, Heart, Images, Landmark, PartyPopper, Plane, ShoppingBag, TreePine, UtensilsCrossed } from 'lucide-react-native';
+import { Bed, ChevronLeft, Compass, Globe, Heart, Images, Landmark, PartyPopper, Plane, ShoppingBag, TreePine, UtensilsCrossed } from 'lucide-react-native';
 
 type ShowMapStatsInformationType = {
   show: "Map" | "Stats"
@@ -41,6 +42,16 @@ export function ItineraryMapMenu() {
   const [firstLatitude, setFirstLatitude] = useState<number>();
   const [firstLongitude, setFirstLongitude] = useState<number>();
   const [selectedDay, setSelectedDay] = useState<number>(0);
+  const [categoriesCounter, setCategoriesCounter] = useState<CategoriesCounterTypes>({
+    touristAttractions: 0,
+    restaurant: 0,
+    accomodation: 0,
+    nightLife: 0,
+    parks: 0,
+    shopping: 0,
+    culture: 0,
+    travel: 0
+  });
 
   const categoriesOptions = ["Ponto Turístico", "Gastronomia", "Hospedagem", "Vida Noturna", "Parques", "Shopping", "Cultura", "Viagens"]
 
@@ -57,8 +68,7 @@ export function ItineraryMapMenu() {
   const filteredItineraryData = filterItineraryData(route.params.itineraryData);
   const filteredUserPreferences = filterUserPreferences(route.params.userPreferences || []);
 
-  const { 
-    title,
+  const {
     dateBegin, 
     dateEnd,
     days, 
@@ -72,7 +82,6 @@ export function ItineraryMapMenu() {
     tripStyle, 
     locomotionMethod,
     specialWish,
-    visitPreferences,
     contacts
   } = filteredItineraryData;
 
@@ -369,7 +378,9 @@ export function ItineraryMapMenu() {
     if (selectedDayData && selectedDayData.timeline && Array.isArray(selectedDayData.timeline)) {
       selectedDayData.timeline.forEach((activity: any) => {
         if (activity.coordinates && activity.coordinates !== "0.0000,0.0000") {
-          const [lat, lng] = activity.coordinates.split(',').map(Number);
+          const coordinates = activity.coordinates.replace(/\s+/g, '');
+          const [lat, lng] = coordinates.split(/[;,]/).map((coord: string) => parseFloat(coord.trim()));
+          
           if (!isNaN(lat) && !isNaN(lng)) {
             const point = {
               title: activity.title || 'Atividade',
@@ -411,6 +422,28 @@ export function ItineraryMapMenu() {
       }
     }
   }, [allCountriesTogether, allTripStylesTogether, allVehicleTypesTogether]);
+
+  // Define as coordenadas iniciais do mapa baseado no primeiro ponto do itinerário
+  useEffect(() => {
+    if (itinerary.length > 0) {
+      const firstDay = itinerary[0];
+      if (firstDay && firstDay.timeline && firstDay.timeline.length > 0) {
+        const firstActivity = firstDay.timeline.find((activity: any) => 
+          activity.coordinates && activity.coordinates !== "0.0000,0.0000"
+        );
+        
+        if (firstActivity && firstActivity.coordinates) {
+          const coordinates = firstActivity.coordinates.replace(/\s+/g, '');
+          const [lat, lng] = coordinates.split(/[;,]/).map((coord: string) => parseFloat(coord.trim()));
+          
+          if (!isNaN(lat) && !isNaN(lng)) {
+            setFirstLatitude(lat);
+            setFirstLongitude(lng);
+          }
+        }
+      }
+    }
+  }, [itinerary]);
 
   const styles = StyleSheet.create({
     containerStyle: {
@@ -489,13 +522,13 @@ export function ItineraryMapMenu() {
           :
             <View flex={1}>
               <Image
-                source={DefaultStatsBackground}
+                source={ DefaultStatsBackground }
                 style={{ position: "absolute", width: "100%", height: "100%" }}
                 resizeMode="cover"
               />
               <ScrollView>
                 <GlassContainer spacing={10} style={ styles.containerStyle }>
-                  <GlassView style={styles.glass} glassEffectStyle="clear">
+                  <GlassView style={ styles.glass } glassEffectStyle="clear">
                     {
                       isLiquidGlassAvailable()
                         ?
@@ -511,7 +544,7 @@ export function ItineraryMapMenu() {
                             width="100%"
                           >
                             <Compass size={45} color="#FFF" strokeWidth={2.25} />
-                            <Text fontSize="$4xl" fontWeight="$semibold" color="#FDFDFD">0</Text>
+                            <Text fontSize="$4xl" fontWeight="$semibold" color="#FDFDFD">{ categoriesCounter.touristAttractions }</Text>
                           </View>
                           <Text fontSize="$lg" fontWeight="$semibold" color="#FDFDFD" textAlign="center">Pontos Turísticos</Text>
                         </View>
@@ -528,7 +561,7 @@ export function ItineraryMapMenu() {
                             width="100%"
                           >
                             <Compass size={45} color="#FFF" strokeWidth={2.25} />
-                            <Text fontSize="$4xl" fontWeight="$semibold" color="#FDFDFD">0</Text>
+                            <Text fontSize="$4xl" fontWeight="$semibold" color="#FDFDFD">{ categoriesCounter.touristAttractions }</Text>
                           </View>
                           <Text fontSize="$lg" fontWeight="$semibold" color="#FDFDFD" textAlign="center">Pontos Turísticos</Text>
                         </View>
@@ -550,7 +583,7 @@ export function ItineraryMapMenu() {
                             width="100%"
                           >
                             <UtensilsCrossed size={45} color="#FFF" strokeWidth={2.25} />
-                            <Text fontSize="$4xl" fontWeight="$semibold" color="#FDFDFD">0</Text>
+                            <Text fontSize="$4xl" fontWeight="$semibold" color="#FDFDFD">{ categoriesCounter.restaurant }</Text>
                           </View>
                           <Text fontSize="$lg" fontWeight="$semibold" color="#FDFDFD" textAlign="center">Restaurantes</Text>
                         </View>
@@ -567,7 +600,7 @@ export function ItineraryMapMenu() {
                             width="100%"
                           >
                             <UtensilsCrossed size={45} color="#FFF" strokeWidth={2.25} />
-                            <Text fontSize="$4xl" fontWeight="$semibold" color="#FDFDFD">0</Text>
+                            <Text fontSize="$4xl" fontWeight="$semibold" color="#FDFDFD">{ categoriesCounter.restaurant }</Text>
                           </View>
                           <Text fontSize="$lg" fontWeight="$semibold" color="#FDFDFD" textAlign="center">Restaurantes</Text>
                         </View>
@@ -589,7 +622,7 @@ export function ItineraryMapMenu() {
                             width="100%"
                           >
                             <Bed size={45} color="#FFF" strokeWidth={2.25} />
-                            <Text fontSize="$4xl" fontWeight="$semibold" color="#FDFDFD">0</Text>
+                            <Text fontSize="$4xl" fontWeight="$semibold" color="#FDFDFD">{ categoriesCounter.accomodation }</Text>
                           </View>
                           <Text fontSize="$lg" fontWeight="$semibold" color="#FDFDFD" textAlign="center">Hospedagens</Text>
                         </View>
@@ -606,7 +639,7 @@ export function ItineraryMapMenu() {
                             width="100%"
                           >
                             <Bed size={45} color="#FFF" strokeWidth={2.25} />
-                            <Text fontSize="$4xl" fontWeight="$semibold" color="#FDFDFD">0</Text>
+                            <Text fontSize="$4xl" fontWeight="$semibold" color="#FDFDFD">{ categoriesCounter.accomodation }</Text>
                           </View>
                           <Text fontSize="$lg" fontWeight="$semibold" color="#FDFDFD" textAlign="center">Hospedagens</Text>
                         </View>
@@ -628,7 +661,7 @@ export function ItineraryMapMenu() {
                             width="100%"
                           >
                             <PartyPopper size={45} color="#FFF" strokeWidth={2.25} />
-                            <Text fontSize="$4xl" fontWeight="$semibold" color="#FDFDFD">0</Text>
+                            <Text fontSize="$4xl" fontWeight="$semibold" color="#FDFDFD">{ categoriesCounter.nightLife }</Text>
                           </View>
                           <Text fontSize="$lg" fontWeight="$semibold" color="#FDFDFD" textAlign="center">Vida Noturna</Text>
                         </View>
@@ -645,7 +678,7 @@ export function ItineraryMapMenu() {
                             width="100%"
                           >
                             <PartyPopper size={45} color="#FFF" strokeWidth={2.25} />
-                            <Text fontSize="$4xl" fontWeight="$semibold" color="#FDFDFD">0</Text>
+                            <Text fontSize="$4xl" fontWeight="$semibold" color="#FDFDFD">{ categoriesCounter.nightLife }</Text>
                           </View>
                           <Text fontSize="$lg" fontWeight="$semibold" color="#FDFDFD" textAlign="center">Vida Noturna</Text>
                         </View>
@@ -667,7 +700,7 @@ export function ItineraryMapMenu() {
                             width="100%"
                           >
                             <TreePine size={45} color="#FFF" strokeWidth={2.25} />
-                            <Text fontSize="$4xl" fontWeight="$semibold" color="#FDFDFD">0</Text>
+                            <Text fontSize="$4xl" fontWeight="$semibold" color="#FDFDFD">{ categoriesCounter.parks }</Text>
                           </View>
                           <Text fontSize="$lg" fontWeight="$semibold" color="#FDFDFD" textAlign="center">Parques</Text>
                         </View>
@@ -684,7 +717,7 @@ export function ItineraryMapMenu() {
                             width="100%"
                           >
                             <TreePine size={45} color="#FFF" strokeWidth={2.25} />
-                            <Text fontSize="$4xl" fontWeight="$semibold" color="#FDFDFD">0</Text>
+                            <Text fontSize="$4xl" fontWeight="$semibold" color="#FDFDFD">{ categoriesCounter.parks }</Text>
                           </View>
                           <Text fontSize="$lg" fontWeight="$semibold" color="#FDFDFD" textAlign="center">Parques</Text>
                         </View>
@@ -706,7 +739,7 @@ export function ItineraryMapMenu() {
                             width="100%"
                           >
                             <ShoppingBag size={45} color="#FFF" strokeWidth={2.25} />
-                            <Text fontSize="$4xl" fontWeight="$semibold" color="#FDFDFD">0</Text>
+                            <Text fontSize="$4xl" fontWeight="$semibold" color="#FDFDFD">{ categoriesCounter.shopping }</Text>
                           </View>
                           <Text fontSize="$lg" fontWeight="$semibold" color="#FDFDFD" textAlign="center">Shopping</Text>
                         </View>
@@ -723,7 +756,7 @@ export function ItineraryMapMenu() {
                             width="100%"
                           >
                             <ShoppingBag size={45} color="#FFF" strokeWidth={2.25} />
-                            <Text fontSize="$4xl" fontWeight="$semibold" color="#FDFDFD">0</Text>
+                            <Text fontSize="$4xl" fontWeight="$semibold" color="#FDFDFD">{ categoriesCounter.shopping }</Text>
                           </View>
                           <Text fontSize="$lg" fontWeight="$semibold" color="#FDFDFD" textAlign="center">Shopping</Text>
                         </View>
@@ -745,7 +778,7 @@ export function ItineraryMapMenu() {
                             width="100%"
                           >
                             <Landmark size={45} color="#FFF" strokeWidth={2.25} />
-                            <Text fontSize="$4xl" fontWeight="$semibold" color="#FDFDFD">0</Text>
+                            <Text fontSize="$4xl" fontWeight="$semibold" color="#FDFDFD">{ categoriesCounter.culture }</Text>
                           </View>
                           <Text fontSize="$lg" fontWeight="$semibold" color="#FDFDFD" textAlign="center">Cultura</Text>
                         </View>
@@ -762,7 +795,7 @@ export function ItineraryMapMenu() {
                             width="100%"
                           >
                             <Landmark size={45} color="#FFF" strokeWidth={2.25} />
-                            <Text fontSize="$4xl" fontWeight="$semibold" color="#FDFDFD">0</Text>
+                            <Text fontSize="$4xl" fontWeight="$semibold" color="#FDFDFD">{ categoriesCounter.culture }</Text>
                           </View>
                           <Text fontSize="$lg" fontWeight="$semibold" color="#FDFDFD" textAlign="center">Cultura</Text>
                         </View>
@@ -784,7 +817,7 @@ export function ItineraryMapMenu() {
                             width="100%"
                           >
                             <Plane size={45} color="#FFF" strokeWidth={2.25} />
-                            <Text fontSize="$4xl" fontWeight="$semibold" color="#FDFDFD">0</Text>
+                            <Text fontSize="$4xl" fontWeight="$semibold" color="#FDFDFD">{ categoriesCounter.travel }</Text>
                           </View>
                           <Text fontSize="$lg" fontWeight="$semibold" color="#FDFDFD" textAlign="center">Viagem</Text>
                         </View>
@@ -801,7 +834,7 @@ export function ItineraryMapMenu() {
                             width="100%"
                           >
                             <Plane size={45} color="#FFF" strokeWidth={2.25} />
-                            <Text fontSize="$4xl" fontWeight="$semibold" color="#FDFDFD">0</Text>
+                            <Text fontSize="$4xl" fontWeight="$semibold" color="#FDFDFD">{ categoriesCounter.travel }</Text>
                           </View>
                           <Text fontSize="$lg" fontWeight="$semibold" color="#FDFDFD" textAlign="center">Viagem</Text>
                         </View>
@@ -895,6 +928,7 @@ export function ItineraryMapMenu() {
             setFirstLatitude={ setFirstLatitude }
             setFirstLongitude={ setFirstLongitude }
             setSelectedDay={ setSelectedDay }
+            setCategoriesCounter={ setCategoriesCounter }
           />
         </SafeAreaView>
       </View>
