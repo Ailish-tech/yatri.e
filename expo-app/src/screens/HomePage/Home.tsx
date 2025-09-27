@@ -1,5 +1,6 @@
 import { StatusBar, FlatList, SafeAreaView } from "react-native";
 import { ImageBackground } from "@assets/mountains.jpg";
+import destinationsData from "@data/destinations.json";
 import {
   Box,
   VStack,
@@ -21,25 +22,16 @@ import {
 import { styled } from "@gluestack-ui/themed";
 import { Search, Plane, Hotel, Gift, Tag, Menu, LucidePlane, Building, TentTree, Crown, Bell} from "lucide-react-native";
 
-const destinations = [
-  { name: "Dubai", img: require("@assets/Cities/dubai.jpg") },
-  { name: "Maldives", img: require("@assets/Cities/maldives.jpg") },
-  { name: "Bali", img: require("@assets/Cities/bali.jpg") },
-  { name: "Venice", img: require("@assets/Cities/venice.jpg") },
-  { name: "London", img: require("@assets/Cities/london.jpg") },
-];
+const destinations = destinationsData
+  .filter((item: any) => item.id && item.title && item.image)
+  .map((item: any) => ({
+    id: item.id,
+    name: item.title,
+    img: { uri: item.image }
+  }));
 
-const recommended = [
-  { name: "Ankara", img: require("@assets/Cities/ankara.jpg") },
-  { name: "Maldives", img: require("@assets/Cities/maldives.jpg") },
-  { name: "Venice", img: require("@assets/Cities/venice.jpg") },
-];
-
-const popular = [
-  { name: "Turkey", img: require("@assets/Cities/ankara.jpg") },
-  { name: "Maldives", img: require("@assets/Cities/maldives.jpg") },
-  { name: "Venice", img: require("@assets/Cities/venice.jpg") },
-];
+const recommended = destinations.slice(0, 3); // First 3 as example
+const popular = destinations.slice(3, 6);     // Next 3 as example
 
 export function Home() {
   return (
@@ -140,7 +132,7 @@ export function Home() {
         <ScrollView horizontal showsHorizontalScrollIndicator={false}>
           <Box flexDirection="row">
             {destinations.map((item, index) => (
-              <View key={index} alignItems="center" ml={index === 0 ? 0 : 16}>
+              <View key={item.id} alignItems="center" ml={index === 0 ? 0 : 16}>
                 <Box
                   w={70}
                   h={70}
@@ -183,7 +175,7 @@ export function Home() {
         <ScrollView horizontal showsHorizontalScrollIndicator={false}>
           {recommended.map((item, index) => (
             <Box
-              key={index}
+              key={item.id}
               w={160}
               h={230}
               borderRadius="$3xl"
@@ -225,7 +217,7 @@ export function Home() {
         <ScrollView horizontal showsHorizontalScrollIndicator={false}>
           {popular.map((item, index) => (
             <Box
-              key={index}
+              key={item.id}
               w={160}
               h={230}
               borderRadius="$2xl"
@@ -255,7 +247,7 @@ export function Home() {
                 </Text>
               </Box>
             </Box>
-            ))}
+          ))}
         </ScrollView>
       </Box>
     </ScrollView>
