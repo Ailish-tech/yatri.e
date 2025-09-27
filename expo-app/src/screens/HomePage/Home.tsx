@@ -1,4 +1,4 @@
-import { StatusBar, FlatList } from "react-native";
+import { StatusBar, FlatList, SafeAreaView } from "react-native";
 import { ImageBackground } from "@assets/mountains.jpg";
 import {
   Box,
@@ -18,8 +18,8 @@ import {
   ButtonText,
   ButtonIcon
 } from "@gluestack-ui/themed";
-import { Search, Plane, Hotel, Gift, Tag, Menu, LucidePlane, Building, TentTree, Crown } from "lucide-react-native";
-import { SafeAreaView } from "react-native";
+import { styled } from "@gluestack-ui/themed";
+import { Search, Plane, Hotel, Gift, Tag, Menu, LucidePlane, Building, TentTree, Crown, Bell} from "lucide-react-native";
 
 const destinations = [
   { name: "Dubai", img: require("@assets/Cities/dubai.jpg") },
@@ -58,24 +58,40 @@ export function Home() {
         right={0}
         w="100%"
         h={320}
+        zIndex={-1}
+      />
+      <Image
+        source={require("@assets/gradient.png")}
+        resizeMode="cover"
+        alt=""
+        position="absolute"
+        top={0}
+        left={0}
+        right={0}
+        w="100%"
+        h={320}
+        opacity={0.5}
       />
         <View justifyContent="space-between" mt={40} mx={10}>
           <View justifyContent="space-between" alignItems="center" flexDirection="row" mb={20}>
-            <Icon as={Menu} color="#fff" size="xl" />
-            <Avatar size="md" borderWidth={2} borderColor="#fff">
-              <AvatarImage
-                source={{
-                  uri: "https://i.pravatar.cc/100",
-                }}
-              />
-            </Avatar>
+            <Icon as={Menu} color="#fff" size="xl"/>
+            <View flexDirection="row" alignItems="center" gap={15}>
+              <Icon as={Bell} color="#fff" size="xl"/>
+              <Avatar size="md" borderWidth={2} borderColor="#fff">
+                <AvatarImage
+                  source={{
+                    uri: "https://i.pravatar.cc/100",
+                  }}
+                />
+              </Avatar>
+            </View>
           </View>
           <View mt={-15}>
             <Text size="2xl" bold color="#fff">
               Hello! Mehdi
             </Text>
             <Text size="md" fontWeight="$semibold" color="#fff">
-              Where would you like to go?
+              Aonde gostaria de ir?
             </Text>
           </View>
           {/* Quick Action Buttons */}
@@ -114,7 +130,7 @@ export function Home() {
             elevation={2}
           >
             <Icon as={Search} mr="$2" color="#999" />
-            <InputField placeholder="Where to go" />
+            <InputField placeholder="Aonde ir" />
           </Input>
         </View>
     
@@ -156,11 +172,11 @@ export function Home() {
       <Box mt="$6" px="$4">
         <View justifyContent="space-between" mb="$2" flexDirection="row" alignItems="center">
           <Text size="lg" bold>
-            Recommended
+            Recomendados para você
           </Text>
           <Pressable>
             <Text size="sm" color="#0A84FF">
-              View All
+              Ver tudo
             </Text>
           </Pressable>
         </View>
@@ -168,8 +184,8 @@ export function Home() {
           {recommended.map((item, index) => (
             <Box
               key={index}
-              w={180}
-              h={260}
+              w={160}
+              h={230}
               borderRadius="$3xl"
               overflow="hidden"
               bg="#f0f0f0"
@@ -204,14 +220,14 @@ export function Home() {
       {/* Popular Destination */}
       <Box mt="$6" px="$4">
         <Text size="lg" bold mb="$2">
-          Popular Destination
+          Destinos populares
         </Text>
         <ScrollView horizontal showsHorizontalScrollIndicator={false}>
           {popular.map((item, index) => (
             <Box
               key={index}
-              w={180}
-              h={260}
+              w={160}
+              h={230}
               borderRadius="$2xl"
               overflow="hidden"
               bg="#f0f0f0"
