@@ -29,8 +29,6 @@ import { Place } from '../../@types/PlacesTypes';
 import { CreatingItinerary } from "../../@types/CreatingItinerary";
 import { VisaModelTypes } from "../../@types/VisaModelTypes";
 
-const Stack = createNativeStackNavigator();
-
 type AuthStackParamList = {
   Home:  { name: string, email: string, photo: string },
   AIMascotIntroduction: undefined,
@@ -57,6 +55,8 @@ type AuthStackParamList = {
 };
 
 export type AuthNavigationProp = NativeStackNavigationProp<AuthStackParamList>;
+
+const Stack = createNativeStackNavigator();
 
 function ScreenWrapper({ children }: { children: React.ReactNode }) {
   return (

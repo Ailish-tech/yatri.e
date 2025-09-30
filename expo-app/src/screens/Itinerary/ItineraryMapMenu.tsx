@@ -25,6 +25,7 @@ import { CategoriesCounterTypes } from "../../../@types/CategoriesCounterTypes";
 import DefaultStatsBackground from "@assets/background.webp";
 
 import { Bed, ChevronLeft, Compass, Globe, Heart, Images, Landmark, PartyPopper, Plane, ShoppingBag, TreePine, UtensilsCrossed } from 'lucide-react-native';
+import { ChooseBackgroundDialog } from "@components/Dialogs/ChooseBackgroundDialog";
 
 type ShowMapStatsInformationType = {
   show: "Map" | "Stats"
@@ -42,6 +43,7 @@ export function ItineraryMapMenu() {
   const [firstLatitude, setFirstLatitude] = useState<number>();
   const [firstLongitude, setFirstLongitude] = useState<number>();
   const [selectedDay, setSelectedDay] = useState<number>(0);
+  const [openChooseBackground, setOpenChooseBackground] = useState<boolean>(false);
   const [categoriesCounter, setCategoriesCounter] = useState<CategoriesCounterTypes>({
     touristAttractions: 0,
     restaurant: 0,
@@ -840,7 +842,7 @@ export function ItineraryMapMenu() {
                         </View>
                     }
                   </GlassView>
-                  <GlassView style={styles.glass} glassEffectStyle="clear">
+                  <GlassView style={ styles.glass } glassEffectStyle="clear">
                     {
                       isLiquidGlassAvailable()
                         ?
@@ -850,6 +852,7 @@ export function ItineraryMapMenu() {
                           alignItems="center" 
                           w={90} 
                           h={90}
+                          onPress={ () => setOpenChooseBackground(true) }
                         >
                           <View
                             p={12}
@@ -870,6 +873,7 @@ export function ItineraryMapMenu() {
                           alignItems="center" 
                           w={90} 
                           h={90}
+                          onPress={ () => setOpenChooseBackground(true) }
                         >
                           <View
                             p={12}
@@ -932,6 +936,11 @@ export function ItineraryMapMenu() {
           />
         </SafeAreaView>
       </View>
+      {
+        openChooseBackground 
+          ? <ChooseBackgroundDialog showAlertDialog={ openChooseBackground } handleClose={ () => setOpenChooseBackground } /> 
+          : null
+      }
     </View>
   )
 }
