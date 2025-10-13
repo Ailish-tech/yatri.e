@@ -1,10 +1,7 @@
 {
   "dependencies": {
     "@expo/config-plugins": "~10.1.1",
-    "@gluestack-ui/linear-gradient": "^0.1.3",
-    "expo-linear-gradient": "^15.0.7",
     "react-native-html-to-pdf": "^0.12.0",
-    "react-native-linear-gradient": "^2.8.3",
     "react-native-reanimated": "^3.17.4",
     "react-native-share": "^12.2.0",
     "react-native-svg": "^15.12.0",

@@ -57,6 +57,14 @@ function ScreenWrapper({ children }: { children: React.ReactNode }) {
   );
 }
 
+function HomeWithNavBar() {
+  return (
+    <ScreenWrapper>
+      <Home />
+    </ScreenWrapper>
+  );
+}
+
 function ProfileWithNavBar() {
   return (
     <ScreenWrapper>
@@ -110,7 +118,7 @@ export function AuthRoute() {
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       <Stack.Screen 
         name="Home"
-        component={ Home } 
+        component={ HomeWithNavBar } 
         options={{ animation: 'none' }}
       />
       <Stack.Screen 
