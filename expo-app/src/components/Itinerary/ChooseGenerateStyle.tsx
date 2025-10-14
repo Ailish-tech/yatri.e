@@ -15,7 +15,7 @@ import {
   CloseIcon
 } from '@gluestack-ui/themed';
 
-import { Dices, Goal, Sparkles, MapPin } from 'lucide-react-native';
+import { Dices, Goal, Sparkles, MapPin, Star } from 'lucide-react-native';
 
 type ChooseGenerateStyleTypes = {
   showModal: boolean,
@@ -49,7 +49,7 @@ export function ChooseGenerateStyle({ showModal, setShowModal, onDefinedItinerar
     }
   }, [showModal]);
 
-  const AnimatedCard = ({ children, onPress, colors, delay = 0 }: any) => {
+  const AnimatedCard = ({ children, onPress, colors, delay = 0, styles, pressableStyles }: any) => {
     const cardScale = useRef(new Animated.Value(1)).current;
     const cardOpacity = useRef(new Animated.Value(0)).current;
 
@@ -84,32 +84,37 @@ export function ChooseGenerateStyle({ showModal, setShowModal, onDefinedItinerar
 
     return (
       <Animated.View
-        style={{
-          flex: 1,
-          transform: [{ scale: cardScale }],
-          opacity: cardOpacity,
-        }}
+        style={[{
+            flex: 1,
+            transform: [{ scale: cardScale }],
+            opacity: cardOpacity,
+          },
+          styles
+        ]}
       >
         <Pressable
           onPress={onPress}
           onPressIn={handlePressIn}
           onPressOut={handlePressOut}
-          style={{
-            flex: 1,
-            aspectRatio: 1,
-            borderRadius: 20,
-            padding: 16,
-            justifyContent: 'center',
-            alignItems: 'center',
-            backgroundColor: colors.primary,
-            shadowColor: colors.shadow,
-            shadowOffset: { width: 0, height: 8 },
-            shadowOpacity: 0.3,
-            shadowRadius: 12,
-            elevation: 8,
-            borderWidth: 2,
-            borderColor: colors.border,
-          }}
+          style={[
+            {
+              flex: 1,
+              aspectRatio: 1,
+              borderRadius: 20,
+              padding: 16,
+              justifyContent: 'center',
+              alignItems: 'center',
+              backgroundColor: colors.primary,
+              shadowColor: colors.shadow,
+              shadowOffset: { width: 0, height: 8 },
+              shadowOpacity: 0.3,
+              shadowRadius: 12,
+              elevation: 8,
+              borderWidth: 2,
+              borderColor: colors.border,
+            },
+            pressableStyles
+          ]}
         >
           {children}
         </Pressable>
@@ -259,6 +264,57 @@ export function ChooseGenerateStyle({ showModal, setShowModal, onDefinedItinerar
                 </Text>
               </AnimatedCard>
             </View>
+            <AnimatedCard
+                delay={200}
+                onPress={ () => {} }
+                colors={{
+                  primary: '#3aa8ed',
+                  shadow: '#3aa8ed',
+                  border: 'rgba(58, 103, 237, 0.2)',
+                }}
+                styles={{
+                  marginTop: 12,
+                  flex: 0,
+                  height: 120,
+                }}
+                pressableStyles={{
+                  aspectRatio: 3,
+                  flex: 0,
+                  width: '100%',
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  paddingHorizontal: 20,
+                }}
+              >
+                <View
+                  p={12}
+                  borderRadius={50}
+                  bgColor="rgba(255, 255, 255, 0.2)"
+                  mr={16}
+                >
+                  <Star size={32} color="#FFF" strokeWidth={2.5} />
+                </View>
+                <View flex={1}>
+                  <Text 
+                    color="$white" 
+                    fontWeight="$bold" 
+                    fontSize={16}
+                    textAlign="left"
+                    lineHeight={20}
+                  >
+                    Roteiros Prontos
+                  </Text>
+                  <Text 
+                    color="rgba(255, 255, 255, 0.9)" 
+                    fontSize={12}
+                    textAlign="left"
+                    mt={6}
+                    lineHeight={16}
+                  >
+                    Escolha um dos nossos roteiros prontos feitos pela curadoria
+                  </Text>
+                </View>
+              </AnimatedCard>
 
             <View
               mt={24}
@@ -284,7 +340,7 @@ export function ChooseGenerateStyle({ showModal, setShowModal, onDefinedItinerar
                 color="$gray600"
                 lineHeight={20}
               >
-                Ambos os estilos usam IA avançada para criar experiências únicas baseadas em suas preferências e histórico de viagens.
+                Planejado e Surpresa utilizam IA avançada para criar experiências únicas baseadas em suas preferências e histórico de viagens.
               </Text>
             </View>
           </AlertDialogBody>

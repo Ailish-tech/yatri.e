@@ -136,7 +136,7 @@ export const Maps = forwardRef<MapView, MapsProps>((props, ref) => {
           itineraryPlaces && itineraryPlaces.length > 0
             ?
             <>
-              {itineraryPlaces.map((points, index) => (
+              { itineraryPlaces.map((points, index) => (
                 <Marker
                   key={index}
                   coordinate={{
@@ -150,7 +150,7 @@ export const Maps = forwardRef<MapView, MapsProps>((props, ref) => {
                   }}
                 />
               ))}
-              {itineraryPlaces.length > 1 && (
+              { itineraryPlaces.length > 1 && (
                 <Polyline
                   coordinates={itineraryPlaces.map(place => ({
                     latitude: place.coordinate.latitude,

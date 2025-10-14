@@ -44,6 +44,7 @@ export function ItineraryMapMenu() {
   const [firstLongitude, setFirstLongitude] = useState<number>();
   const [selectedDay, setSelectedDay] = useState<number>(0);
   const [openChooseBackground, setOpenChooseBackground] = useState<boolean>(false);
+  const [imageBackground, setImageBackground] = useState<string>("");
   const [categoriesCounter, setCategoriesCounter] = useState<CategoriesCounterTypes>({
     touristAttractions: 0,
     restaurant: 0,
@@ -524,7 +525,7 @@ export function ItineraryMapMenu() {
           :
             <View flex={1}>
               <Image
-                source={ DefaultStatsBackground }
+                source={ imageBackground === "" ? DefaultStatsBackground : imageBackground }
                 style={{ position: "absolute", width: "100%", height: "100%" }}
                 resizeMode="cover"
               />
@@ -938,7 +939,7 @@ export function ItineraryMapMenu() {
       </View>
       {
         openChooseBackground 
-          ? <ChooseBackgroundDialog showAlertDialog={ openChooseBackground } handleClose={ () => setOpenChooseBackground } /> 
+          ? <ChooseBackgroundDialog showAlertDialog={ openChooseBackground } handleClose={ () => setOpenChooseBackground(false) } imageUri={ (imagePath) => setImageBackground(imagePath) } /> 
           : null
       }
     </View>
