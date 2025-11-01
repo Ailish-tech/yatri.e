@@ -3,8 +3,34 @@ import 'react-native-gesture-handler';
 import { useState, useEffect, useCallback } from "react";
 import { StatusBar, useColorScheme, View } from "react-native";
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import Constants from 'expo-constants';
 
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+
+let mobileAds: any, getTrackingPermissionsAsync: any, PermissionStatus: any, requestTrackingPermissionsAsync: any;
+const isExpoGo = Constants.appOwnership === 'expo';
+
+if (!isExpoGo) {
+  try {
+    const admobModule = require('react-native-google-mobile-ads');
+    mobileAds = admobModule.default;
+    
+    const trackingModule = require('expo-tracking-transparency');
+    getTrackingPermissionsAsync = trackingModule.getTrackingPermissionsAsync;
+    PermissionStatus = trackingModule.PermissionStatus;
+    requestTrackingPermissionsAsync = trackingModule.requestTrackingPermissionsAsync;
+  } catch (error) {
+    console.log('AdMob or tracking modules not available:', error);
+    getTrackingPermissionsAsync = async () => ({ status: 'granted' });
+    PermissionStatus = { UNDETERMINED: 'undetermined' };
+    requestTrackingPermissionsAsync = async () => ({ status: 'granted' });
+  }
+} else {
+  getTrackingPermissionsAsync = async () => ({ status: 'granted' });
+  PermissionStatus = { UNDETERMINED: 'undetermined' };
+  requestTrackingPermissionsAsync = async () => ({ status: 'granted' });
+}
+
 import { useFonts, Poppins_300Light, Poppins_400Regular, Poppins_500Medium } from "@expo-google-fonts/poppins";
 import * as SplashScreen from 'expo-splash-screen';
 
@@ -15,10 +41,11 @@ import { SplashLoading } from "@components/Loading/SplashLoading";
 
 import { ProvideUserLocation } from "@contexts/requestDeviceLocation";
 import { AuthProvider } from '@contexts/AuthContext';
+import { ProvideUserNetInfo } from '@contexts/NetInfo';
 
 import { Routes } from '@routes/index';
+
 import { appPreloader } from '@services/AppPreloader';
-import { ProvideUserNetInfo } from '@contexts/NetInfo';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -59,6 +86,22 @@ export default function App() {
           await appPreloader.preloadCriticalResources();
         } else {
           setLoadingMessage("Modo offline detectado...");
+        }
+
+        setLoadingMessage("Personalizando anúncios para você...");
+        
+        if (!isExpoGo && mobileAds) {
+          await mobileAds()
+            .initialize()
+            .then((adapterStatuses: any) => {
+            });
+          const { status } = await getTrackingPermissionsAsync();
+          if (status === PermissionStatus.UNDETERMINED) {
+            await requestTrackingPermissionsAsync();
+          }
+          const adapterStatuses = await mobileAds().initialize();
+        } else {
+          console.log('Skipping AdMob initialization in Expo GO');
         }
 
         setLoadingMessage("Quase tudo pronto...");

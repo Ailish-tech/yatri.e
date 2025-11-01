@@ -211,6 +211,47 @@ export default function SwaggerAccordion() {
         "405": { description: "Método não permitido (apenas GET)" },
         "500": { description: "Falha ao buscar informações meteorológicas" }
       }
+    },
+    {
+      method: "GET",
+      path: "/api/passportVisa",
+      summary: "Consultar informações de visto",
+      description: "Consulta informações sobre requisitos de visto entre países específicos, incluindo se é necessário visto, tipo de documento requerido e outras informações relevantes para viagem.",
+      parameters: [
+        { name: "origin", type: "string", required: true, description: "País de origem do viajante (código ou nome do país)" },
+        { name: "destination", type: "string", required: true, description: "País de destino da viagem (código ou nome do país)" }
+      ],
+      responses: {
+        "200": {
+          description: "Informações de visto retornadas com sucesso",
+          example: {
+            origin: "Brazil",
+            destination: "United States",
+            visaRequired: true,
+            visaType: "Tourist Visa (B1/B2)",
+            requirements: ["Valid passport", "Visa application form", "Interview at consulate"],
+            estimatedProcessingTime: "2-4 weeks"
+          }
+        },
+        "400": { 
+          description: "Parâmetros obrigatórios ausentes",
+          example: {
+            error: "Missing query information for this request (Origin or Destination)"
+          }
+        },
+        "405": { 
+          description: "Método não permitido",
+          example: {
+            error: "Method POST not allowed"
+          }
+        },
+        "500": { 
+          description: "Erro interno ou falha na API externa",
+          example: {
+            error: "Something went wrong on fetch process of this Visa Information request"
+          }
+        }
+      }
     }
   ];
 

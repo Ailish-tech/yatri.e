@@ -7,7 +7,7 @@ import { getAnalytics } from "firebase/analytics";
 // Your web app's Firebase configuration
 // For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
-  apiKey: "AIzaSyApeEVwhom9zso3DGMhkXd13yhSB0Rb_Cw",
+  apiKey: process.env.FIREBASE_API_KEY,
   authDomain: "eztripai.firebaseapp.com",
   projectId: "eztripai",
   storageBucket: "eztripai.firebasestorage.app",

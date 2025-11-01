@@ -70,9 +70,9 @@ export function MapsExpanded() {
       </View>
         <StatusBar barStyle="dark-content"/>
         <View style={{ flex: 1 }}>
-          <Maps ref={mapUserPositionRef} />
+          <Maps ref={ mapUserPositionRef } />
           <SafeAreaView>
-            <SlideUp places={places} isLoading={isLoading} />
+            <SlideUp places={ places } isLoading={ isLoading } />
           </SafeAreaView>
         </View>
     </View>

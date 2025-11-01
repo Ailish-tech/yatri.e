@@ -21,9 +21,9 @@ module.exports = function(api) {
             '@config': './src/config',
             '@hooks': './src/hooks'
           }
-        },
-        'react-native-reanimated/plugin'
-      ]
+        }
+      ],
+      'react-native-reanimated/plugin'
     ]
   };
 };
