@@ -37,7 +37,7 @@ import FelipeNewChat from '@assets/Mascot/Felipe_Mascot_NewChat.svg';
 // Tipos de mensagens
 import { MessageTypes } from '../../../@types/MessagesTypes';
 
-import { responseCache } from '@utils/responseCache';
+import { responseCache } from "../../../../nextjs-api/utils/responseCache";
 
 // Função para gerar um ID único baseado no timestamp + random
 const generateUniqueId = (): string => {
@@ -99,7 +99,7 @@ export function AIChat() {
         throw new Error("Sua mensagem é curta demais. Requisição para a IA cancelada!");
       }
   
-      // Cria a mensagem do usuário
+      // Cria a mensagem do usuário 
       const newUserMessage: MessageTypes = {
         sender: "user",
         text: messageToSend,
