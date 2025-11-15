@@ -37,7 +37,7 @@ import FelipeNewChat from '@assets/Mascot/Felipe_Mascot_NewChat.svg';
 // Tipos de mensagens
 import { MessageTypes } from '../../../@types/MessagesTypes';
 
-import { responseCache } from "../../../../nextjs-api/utils/responseCache";
+import { responseCache } from "../../utils/responseCache";
 
 // Função para gerar um ID único baseado no timestamp + random
 const generateUniqueId = (): string => {
