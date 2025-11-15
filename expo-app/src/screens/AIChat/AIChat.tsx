@@ -113,15 +113,19 @@ export function AIChat() {
       // Verifica resposta cacheada/predefinida
       const cachedResponse = responseCache.getCachedResponse(messageToSend);
       let aiText: string;
+      let promptText = messageToSend;
       if (cachedResponse) {
         aiText = cachedResponse;
         console.log("Resposta cacheada/predefinida usada:", aiText);
       } else {
+        // Adiciona o prefixo se não estiver no cache
+        promptText = `apenas responda a pergunta a seguir se ela for estritamente relacionada a turismo, caso nao seja, diga que nao pode responde-la por nao ser de turismo, e nao de mais informacoes: ${messageToSend}`;
+        console.log("Mensagem para a IA (com prefixo):", promptText);
         // Faz a requisição para a IA
-        aiText = await generateChatAnswers(newUserMessage.text);
+        aiText = await generateChatAnswers(promptText);
         console.log("Resposta recebida da IA:", aiText);
         // Armazena resposta no cache
-        responseCache.storeResponse(newUserMessage.text, aiText);
+        responseCache.storeResponse(messageToSend, aiText);
       }
   
       // Cria a mensagem da IA
