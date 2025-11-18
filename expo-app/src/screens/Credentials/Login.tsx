@@ -86,6 +86,7 @@ export function LoginScreen() {
             width: '100%',
             height: '100%'
           }} 
+          alt=''
         />
         <View style={{ flex: 1 }}>
           <SafeAreaView>

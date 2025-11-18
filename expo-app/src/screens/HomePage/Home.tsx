@@ -101,7 +101,7 @@ export function Home() {
       }
     } catch (error: any) {
       console.error('Erro ao buscar lugares próximos:', error);
-      if (error.message === 'Network request failed') {
+      if (error.message === 'Network request failed' && !showConnectionError) {
         setShowConnectionError(true);
         setHasNearbyError(true);
       }
@@ -189,7 +189,7 @@ export function Home() {
         <Image
           source={require("@assets/icon.png")}
           style={{ width: 40, height: 40, marginRight: 12 }}
-          alt="Logo"
+          alt="Logo EzTripAI"
         />
         <Text size="2xl" bold color="#2752B7">EzTripAI</Text>
       </View>
@@ -472,7 +472,7 @@ export function Home() {
                     source={item.img}
                     style={{ width: "100%", height: "100%" }}
                     resizeMode="cover"
-                    alt=""
+                    alt={`Imagem de ${item.name}`}
                   />
                   <Box
                     position="absolute"
@@ -545,7 +545,7 @@ export function Home() {
                       source={item.img}
                       style={{ width: "100%", height: "100%" }}
                       resizeMode="cover"
-                      alt=""
+                      alt={`Imagem de ${item.name}`}
                     />
                     <Box
                       position="absolute"

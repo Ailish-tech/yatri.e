@@ -83,7 +83,8 @@ export function SignUpScreen() {
             bottom: 0,
             width: '100%',
             height: '100%'
-          }}
+          }} 
+          alt=''
         />
         <View style={{ flex: 1 }}>
           <SafeAreaView>
