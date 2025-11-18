@@ -188,7 +188,7 @@ export function Home() {
       <View flexDirection="row" alignItems="center" mb={30}>
         <Image
           source={require("@assets/icon.png")}
-          style={{ width: 40, height: 40, marginRight: 12 }}
+          style={{ width: 60, height: 60, marginRight: 12 }}
           alt="Logo EzTripAI"
         />
         <Text size="2xl" bold color="#2752B7">EzTripAI</Text>
