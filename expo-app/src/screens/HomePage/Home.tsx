@@ -62,7 +62,7 @@ export function Home() {
       setLoadingNearby(true);
       setHasNearbyError(false);
       const { status } = await Location.requestForegroundPermissionsAsync();
-      
+
       if (status !== 'granted') {
         console.log('Permissão de localização negada');
         setNearbyPlaces(popular);
@@ -112,18 +112,18 @@ export function Home() {
   };
 
   const navItems = [
-    { 
-      key: 'Home', 
-      icon: HomeIcon, 
+    {
+      key: 'Home',
+      icon: HomeIcon,
       label: 'Início',
       action: () => {
         setCurrentRoute('Home');
         setDrawerOpen(false);
       }
     },
-    { 
-      key: 'GenerateItinerary', 
-      icon: BookMarked, 
+    {
+      key: 'GenerateItinerary',
+      icon: BookMarked,
       label: 'Roteiros',
       action: () => {
         setCurrentRoute('GenerateItinerary');
@@ -131,9 +131,9 @@ export function Home() {
         setDrawerOpen(false);
       }
     },
-    { 
-      key: 'AIChat', 
-      icon: MessageCircle, 
+    {
+      key: 'AIChat',
+      icon: MessageCircle,
       label: 'Chat IA',
       action: () => {
         setCurrentRoute('AIChat');
@@ -141,9 +141,9 @@ export function Home() {
         setDrawerOpen(false);
       }
     },
-    { 
-      key: 'Notifications', 
-      icon: Bell, 
+    {
+      key: 'Notifications',
+      icon: Bell,
       label: 'Notificações',
       action: () => {
         setCurrentRoute('Notifications');
@@ -151,9 +151,9 @@ export function Home() {
         setDrawerOpen(false);
       }
     },
-    { 
-      key: 'Premium', 
-      icon: Crown, 
+    {
+      key: 'Premium',
+      icon: Crown,
       label: 'Premium',
       action: () => {
         setCurrentRoute('Premium');
@@ -161,9 +161,9 @@ export function Home() {
         setDrawerOpen(false);
       }
     },
-    { 
-      key: 'Profile', 
-      icon: User, 
+    {
+      key: 'Profile',
+      icon: User,
       label: 'Perfil',
       action: () => {
         setCurrentRoute('Profile');
@@ -171,9 +171,9 @@ export function Home() {
         setDrawerOpen(false);
       }
     },
-    { 
-      key: 'Settings', 
-      icon: Settings, 
+    {
+      key: 'Settings',
+      icon: Settings,
       label: 'Configurações',
       action: () => {
         setCurrentRoute('Settings');
@@ -193,7 +193,7 @@ export function Home() {
         />
         <Text size="2xl" bold color="#2752B7">EzTripAI</Text>
       </View>
-      
+
       <View flex={1}>
         {navItems.map((item) => {
           const IconComponent = item.icon;
@@ -204,17 +204,17 @@ export function Home() {
               onPress={item.action}
               style={{ marginBottom: 8 }}
             >
-              <View 
-                flexDirection="row" 
-                alignItems="center" 
+              <View
+                flexDirection="row"
+                alignItems="center"
                 gap={15}
                 bg={isActive ? "rgba(39, 82, 183, 0.08)" : "transparent"}
                 p={12}
                 borderRadius={12}
               >
                 <IconComponent size={24} color={isActive ? "#2752B7" : "#6B7280"} />
-                <Text 
-                  size="lg" 
+                <Text
+                  size="lg"
                   fontWeight={isActive ? "$semibold" : "$medium"}
                   color={isActive ? "#2752B7" : "#6B7280"}
                 >
@@ -226,10 +226,10 @@ export function Home() {
         })}
       </View>
 
-      <View 
-        borderTopWidth={1} 
-        borderTopColor="#E5E7EB" 
-        pt={16} 
+      <View
+        borderTopWidth={1}
+        borderTopColor="#E5E7EB"
+        pt={16}
         pb={20}
       >
         <TouchableOpacity onPress={() => {
@@ -268,10 +268,10 @@ export function Home() {
     >
       <View style={{ flex: 1 }} >
         <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
-        
+
         <View>
           <Image
-            source={ require("@assets/santiago_farellones.jpg") }
+            source={require("@assets/santiago_farellones.jpg")}
             resizeMode="cover"
             alt=""
             position="absolute"
@@ -283,7 +283,7 @@ export function Home() {
             zIndex={-1}
           />
           <Image
-            source={ require("@assets/gradient.jpg") }
+            source={require("@assets/gradient.jpg")}
             resizeMode="cover"
             alt=""
             position="absolute"
@@ -294,7 +294,7 @@ export function Home() {
             h={380}
             opacity={0.5}
           />
-          
+
           <View justifyContent="space-between" mt={60} mx={10}>
             <View justifyContent="space-between" alignItems="center" flexDirection="row" mb={20}>
               <Button bg="rgba(255, 255, 255, 0.2)" borderRadius="$full" w={45} h={45} onPress={() => setDrawerOpen(true)}>
@@ -320,7 +320,7 @@ export function Home() {
                 Olá, Mehdi!
               </Text>
               <Text size="lg" fontWeight="$semibold" color="#fff">
-                Aonde gostaria de ir?
+                Aonde gostaria de ir hoje?
               </Text>
             </View>
             <View mt={20} px={20} flexDirection="row" justifyContent="center">
@@ -329,16 +329,16 @@ export function Home() {
                   {isLiquidGlassAvailable() ? (
                     <TouchableOpacity style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
                       <Plane size={28} color="#fff" />
-                      <Text fontSize="$sm" fontWeight="$medium" color="#fff" textAlign="center" mt={8}>Flight</Text>
+                      <Text fontSize="$sm" fontWeight="$medium" color="#fff" textAlign="center" mt={8}>Vôos</Text>
                     </TouchableOpacity>
                   ) : (
                     <Button w={80} h={100} borderRadius="$2xl" bg="rgba(151, 151, 151, 0.4)" borderWidth={2} borderColor="$blue400" flexDirection="column" alignItems="center" justifyContent="center">
                       <ButtonIcon as={Plane} size="xl" />
-                      <ButtonText w="180%" textAlign="center" fontWeight={"$medium"}>Flight</ButtonText>
+                      <ButtonText w="180%" textAlign="center" fontWeight={"$medium"}>Vôos</ButtonText>
                     </Button>
                   )}
                 </GlassView>
-                
+
                 <GlassView style={{ width: 80, height: 100, borderRadius: 16 }} glassEffectStyle="clear">
                   {isLiquidGlassAvailable() ? (
                     <TouchableOpacity style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
@@ -352,12 +352,12 @@ export function Home() {
                     </Button>
                   )}
                 </GlassView>
-                
+
                 <GlassView style={{ width: 80, height: 100, borderRadius: 16 }} glassEffectStyle="clear">
                   {isLiquidGlassAvailable() ? (
                     <TouchableOpacity style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
                       <TentTree size={28} color="#fff" />
-                      <Text fontSize="$sm" fontWeight="$medium" color="#fff" textAlign="center" mt={8}>Holiday</Text>
+                      <Text fontSize="$sm" fontWeight="$medium" color="#fff" textAlign="center" mt={8}>Férias</Text>
                     </TouchableOpacity>
                   ) : (
                     <Button w={80} h={100} borderRadius="$2xl" bg="rgba(151, 151, 151, 0.4)" borderWidth={2} borderColor="$blue400" flexDirection="column" alignItems="center" justifyContent="center">
@@ -366,10 +366,10 @@ export function Home() {
                     </Button>
                   )}
                 </GlassView>
-                
+
                 <GlassView style={{ width: 80, height: 100, borderRadius: 16 }} glassEffectStyle="clear">
                   {isLiquidGlassAvailable() ? (
-                    <TouchableOpacity 
+                    <TouchableOpacity
                       style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}
                       onPress={() => navigation.navigate('PremiumPlans')}
                     >
@@ -405,135 +405,62 @@ export function Home() {
           </View>
         </View>
 
-        <ScrollView 
-          bg="#fff" 
+        <ScrollView
+          bg="#fff"
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{ paddingTop: 40, paddingBottom: 20 }}
         >
-          <Box px={16}>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-            <Box flexDirection="row">
-              {destinations.map((item, index) => (
-                <TouchableOpacity key={item.id} onPress={() => navigation.navigate('DestinationDetail', { destinationId: item.id })}>
-                  <View alignItems="center" ml={index === 0 ? 0 : 16}>
-                    <Box
-                      w={70}
-                      h={70}
-                      borderRadius="$full"
-                      overflow="hidden"
-                      borderWidth={2}
-                      borderColor="#0A84FF"
-                      bg="#fff"
-                      justifyContent="center"
-                      alignItems="center"
-                    >
-                      <Image
-                        source={item.img}
-                        style={{ width: 66, height: 66, borderRadius: 33 }}
-                        alt=""
-                      />
-                    </Box>
-                    <Text mt="$2" size="sm" bold>
-                      {item.name}
-                    </Text>
-                  </View>
-                </TouchableOpacity>
-              ))}
-            </Box>
-          </ScrollView>
-        </Box>
-
-        <Box mt={24} px={16}>
-          <View justifyContent="space-between" mb="$2" flexDirection="row" alignItems="center">
-            <Text size="lg" bold fontWeight="$bold">
-              Recomendados para você
-            </Text>
-            <Pressable>
-              <Text size="sm" color="#0A84FF" fontWeight="$semibold">
-                Ver tudo
-              </Text>
-            </Pressable>
-          </View>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-            { recommended.map((item, index) => (
-              <Box
-                key={item.id}
-                w={160}
-                h={230}
-                borderRadius="$3xl"
-                overflow="hidden"
-                bg="#f0f0f0"
-                shadowColor="#000"
-                shadowOpacity={0.1}
-                shadowRadius={6}
-                mr="$3"
-              >
-                <Image
-                  source={item.img}
-                  style={{ width: "100%", height: "100%" }}
-                  resizeMode="cover"
-                  alt=""
-                />
-                <Box
-                  position="absolute"
-                  bottom={0}
-                  w="100%"
-                  py="$2"
-                  bg="rgba(0,0,0,0.4)"
-                  alignItems="center"
-                >
-                  <Text color="#fff" bold>
-                    {item.name}
-                  </Text>
-                </Box>
+          <Box ml={15}>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+              <Box flexDirection="row">
+                {destinations.map((item, index) => (
+                  <TouchableOpacity key={item.id} onPress={() => navigation.navigate('DestinationDetail', { destinationId: item.id })}>
+                    <View alignItems="center" ml={index === 0 ? 0 : 16}>
+                      <Box
+                        w={70}
+                        h={70}
+                        borderRadius="$full"
+                        overflow="hidden"
+                        borderWidth={2}
+                        borderColor="#0A84FF"
+                        bg="#fff"
+                        justifyContent="center"
+                        alignItems="center"
+                      >
+                        <Image
+                          source={item.img}
+                          style={{ width: 66, height: 66, borderRadius: 33 }}
+                          alt=""
+                        />
+                      </Box>
+                      <Text mt="$2" size="sm" bold>
+                        {item.name}
+                      </Text>
+                    </View>
+                  </TouchableOpacity>
+                ))}
               </Box>
-            ))}
-          </ScrollView>
-        </Box>
+            </ScrollView>
+          </Box>
 
-        <Box mt={24} px={16} mb={20}>
-          <View flexDirection="row" justifyContent="space-between" alignItems="center" mb="$2">
-            <Text size="lg" bold fontWeight="$bold">
-              Destinos próximos populares
-            </Text>
-            {loadingNearby ? (
-              <Text size="sm" color="#6B7280">Carregando...</Text>
-            ) : (
-              <Pressable onPress={() => navigation.navigate('MapsExpanded', { places: nearbyPlaces, loading: false })}>
+          <Box mt={32} pl={15}>
+            <View justifyContent="space-between" mb="$2" flexDirection="row" alignItems="center">
+              <Text size="lg" bold fontWeight="$bold">
+                Recomendados para você
+              </Text>
+              <Pressable mr={12}>
                 <Text size="sm" color="#0A84FF" fontWeight="$semibold">
-                  Ver mapa
+                  Ver tudo
                 </Text>
               </Pressable>
-            )}
-          </View>
-          
-          {hasNearbyError ? (
-            <View 
-              flexDirection="column" 
-              alignItems="center" 
-              justifyContent="center" 
-              py={40}
-              px={20}
-            >
-              <WifiOff size={48} color="#EF4444" strokeWidth={2} />
-              <Text 
-                size="md" 
-                color="#EF4444" 
-                textAlign="center" 
-                mt={16}
-                fontWeight="$medium"
-              >
-                Encontramos um erro ao buscar os locais próximos a você. Por favor, verifique sua conexão à internet.
-              </Text>
             </View>
-          ) : (
             <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-              {nearbyPlaces.map((item, index) => (
+              {recommended.map((item, index) => (
                 <Box
                   key={item.id}
                   w={160}
                   h={230}
-                  borderRadius="$2xl"
+                  borderRadius="$3xl"
                   overflow="hidden"
                   bg="#f0f0f0"
                   shadowColor="#000"
@@ -562,13 +489,86 @@ export function Home() {
                 </Box>
               ))}
             </ScrollView>
-          )}
-        </Box>
-      </ScrollView>
+          </Box>
+
+          <Box mt={32} pl={15}>
+            <View flexDirection="row" justifyContent="space-between" alignItems="center" mb="$2">
+              <Text size="lg" bold fontWeight="$bold">
+                Destinos próximos populares
+              </Text>
+              {loadingNearby ? (
+                <Text size="sm" color="#6B7280">Carregando...</Text>
+              ) : (
+                <Pressable mr={12} onPress={() => navigation.navigate('MapsExpanded', { places: nearbyPlaces, loading: false })}>
+                  <Text size="sm" color="#0A84FF" fontWeight="$semibold">
+                    Ver mapa
+                  </Text>
+                </Pressable>
+              )}
+            </View>
+
+            {hasNearbyError ? (
+              <View
+                flexDirection="column"
+                alignItems="center"
+                justifyContent="center"
+                py={40}
+                px={20}
+              >
+                <WifiOff size={48} color="#ff0000" strokeWidth={2} />
+                <Text
+                  size="md"
+                  color="#EF4444"
+                  textAlign="center"
+                  mt={16}
+                  fontWeight="$medium"
+                >
+                  Encontramos um erro ao buscar os locais próximos a você. Por favor, verifique sua conexão à internet.
+                </Text>
+              </View>
+            ) : (
+              <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                {nearbyPlaces.map((item, index) => (
+                  <Box
+                    key={item.id}
+                    w={160}
+                    h={230}
+                    borderRadius="$2xl"
+                    overflow="hidden"
+                    bg="#f0f0f0"
+                    shadowColor="#000"
+                    shadowOpacity={0.1}
+                    shadowRadius={6}
+                    mr="$3"
+                  >
+                    <Image
+                      source={item.img}
+                      style={{ width: "100%", height: "100%" }}
+                      resizeMode="cover"
+                      alt=""
+                    />
+                    <Box
+                      position="absolute"
+                      bottom={0}
+                      w="100%"
+                      py="$2"
+                      bg="rgba(0,0,0,0.4)"
+                      alignItems="center"
+                    >
+                      <Text color="#fff" bold>
+                        {item.name}
+                      </Text>
+                    </Box>
+                  </Box>
+                ))}
+              </ScrollView>
+            )}
+          </Box>
+        </ScrollView>
       </View>
-      
-      <ConnectionErrorAlerter 
-        showModal={showConnectionError} 
+
+      <ConnectionErrorAlerter
+        showModal={showConnectionError}
         setShowModal={setShowConnectionError}
       />
     </Drawer>
