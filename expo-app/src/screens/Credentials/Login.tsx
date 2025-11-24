@@ -36,8 +36,8 @@ import { handleGoogleSignIn } from '@services/login/googleLogin';
 
 import { useAuth } from '@contexts/AuthContext';
 
-import { AuthNavigationProp } from '@routes/auth.routes';
 import { NoAuthNavigationProp } from '@routes/noauth.routes';
+import { signInUser } from '@services/login/emailLogin';
 
 export function LoginScreen() {
   const [email, setEmail] = useState('');
@@ -63,11 +63,12 @@ export function LoginScreen() {
   }
 
   const handleSubmit = () => {
-    if (password.length < 8) {
-      setIsInvalid(true);
-    } else {
-      setIsInvalid(false);
-      login();
+    try{
+      setIsAuthenticating(true);
+      signInUser(email, password, navigation, setIsAuthenticating);
+    }catch(error){
+      console.log("Error found while trying to log you in");
+      setIsAuthenticating(false);
     }
   }
 

@@ -2,9 +2,10 @@ import { useState } from 'react';
 import { SafeAreaView, StatusBar } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 
+import { LinearGradient } from 'expo-linear-gradient';
+
 import { Image } from '@gluestack-ui/themed';
 
-import { LinearGradient } from 'expo-linear-gradient';
 import { useFonts } from '@expo-google-fonts/libre-bodoni/useFonts';
 import { LibreBodoni_700Bold } from '@expo-google-fonts/libre-bodoni/700Bold';
 
@@ -33,6 +34,9 @@ import { ArrowLeft, CircleAlert } from 'lucide-react-native';
 
 import GoogleLogo from '@assets/Enterprises/Google/google-icon.svg';
 
+import { handleGoogleSignIn } from '@services/login/googleLogin';
+import { signUpUser } from '@services/login/emailSignup';
+
 import { NoAuthNavigationProp } from '@routes/noauth.routes';
 
 export function SignUpScreen() {
@@ -40,6 +44,7 @@ export function SignUpScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isInvalid, setIsInvalid] = useState(false);
+  const [isAuthenticating, setIsAuthenticating] = useState<boolean>(false);
 
   const navigation = useNavigation<NoAuthNavigationProp>();
   const fontsLoaded = useFonts({ LibreBodoni_700Bold });
@@ -61,11 +66,8 @@ export function SignUpScreen() {
       setIsInvalid(true);
     } else {
       setIsInvalid(false);
-      navigation.navigate("Welcome", {
-        name: "Usuário Expo",
-        email: "expo@example.com",
-        photo: "https://cdn.pixabay.com/photo/2022/07/16/04/19/biker-7324421_640.jpg"
-      });
+      setIsAuthenticating(true);
+      signUpUser(name, email, password, navigation, setIsAuthenticating);
     }
   }
 
@@ -195,6 +197,7 @@ export function SignUpScreen() {
                   borderRadius={25}
                   size="xl"
                   onPress={handleSubmit}
+                  disabled={ isAuthenticating ? true : false }
                   style={{
                     shadowColor: "#000",
                     shadowOffset: {
@@ -222,11 +225,7 @@ export function SignUpScreen() {
                 iconHeight={30}
                 textContent='Google'
                 buttonSize='xl'
-                action={ () => navigation.navigate("Welcome", {
-                  name: "Usuário Expo",
-                  email: "expo@example.com",
-                  photo: "https://cdn.pixabay.com/photo/2022/07/16/04/19/biker-7324421_640.jpg"
-                }) }
+                action={ () => handleGoogleSignIn(setIsAuthenticating, navigation) }
                 iconStyles={{
                   marginRight: 15
                 }}
