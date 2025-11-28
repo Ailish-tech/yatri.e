@@ -116,7 +116,7 @@ export function LoginScreen() {
             <View flexDirection='row' alignItems='center' justifyContent='space-between' p={15}>
               <IconButton buttonBgColor='transparent' icon={ArrowLeft} iconColor='white' iconSize='xl' buttonFunctionality={() => navigation.goBack()} />
               <View flexDirection='row' alignItems='center'>
-                <Text color='$white' mr={10} size='sm'>Novo por aqui?</Text>
+                <Text color='$white' mr={10} size='sm' fontWeight="$semibold">Novo por aqui?</Text>
                 <Button bgColor='#8a8a9d72' size='sm' onPress={() => navigation.navigate('SignUp')}>
                   <ButtonText>Criar Conta</ButtonText>
                 </Button>

@@ -1,7 +1,13 @@
-import { StatusBar, TouchableOpacity, Platform, Dimensions } from "react-native";
 import { useState, useEffect } from "react";
+import { StatusBar, TouchableOpacity, } from "react-native";
+import { useNavigation } from "@react-navigation/native";
+import { Drawer } from "react-native-drawer-layout";
+
 import * as Location from 'expo-location';
-import destinationsData from "@data/destinations.json";
+import { GlassView, GlassContainer, isLiquidGlassAvailable } from 'expo-glass-effect';
+
+import { getAuth } from "firebase/auth";
+
 import {
   Box,
   Text,
@@ -18,12 +24,14 @@ import {
   ButtonText,
   ButtonIcon,
 } from "@gluestack-ui/themed";
-import { Search, Plane, Hotel, Gift, Tag, Menu, LucidePlane, Building, TentTree, Crown, Bell, MessageCircle, Home as HomeIcon, Gamepad2, User, BookMarked, Settings, MapPin, LogOut, WifiOff } from "lucide-react-native";
-import { useNavigation } from "@react-navigation/native";
-import { Drawer } from "react-native-drawer-layout";
-import { GlassView, GlassContainer, isLiquidGlassAvailable } from 'expo-glass-effect';
+
 import { ConnectionErrorAlerter } from "@components/Errors/ConnectionErrorAlerter";
+
+import destinationsData from "@data/destinations.json";
+
 import { AuthNavigationProp } from "@routes/auth.routes";
+
+import { Search, Plane, Menu, Building, TentTree, Crown, Bell, MessageCircle, Home as HomeIcon, BookMarked, User, Settings, WifiOff } from "lucide-react-native";
 
 const destinations = destinationsData
   .filter((item: any) => item.id && item.title && item.image)
@@ -38,6 +46,9 @@ const popular = destinations.slice(5, 10);
 
 export function Home() {
   const navigation = useNavigation<AuthNavigationProp>();
+  const auth = getAuth();
+  const user = auth.currentUser;
+
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [currentRoute, setCurrentRoute] = useState('Home');
   const [nearbyPlaces, setNearbyPlaces] = useState<any[]>([]);
@@ -238,18 +249,28 @@ export function Home() {
         }}>
           <View flexDirection="row" alignItems="center" gap={12}>
             <Avatar size="md" borderWidth={2} borderColor="#2752B7">
-              <AvatarImage
-                source={{
-                  uri: "https://i.pravatar.cc/100",
-                }}
-              />
+              {
+                user?.photoURL
+                  ?
+                  <AvatarImage
+                    source={{
+                      uri: user?.photoURL
+                    }}
+                  />
+                  :
+                  <AvatarImage
+                    source={{
+                      uri: "https://images.pexels.com/photos/346885/pexels-photo-346885.jpeg"
+                    }}
+                  />
+              }
             </Avatar>
             <View flex={1}>
               <Text size="md" fontWeight="$semibold" color="#1F2937">
-                Mehdi
+                { user?.displayName }
               </Text>
               <Text size="sm" color="#6B7280">
-                mehdi@example.com
+                { user?.email }
               </Text>
             </View>
           </View>
@@ -305,19 +326,29 @@ export function Home() {
                   <Icon as={Bell} color="#fff" size="xl" />
                 </TouchableOpacity>
                 <TouchableOpacity onPress={() => navigation.navigate('Profile')}>
-                  <Avatar size="md" borderWidth={2} borderColor="#fff">
-                    <AvatarImage
-                      source={{
-                        uri: "https://i.pravatar.cc/100",
-                      }}
-                    />
+                  <Avatar size="md" borderWidth={2} borderColor="#2752B7">
+                    {
+                      user?.photoURL
+                        ?
+                        <AvatarImage
+                          source={{
+                            uri: user?.photoURL
+                          }}
+                        />
+                        :
+                        <AvatarImage
+                          source={{
+                            uri: "https://images.pexels.com/photos/346885/pexels-photo-346885.jpeg"
+                          }}
+                        />
+                    }
                   </Avatar>
                 </TouchableOpacity>
               </View>
             </View>
             <View mt={-15}>
               <Text size="3xl" bold color="#fff">
-                Olá, Mehdi!
+                Olá, { user?.displayName }!
               </Text>
               <Text size="lg" fontWeight="$semibold" color="#fff">
                 Aonde gostaria de ir hoje?
@@ -407,6 +438,8 @@ export function Home() {
 
         <ScrollView
           bg="#fff"
+          borderTopLeftRadius={13}
+          borderTopRightRadius={13}
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{ paddingTop: 40, paddingBottom: 20 }}
         >

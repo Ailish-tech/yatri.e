@@ -2,7 +2,7 @@ import { SafeAreaView, ScrollView, StatusBar } from "react-native";
 
 import { useNavigation } from "@react-navigation/native";
 
-import { AvatarImage, Button, Image, Pressable, Text, View } from "@gluestack-ui/themed";
+import { AvatarImage, Button, ButtonIcon, ButtonText, Image, Pressable, Text, View } from "@gluestack-ui/themed";
 
 import { PersonalInfoProfile } from "@components/Profile/PersonalInfoProfile";
 import { PersonalInfoPreferences } from "@components/Profile/PersonalInfoPreferences";
@@ -117,7 +117,11 @@ export function Profile(){
               <PersonalInfoSettings icon={ WifiOff } settingsTitle="Modo Offline" functionality={ () => {} } />
               <PersonalInfoSettings icon={ ShieldQuestion } settingsTitle="Privacidade" functionality={ () => {} } />
               <PersonalInfoSettings icon={ Info } settingsTitle="Informações" functionality={ () => {} } />
-              <PersonalInfoSettings icon={ LogOut } settingsTitle="Sair" functionality={ logout } />
+
+              <Button onPress={ logout } w="75%" alignSelf="center" mt={15} size="lg" bgColor="#ff0000" borderRadius={35}>
+                <ButtonIcon as={ LogOut } size="xl" mr={10} />
+                <ButtonText>Sair</ButtonText>
+              </Button>
             </View>
           </ScrollView>
         </View>
