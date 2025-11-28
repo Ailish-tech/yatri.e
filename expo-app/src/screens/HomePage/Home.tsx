@@ -26,6 +26,7 @@ import {
 } from "@gluestack-ui/themed";
 
 import { ConnectionErrorAlerter } from "@components/Errors/ConnectionErrorAlerter";
+import { DestinationStories } from "@components/Stories/DestinationStories";
 
 import destinationsData from "@data/destinations.json";
 
@@ -55,6 +56,8 @@ export function Home() {
   const [loadingNearby, setLoadingNearby] = useState(false);
   const [showConnectionError, setShowConnectionError] = useState(false);
   const [hasNearbyError, setHasNearbyError] = useState(false);
+  const [storiesVisible, setStoriesVisible] = useState(false);
+  const [selectedDestination, setSelectedDestination] = useState<any>(null);
 
   useEffect(() => {
     if (drawerOpen) {
@@ -67,6 +70,11 @@ export function Home() {
   useEffect(() => {
     fetchNearbyPlaces();
   }, []);
+
+  const handleOpenStories = (destination: any) => {
+    setSelectedDestination(destination);
+    setStoriesVisible(true);
+  };
 
   const fetchNearbyPlaces = async () => {
     try {
@@ -430,8 +438,8 @@ export function Home() {
               shadowRadius={10}
               elevation={5}
             >
-              <Icon as={Search} mr="$2" color="#999" />
-              <InputField placeholder="Aonde ir" />
+              <Icon as={ Search } mr="$2" color="#999" />
+              <InputField placeholder="Aonde ir?" />
             </Input>
           </View>
         </View>
@@ -447,7 +455,7 @@ export function Home() {
             <ScrollView horizontal showsHorizontalScrollIndicator={false}>
               <Box flexDirection="row">
                 {destinations.map((item, index) => (
-                  <TouchableOpacity key={item.id} onPress={() => navigation.navigate('DestinationDetail', { destinationId: item.id })}>
+                  <TouchableOpacity key={item.id} onPress={() => handleOpenStories(destinationsData.find(d => d.id === item.id))}>
                     <View alignItems="center" ml={index === 0 ? 0 : 16}>
                       <Box
                         w={70}
@@ -476,7 +484,7 @@ export function Home() {
             </ScrollView>
           </Box>
 
-          <Box mt={32} pl={15}>
+          <Box mt={28} pl={15}>
             <View justifyContent="space-between" mb="$2" flexDirection="row" alignItems="center">
               <Text size="lg" bold fontWeight="$bold">
                 Recomendados para você
@@ -489,18 +497,18 @@ export function Home() {
             </View>
             <ScrollView horizontal showsHorizontalScrollIndicator={false}>
               {recommended.map((item, index) => (
-                <Box
-                  key={item.id}
-                  w={160}
-                  h={230}
-                  borderRadius="$3xl"
-                  overflow="hidden"
-                  bg="#f0f0f0"
-                  shadowColor="#000"
-                  shadowOpacity={0.1}
-                  shadowRadius={6}
-                  mr="$3"
-                >
+                <TouchableOpacity key={item.id} onPress={() => navigation.navigate('DestinationDetail', { destinationId: item.id })}>
+                  <Box
+                    w={160}
+                    h={230}
+                    borderRadius="$3xl"
+                    overflow="hidden"
+                    bg="#f0f0f0"
+                    shadowColor="#000"
+                    shadowOpacity={0.1}
+                    shadowRadius={6}
+                    mr="$3"
+                  >
                   <Image
                     source={item.img}
                     style={{ width: "100%", height: "100%" }}
@@ -520,6 +528,7 @@ export function Home() {
                     </Text>
                   </Box>
                 </Box>
+                </TouchableOpacity>
               ))}
             </ScrollView>
           </Box>
@@ -603,6 +612,12 @@ export function Home() {
       <ConnectionErrorAlerter
         showModal={showConnectionError}
         setShowModal={setShowConnectionError}
+      />
+
+      <DestinationStories
+        visible={storiesVisible}
+        onClose={() => setStoriesVisible(false)}
+        destination={selectedDestination}
       />
     </Drawer>
   );
