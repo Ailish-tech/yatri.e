@@ -25,8 +25,9 @@ import { NetInfoContext } from "@contexts/NetInfo";
 import FelipeProfilePicture from '@assets/Mascot/Felipe_Mascot_ProfilePic.svg';
 import FelipeNewChat from '@assets/Mascot/Felipe_Mascot_NewChat.svg';
 
-import { MessageTypes } from '../../../@types/MessagesTypes';
+import { getAuth } from "firebase/auth";
 
+import { MessageTypes } from '../../../@types/MessagesTypes';
 
 // Gera o ID da conversa com base na data e hora
 const generateUniqueId = (): string => {
@@ -66,6 +67,8 @@ export function AIChat() {
   const addNotification = useNotificationStore(state => state.addNotification);
 
   const navigation = useNavigation<AuthNavigationProp>();
+  const auth = getAuth();
+  const user = auth.currentUser;
 
   const handleChatRequest = async (topicMessage?: string) => {
     try {
@@ -80,7 +83,7 @@ export function AIChat() {
       const newUserMessage: MessageTypes = {
         sender: "user",
         text: messageToSend,
-        name: "Nome do Usuário",
+        name: user?.displayName || "Usuário",
         avatarUrl: "https://randomuser.me/api/portraits/men/32.jpg"
       }
 

@@ -35,8 +35,12 @@ import {
   WifiOff 
 } from "lucide-react-native";
 
+import { getAuth } from "firebase/auth";
+
 export function Profile(){
   const navigation = useNavigation<AuthNavigationProp>();
+  const auth = getAuth();
+  const user = auth.currentUser;
   const { logout } = useAuth();
 
   return(
@@ -55,14 +59,14 @@ export function Profile(){
             </View>
             <View mt={-75} flexDirection="column" alignItems="center">
               <Button w={200} h={160} borderRadius={75} overflow="hidden" p={0} bgColor="transparent" onPress={ () => navigation.navigate("EditProfile") }>
-                <AvatarImage source={'https://cdn.pixabay.com/photo/2020/06/30/10/23/icon-5355896_1280.png'} alt="Avatar do Usuário" style={{ width: '100%', height: '100%', borderRadius: 75 }} />
+                <AvatarImage source={ user?.photoURL ? user.photoURL : "https://images.pexels.com/photos/346885/pexels-photo-346885.jpeg" } alt="Avatar do Usuário" style={{ width: '100%', height: '100%', borderRadius: 100, borderWidth: 4, borderColor: "#000" }} />
               </Button>
-              <Text fontSize="$xl" fontWeight="$bold" color="$black" mt={10} mb={25}>Nome do Usuário</Text>
+              <Text fontSize="$xl" fontWeight="$bold" color="$black" mt={10} mb={25}>{ user?.displayName }</Text>
             </View>
             <View justifyContent="center" mt={-30}>
               <View flexDirection="row">
                 <Heart color="#2752B7" />
-                <Text fontSize="$lg" color="#2752B7" fontWeight="$semibold" ml={5}>99</Text>
+                <Text fontSize="$lg" color="#2752b7" fontWeight="$semibold" ml={5}>99</Text>
               </View>
               <Text fontSize="$sm">Favoritos</Text>
             </View>
