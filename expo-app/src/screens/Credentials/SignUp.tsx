@@ -122,7 +122,14 @@ export function SignUpScreen() {
         <View style={{ flex: 1 }}>
           <SafeAreaView>
             <View flexDirection='row' alignItems='center' justifyContent='space-between' p={15}>
-              <IconButton buttonBgColor='transparent' icon={ ArrowLeft } iconColor='white' iconSize='xl' buttonFunctionality={() => navigation.goBack()} />
+              <IconButton 
+                buttonBgColor='transparent' 
+                icon={ ArrowLeft } 
+                iconColor='white' 
+                iconSize='xl' 
+                buttonFunctionality={() => navigation.goBack()}
+                styles={{ marginLeft: -10 }}
+              />
               <View flexDirection='row' alignItems='center'>
                 <Text color='$white' mr={10} size='sm' fontWeight="$semibold">Já possui uma conta?</Text>
                 <Button bgColor='#8a8a9db1' size='sm' onPress={ () => navigation.navigate('Login') }>
@@ -131,7 +138,7 @@ export function SignUpScreen() {
               </View>
             </View>
           </SafeAreaView>
-          <Text textAlign='center' color='$white' fontFamily='LibreBodoni_700Bold' fontSize="$4xl" my={40}>EZ TRIP AI</Text>
+          <Text textAlign='center' color='$white' fontFamily='LibreBodoni_700Bold' fontSize="$4xl" my={20}>EZ TRIP AI</Text>
           <View
             bgColor='#ffffffae'
             w="90%"
@@ -149,7 +156,9 @@ export function SignUpScreen() {
             flexDirection='column'
             justifyContent='center'
             alignItems='center'
-            p={20}
+            pt={50}
+            pb={30}
+            px={20}
             zIndex={1}
           >
             <Text fontSize="$2xl" fontWeight="$bold" color='$black' my={15}>Comece Gratuitamente!</Text>
