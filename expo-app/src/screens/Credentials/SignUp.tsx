@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { SafeAreaView, StatusBar } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 
@@ -36,6 +36,7 @@ import GoogleLogo from '@assets/Enterprises/Google/google-icon.svg';
 
 import { handleGoogleSignIn } from '@services/login/googleLogin';
 import { signUpUser } from '@services/login/emailSignup';
+import { validateName, validateEmail, validatePassword } from '@utils/validators';
 
 import { NoAuthNavigationProp } from '@routes/noauth.routes';
 
@@ -43,32 +44,62 @@ export function SignUpScreen() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [isInvalid, setIsInvalid] = useState(false);
+  const [nameError, setNameError] = useState<string>('');
+  const [emailError, setEmailError] = useState<string>('');
+  const [passwordError, setPasswordError] = useState<string>('');
   const [isAuthenticating, setIsAuthenticating] = useState<boolean>(false);
 
   const navigation = useNavigation<NoAuthNavigationProp>();
   const fontsLoaded = useFonts({ LibreBodoni_700Bold });
 
-  const possibleBakcgrkounds = [
-    require("@assets/CredentialsBackgrounds/gaztelugatxe-4377342_640.png"),
-    require("@assets/CredentialsBackgrounds/italy-2725346_640.png"),
-    require("@assets/CredentialsBackgrounds/waterfall-6574302_640.jpg"),
-    require("@assets/CredentialsBackgrounds/river-7447346_640.png")
-  ]
-
-  function getRandomImageBackground() {
-    const randomIndex = Math.floor(Math.random() * possibleBakcgrkounds.length);
-    return possibleBakcgrkounds[randomIndex];
-  }
+  // Fixa o background na primeira renderização para não mudar durante digitação
+  const backgroundImage = useMemo(() => {
+    const possibleBackgrounds = [
+      require("@assets/CredentialsBackgrounds/gaztelugatxe-4377342_640.png"),
+      require("@assets/CredentialsBackgrounds/italy-2725346_640.png"),
+      require("@assets/CredentialsBackgrounds/waterfall-6574302_640.jpg"),
+      require("@assets/CredentialsBackgrounds/river-7447346_640.png")
+    ];
+    const randomIndex = Math.floor(Math.random() * possibleBackgrounds.length);
+    return possibleBackgrounds[randomIndex];
+  }, []);
 
   const handleSubmit = () => {
-    if (password.length < 8) {
-      setIsInvalid(true);
-    } else {
-      setIsInvalid(false);
-      setIsAuthenticating(true);
-      signUpUser(name, email, password, navigation, setIsAuthenticating);
+    // Limpa erros anteriores
+    setNameError('');
+    setEmailError('');
+    setPasswordError('');
+
+    // Valida cada campo
+    const nameValidation = validateName(name);
+    const emailValidation = validateEmail(email);
+    const passwordValidation = validatePassword(password);
+
+    let hasError = false;
+
+    if (!nameValidation.isValid) {
+      setNameError(nameValidation.error || '');
+      hasError = true;
     }
+
+    if (!emailValidation.isValid) {
+      setEmailError(emailValidation.error || '');
+      hasError = true;
+    }
+
+    if (!passwordValidation.isValid) {
+      setPasswordError(passwordValidation.error || '');
+      hasError = true;
+    }
+
+    // Se houver erros, não prossegue
+    if (hasError) {
+      return;
+    }
+
+    // Prossegue com o cadastro
+    setIsAuthenticating(true);
+    signUpUser(name, email, password, navigation, setIsAuthenticating);
   }
 
   if(fontsLoaded){
@@ -76,7 +107,7 @@ export function SignUpScreen() {
       <View flex={1}>
         <StatusBar barStyle="light-content" backgroundColor="#000" />
         <Image
-          source={ getRandomImageBackground() }
+          source={ backgroundImage }
           style={{
             position: 'absolute',
             top: 0,
@@ -123,7 +154,7 @@ export function SignUpScreen() {
           >
             <Text fontSize="$2xl" fontWeight="$bold" color='$black' my={15}>Comece Gratuitamente!</Text>
             <FormControl
-              isInvalid={isInvalid}
+              isInvalid={!!nameError || !!emailError || !!passwordError}
               size="lg"
               isDisabled={false}
               isReadOnly={false}
@@ -133,63 +164,87 @@ export function SignUpScreen() {
               <FormControlLabel>
                 <FormControlLabelText>Nome</FormControlLabelText>
               </FormControlLabel>
-              <Input my={1} borderColor='#8a8a8a'>
+              <Input my={1} borderColor={nameError ? '$error500' : '#8a8a8a'}>
                 <InputField
                   type="text"
                   placeholder="Insira Seu Nome"
                   value={ name }
-                  onChangeText={ (name) => setName(name) }
-                />
-              </Input>
-              <FormControlHelper>
-              </FormControlHelper>
-              <FormControlError>
-                <FormControlErrorIcon as={ CircleAlert } />
-                <FormControlErrorText>
-                  Insira um nome válido
-                </FormControlErrorText>
-              </FormControlError>
-              <FormControlLabel>
-                <FormControlLabelText>Email</FormControlLabelText>
-              </FormControlLabel>
-              <Input my={1} borderColor='#8a8a8a'>
-                <InputField
-                  type="text"
-                  placeholder="Insira seu melhor Email"
-                  value={ email }
-                  onChangeText={ (mail) => setEmail(mail) }
-                />
-              </Input>
-              <FormControlHelper>
-              </FormControlHelper>
-              <FormControlError>
-                <FormControlErrorIcon as={CircleAlert} />
-                <FormControlErrorText>
-                  Insira um email válido
-                </FormControlErrorText>
-              </FormControlError>
-              <FormControlLabel>
-                <FormControlLabelText mt={10}>Senha</FormControlLabelText>
-              </FormControlLabel>
-              <Input my={1} borderColor='#8a8a8a'>
-                <InputField
-                  type="password"
-                  placeholder="Memorize sua Senha"
-                  value={ password }
-                  onChangeText={ (pass) => setPassword(pass) }
+                  onChangeText={ (text) => {
+                    setName(text);
+                    if (nameError) setNameError('');
+                  }}
                 />
               </Input>
               <FormControlHelper>
                 <FormControlHelperText>
-                  Mínimo 8 caracteres
+                  { nameError ? '' : 'Digite seu nome completo' }
                 </FormControlHelperText>
               </FormControlHelper>
-              <FormControlError>
-                <FormControlErrorIcon as={CircleAlert} />
-                <FormControlErrorText>
-                  Mínimo 8 caracteres!
-                </FormControlErrorText>
-              </FormControlError>
+              {nameError ? (
+                <FormControlError>
+                  <FormControlErrorIcon as={ CircleAlert } />
+                  <FormControlErrorText>
+                    { nameError }
+                  </FormControlErrorText>
+                </FormControlError>
+              ) : null}
+              <FormControlLabel>
+                <FormControlLabelText>Email</FormControlLabelText>
+              </FormControlLabel>
+              <Input my={1} borderColor={emailError ? '$error500' : '#8a8a8a'}>
+                <InputField
+                  type="text"
+                  placeholder="Insira seu melhor Email"
+                  value={ email }
+                  onChangeText={ (text) => {
+                    setEmail(text);
+                    if (emailError) setEmailError('');
+                  }}
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                />
+              </Input>
+              <FormControlHelper>
+                <FormControlHelperText>
+                  { emailError ? '' : 'Usaremos para recuperação de senha' }
+                </FormControlHelperText>
+              </FormControlHelper>
+              {emailError ? (
+                <FormControlError>
+                  <FormControlErrorIcon as={CircleAlert} />
+                  <FormControlErrorText>
+                    { emailError }
+                  </FormControlErrorText>
+                </FormControlError>
+              ) : null}
+              <FormControlLabel>
+                <FormControlLabelText mt={10}>Senha</FormControlLabelText>
+              </FormControlLabel>
+              <Input my={1} borderColor={passwordError ? '$error500' : '#8a8a8a'}>
+                <InputField
+                  type="password"
+                  placeholder="Memorize sua Senha"
+                  value={ password }
+                  onChangeText={ (text) => {
+                    setPassword(text);
+                    if (passwordError) setPasswordError('');
+                  }}
+                  autoCapitalize="none"
+                />
+              </Input>
+              <FormControlHelper>
+                <FormControlHelperText>
+                  { passwordError ? '' : 'Mínimo 8 caracteres com letras e números' }
+                </FormControlHelperText>
+              </FormControlHelper>
+              {passwordError ? (
+                <FormControlError>
+                  <FormControlErrorIcon as={CircleAlert} />
+                  <FormControlErrorText>
+                    { passwordError }
+                  </FormControlErrorText>
+                </FormControlError>
+              ) : null}
               <View alignItems='center' mt={30} mb={15}>
                 <Button
                   bgColor="#336df6"
