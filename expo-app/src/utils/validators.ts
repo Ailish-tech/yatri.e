@@ -18,10 +18,13 @@ export const validateEmail = (email: string): ValidationResult => {
     return { isValid: false, error: 'Email é obrigatório' };
   }
 
-  // Regex para validação de email (RFC 5322 simplificado)
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  // Regex para validação de email (mais restrito, TLD >= 2, sem pontos consecutivos)
+  const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
   
-  if (!emailRegex.test(email.trim())) {
+  if (
+    !emailRegex.test(email.trim()) ||
+    email.includes('..')
+  ) {
     return { isValid: false, error: 'Email inválido' };
   }
 
