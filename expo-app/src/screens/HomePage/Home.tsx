@@ -489,7 +489,7 @@ export function Home() {
               <Text size="lg" bold fontWeight="$bold">
                 Recomendados para você
               </Text>
-              <Pressable mr={12}>
+              <Pressable mr={12} onPress={() => navigation.navigate('RecommendedDestinations')}>
                 <Text size="sm" color="#0A84FF" fontWeight="$semibold">
                   Ver tudo
                 </Text>
