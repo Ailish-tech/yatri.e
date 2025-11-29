@@ -58,6 +58,9 @@ export function Home() {
   const [hasNearbyError, setHasNearbyError] = useState(false);
   const [storiesVisible, setStoriesVisible] = useState(false);
   const [selectedDestination, setSelectedDestination] = useState<any>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [showSearchResults, setShowSearchResults] = useState(false);
+  const [filteredDestinations, setFilteredDestinations] = useState<any[]>([]);
 
   useEffect(() => {
     if (drawerOpen) {
@@ -74,6 +77,26 @@ export function Home() {
   const handleOpenStories = (destination: any) => {
     setSelectedDestination(destination);
     setStoriesVisible(true);
+  };
+
+  const handleSearch = (query: string) => {
+    setSearchQuery(query);
+    if (query.trim() === "") {
+      setFilteredDestinations([]);
+      setShowSearchResults(false);
+    } else {
+      setShowSearchResults(true);
+      const filtered = destinations.filter((item) =>
+        item.name.toLowerCase().includes(query.toLowerCase())
+      );
+      setFilteredDestinations(filtered);
+    }
+  };
+
+  const handleSelectDestination = (destinationId: number) => {
+    setSearchQuery("");
+    setShowSearchResults(false);
+    navigation.navigate('DestinationDetail', { destinationId });
   };
 
   const fetchNearbyPlaces = async () => {
@@ -427,20 +450,70 @@ export function Home() {
           </View>
 
           <View px="$4" bottom={-20} left={0} right={0} zIndex={10}>
-            <Input
-              borderRadius="$full"
-              bg="#fff"
-              px="$4"
-              py="$2"
-              alignItems="center"
-              shadowColor="#000"
-              shadowOpacity={0.1}
-              shadowRadius={10}
-              elevation={5}
-            >
-              <Icon as={ Search } mr="$2" color="#999" />
-              <InputField placeholder="Aonde ir?" />
-            </Input>
+            <View>
+              <Input
+                borderRadius="$full"
+                bg="#fff"
+                px="$4"
+                py="$2"
+                alignItems="center"
+                shadowColor="#000"
+                shadowOpacity={0.1}
+                shadowRadius={10}
+                elevation={5}
+              >
+                <Icon as={ Search } mr="$2" color="#999" />
+                <InputField 
+                  placeholder="Aonde ir?" 
+                  value={searchQuery}
+                  onChangeText={handleSearch}
+                  onFocus={() => searchQuery && setShowSearchResults(true)}
+                />
+              </Input>
+              
+              {showSearchResults && (
+                <View
+                  bg="#fff"
+                  borderRadius="$2xl"
+                  mt={6}
+                  shadowColor="#000"
+                  shadowOpacity={0.1}
+                  shadowRadius={10}
+                  elevation={5}
+                  maxHeight={250}
+                >
+                  <ScrollView showsVerticalScrollIndicator={false}>
+                    {filteredDestinations.length > 0 ? (
+                      filteredDestinations.map((item, index) => (
+                        <TouchableOpacity
+                          key={item.id}
+                          onPress={() => handleSelectDestination(item.id)}
+                        >
+                          <View
+                            flexDirection="row"
+                            alignItems="center"
+                            p="$3"
+                            borderBottomWidth={index < filteredDestinations.length - 1 ? 1 : 0}
+                            borderBottomColor="#F3F4F6"
+                          >
+                            <Icon as={Search} size="sm" color="#6B7280" mr="$3" />
+                            <Text fontSize="$md" color="#1F2937">
+                              {item.name}
+                            </Text>
+                          </View>
+                        </TouchableOpacity>
+                      ))
+                    ) : (
+                      <View p="$4" alignItems="center">
+                        <Text fontSize="$sm" color="#6B7280" textAlign="center" lineHeight="$md">
+                          Este destino ainda não está disponível no EZ Trip AI. Aguarde as próximas atualizações de roteiros!
+                        </Text>
+                      </View>
+                    )}
+                  </ScrollView>
+                </View>
+              )}
+            </View>
           </View>
         </View>
 
