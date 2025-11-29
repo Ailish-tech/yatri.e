@@ -53,12 +53,12 @@ export async function sendPasswordReset(email: string): Promise<boolean> {
 }
 
 /**
- * Verifica se um email está cadastrado (sem revelar se existe)
- * Por segurança, sempre retorna sucesso para não expor emails cadastrados
- * @param email - Email a verificar
+ * Solicita redefinição de senha de forma segura (sem revelar se o email existe)
+ * Por segurança, sempre tenta enviar o email de recuperação para não expor emails cadastrados
+ * @param email - Email para o qual solicitar a redefinição de senha
  */
-export async function checkEmailExists(email: string): Promise<void> {
+export async function requestPasswordResetSafely(email: string): Promise<void> {
   // Por questões de segurança, não revelamos se o email existe ou não
-  // Sempre enviamos o email de recuperação se o formato for válido
+  // Sempre tentamos enviar o email de recuperação se o formato for válido
   await sendPasswordReset(email);
 }
