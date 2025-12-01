@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useRef, useContext } from "react";
 import { SafeAreaView, StatusBar } from "react-native";
 
 import MapView from "react-native-maps";
@@ -12,6 +12,7 @@ import { SlideUp } from "@components/Sliders/SlideUpPlaces";
 import { RecenterButton } from "@components/Maps/RecenterButton";
 
 import { AuthNavigationProp } from "@routes/auth.routes";
+import { LocationContext } from "@contexts/requestDeviceLocation";
 
 import { Place } from "../../../@types/PlacesTypes";
 
@@ -21,15 +22,16 @@ export function MapsExpanded() {
   const navigation = useNavigation<AuthNavigationProp>();
   const route = useRoute<SlideUpPlacesRouteProp>();
   const { places, isLoading } = route.params;
+  const { location } = useContext(LocationContext);
 
   const mapUserPositionRef = useRef<MapView | null>(null);
 
   const recenterMap = () => {
-    if (mapUserPositionRef.current) {
+    if (mapUserPositionRef.current && location) {
       mapUserPositionRef.current.animateToRegion(
         {
-          latitude: places[0]?.geometry.location.lat || 0,
-          longitude: places[0]?.geometry.location.lng || 0,
+          latitude: location.coords.latitude,
+          longitude: location.coords.longitude,
           latitudeDelta: 0.0102,
           longitudeDelta: 0.0021
         }, 1000

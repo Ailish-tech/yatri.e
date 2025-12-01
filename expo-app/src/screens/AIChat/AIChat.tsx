@@ -28,6 +28,7 @@ import FelipeNewChat from '@assets/Mascot/Felipe_Mascot_NewChat.svg';
 import { getAuth } from "firebase/auth";
 
 import { MessageTypes } from '../../../@types/MessagesTypes';
+import { responseCache } from '@utils/responseCache';
 
 // Gera o ID da conversa com base na data e hora
 const generateUniqueId = (): string => {
