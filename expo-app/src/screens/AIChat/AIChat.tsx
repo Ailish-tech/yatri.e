@@ -37,7 +37,7 @@ import FelipeNewChat from '@assets/Mascot/Felipe_Mascot_NewChat.svg';
 import { getAuth } from "firebase/auth";
 
 import { MessageTypes } from '../../../@types/MessagesTypes';
-import { responseCache } from "../../utils/responseCache";
+import { responseCache } from "../../../../nextjs-api/utils/responseCache";
 
 // Função para gerar um ID único baseado no timestamp + random
 const generateUniqueId = (): string => {
