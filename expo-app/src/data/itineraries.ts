@@ -25,6 +25,7 @@ export let userTrips: CreatingItinerary[] = [
     visitPreferences: [
       "Museums", "Monuments", "Parks", "Culture", "Food"
     ],
+    status: "Rascunho",
     itinerary: [
       {
         day: 1,

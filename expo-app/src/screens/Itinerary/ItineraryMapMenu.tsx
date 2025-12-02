@@ -10,6 +10,8 @@ import { GlassView, GlassContainer, isLiquidGlassAvailable } from 'expo-glass-ef
 
 import { Maps } from "@components/Maps/Maps";
 import { SlideUpItinerary } from "@components/Sliders/SlideUpItinerary";
+import { ChooseBackgroundDialog } from "@components/Dialogs/ChooseBackgroundDialog";
+import { SaveItineraryDialog } from "@components/Dialogs/SaveItineraryDialog";
 
 import { generateItinerary } from '@utils/gptRequests';
 import { useNotificationStore } from '@utils/notificationStore';
@@ -24,8 +26,8 @@ import { CategoriesCounterTypes } from "../../../@types/CategoriesCounterTypes";
 
 import DefaultStatsBackground from "@assets/background.webp";
 
-import { Bed, ChevronLeft, Compass, FileDown, Globe, Heart, Images, Landmark, Palette, PartyPopper, Plane, ShoppingBag, TreePine, UtensilsCrossed } from 'lucide-react-native';
-import { ChooseBackgroundDialog } from "@components/Dialogs/ChooseBackgroundDialog";
+import { Bed, ChevronLeft, Compass, FileDown, Globe, Landmark, Palette, PartyPopper, Plane, ShoppingBag, TreePine, UtensilsCrossed } from 'lucide-react-native';
+
 import { exportItineraryToPDF } from './html/printExportItinerary';
 
 type ShowMapStatsInformationType = {
@@ -46,6 +48,8 @@ export function ItineraryMapMenu() {
   const [selectedDay, setSelectedDay] = useState<number>(0);
   const [openChooseBackground, setOpenChooseBackground] = useState<boolean>(false);
   const [imageBackground, setImageBackground] = useState<string>("");
+  const [openSaveDialog, setOpenSaveDialog] = useState<boolean>(false);
+  const [isNewItinerary, setIsNewItinerary] = useState<boolean>(false);
   const [categoriesCounter, setCategoriesCounter] = useState<CategoriesCounterTypes>({
     touristAttractions: 0,
     restaurant: 0,
@@ -68,6 +72,130 @@ export function ItineraryMapMenu() {
 
   const ITINERARY_STORAGE_KEY = '@eztripai_allUserTripItineraries';
   const BACKGROUND_STORAGE_KEY = '@eztripai_statsBackground';
+
+  // Detectar se é um roteiro novo ou já existente
+  useEffect(() => {
+    const checkIfNewItinerary = async () => {
+      try {
+        // Primeiro, verifica se tem a flag isNew nos params
+        if (route.params.itineraryData.isNew === true) {
+          setIsNewItinerary(true);
+          return;
+        }
+
+        const savedItineraries = await AsyncStorage.getItem(ITINERARY_STORAGE_KEY);
+        if (savedItineraries) {
+          const itineraries: CreatingItinerary[] = JSON.parse(savedItineraries);
+          const exists = itineraries.some(item => 
+            item.title === filteredItineraryData.title &&
+            item.dateBegin === route.params.itineraryData.dateBegin
+          );
+          setIsNewItinerary(!exists);
+        } else {
+          setIsNewItinerary(true);
+        }
+      } catch (error) {
+        console.error('Erro ao verificar itinerário:', error);
+        setIsNewItinerary(false);
+      }
+    };
+
+    checkIfNewItinerary();
+  }, []);
+
+  // Função para salvar alterações em um roteiro existente
+  const saveExistingItinerary = async () => {
+    try {
+      const savedItineraries = await AsyncStorage.getItem(ITINERARY_STORAGE_KEY);
+      if (savedItineraries) {
+        const itineraries: CreatingItinerary[] = JSON.parse(savedItineraries);
+        const index = itineraries.findIndex(item => 
+          item.title === filteredItineraryData.title &&
+          new Date(item.dateBegin).getTime() === new Date(route.params.itineraryData.dateBegin).getTime()
+        );
+
+        if (index !== -1) {
+          // Atualizar o roteiro existente com os dados atuais
+          const currentItinerary = itinerary.length > 0 ? itinerary : route.params.itineraryData.itinerary;
+          
+          itineraries[index] = {
+            ...itineraries[index],
+            itinerary: currentItinerary,
+            visitPreferences: filteredUserPreferences,
+            contacts: filteredItineraryData.contacts
+          };
+
+          await AsyncStorage.setItem(ITINERARY_STORAGE_KEY, JSON.stringify(itineraries));
+          // DEBUG: console.log('Alterações salvas com sucesso');
+        }
+      }
+    } catch (error) {
+      console.error('Erro ao salvar alterações do itinerário:', error);
+    }
+  };
+
+  // Função para salvar um novo roteiro
+  const saveNewItinerary = async (status: "Planejado" | "Rascunho", coverImage?: string) => {
+    try {
+      const savedItineraries = await AsyncStorage.getItem(ITINERARY_STORAGE_KEY);
+      const itineraries: CreatingItinerary[] = savedItineraries ? JSON.parse(savedItineraries) : [];
+
+      const newTrip: CreatingItinerary = {
+        title: filteredItineraryData.title,
+        dateBegin: route.params.itineraryData.dateBegin,
+        dateEnd: route.params.itineraryData.dateEnd,
+        days: filteredItineraryData.days,
+        continent: filteredItineraryData.continent,
+        countries: filteredItineraryData.countries,
+        originCountry: filteredItineraryData.originCountry,
+        visa: filteredItineraryData.visa,
+        budget: filteredItineraryData.budget,
+        peopleQuantity: filteredItineraryData.peopleQuantity,
+        acconpanying: filteredItineraryData.acconpanying,
+        tripStyle: filteredItineraryData.tripStyle,
+        locomotionMethod: filteredItineraryData.locomotionMethod,
+        specialWish: filteredItineraryData.specialWish,
+        visitPreferences: filteredUserPreferences,
+        contacts: filteredItineraryData.contacts,
+        itinerary: itinerary.length > 0 ? itinerary : route.params.itineraryData.itinerary,
+        status: status,
+        coverImage: coverImage,
+        isNew: false
+      };
+
+      itineraries.push(newTrip);
+      await AsyncStorage.setItem(ITINERARY_STORAGE_KEY, JSON.stringify(itineraries));
+      
+      addNotification({
+        title: "Roteiro Salvo",
+        description: `Seu roteiro foi salvo como ${status}`,
+        routeIcon: Globe
+      });
+    } catch (error) {
+      console.error('Erro ao salvar novo itinerário:', error);
+    }
+  };
+
+  // Função para lidar com o botão de voltar
+  const handleBackPress = () => {
+    const currentItinerary = itinerary.length > 0 ? itinerary : route.params.itineraryData.itinerary;
+    const hasItinerary = currentItinerary && (Array.isArray(currentItinerary) ? currentItinerary.length > 0 : Object.keys(currentItinerary).length > 0);
+    
+    if (!hasItinerary) {
+      navigation.navigate("GenerateItineraryMenu");
+      return;
+    }
+
+    if (isNewItinerary) {
+      // Mostrar modal de salvamento para novo itinerário
+      setOpenSaveDialog(true);
+    } else {
+      // Salvar automaticamente e navegar de volta
+      saveExistingItinerary().then(() => {
+        navigation.navigate("GenerateItineraryMenu");
+      });
+    }
+  };
 
   // Carregar background salvo ao iniciar
   useEffect(() => {
@@ -272,38 +400,16 @@ export function ItineraryMapMenu() {
         navigation.setParams({
           itineraryData: {
             ...route.params.itineraryData,
-            itinerary: generatedItinerary
+            itinerary: generatedItinerary,
+            isNew: true
           }
         });
-  
-        let trip: CreatingItinerary = {
-          title: filteredItineraryData.title,
-          dateBegin: route.params.itineraryData.dateBegin,
-          dateEnd: route.params.itineraryData.dateEnd,
-          days: filteredItineraryData.days,
-          continent: filteredItineraryData.continent,
-          countries: filteredItineraryData.countries,
-          originCountry: filteredItineraryData.originCountry,
-          visa: filteredItineraryData.visa,
-          budget: filteredItineraryData.budget,
-          peopleQuantity: filteredItineraryData.peopleQuantity,
-          acconpanying: filteredItineraryData.acconpanying,
-          tripStyle: filteredItineraryData.tripStyle,
-          locomotionMethod: filteredItineraryData.locomotionMethod,
-          specialWish: filteredItineraryData.specialWish,
-          visitPreferences: filteredUserPreferences,
-          contacts: filteredItineraryData.contacts,
-          itinerary: generatedItinerary
-        }
-        userTrips.push(trip);
   
         addNotification({
           title: "Novo Roteiro Pronto",
           description: "Um novo roteiro para a sua incrível próxima viagem foi gerado pela Inteligência Artificial. Confira já!",
           routeIcon: Globe
         });
-  
-        await AsyncStorage.setItem(ITINERARY_STORAGE_KEY, JSON.stringify(userTrips));
       }
     } catch (error) {
       console.error('Erro ao gerar roteiro detalhado:', error);
@@ -344,38 +450,16 @@ export function ItineraryMapMenu() {
         navigation.setParams({
           itineraryData: {
             ...route.params.itineraryData,
-            itinerary: generatedItinerary
+            itinerary: generatedItinerary,
+            isNew: true
           }
         });
-  
-        let trip: CreatingItinerary = {
-          title: filteredItineraryData.title,
-          dateBegin: route.params.itineraryData.dateBegin,
-          dateEnd: route.params.itineraryData.dateEnd,
-          days: filteredItineraryData.days,
-          continent: filteredItineraryData.continent,
-          countries: filteredItineraryData.countries,
-          originCountry: filteredItineraryData.originCountry,
-          visa: filteredItineraryData.visa,
-          budget: filteredItineraryData.budget,
-          peopleQuantity: filteredItineraryData.peopleQuantity,
-          acconpanying: filteredItineraryData.acconpanying,
-          tripStyle: filteredItineraryData.tripStyle,
-          locomotionMethod: filteredItineraryData.locomotionMethod,
-          specialWish: filteredItineraryData.specialWish,
-          visitPreferences: filteredUserPreferences,
-          contacts: filteredItineraryData.contacts,
-          itinerary: generatedItinerary
-        }
-        userTrips.push(trip);
   
         addNotification({
           title: "Novo Roteiro Pronto",
           description: "Um novo roteiro para a sua incrível próxima viagem foi gerado pela Inteligência Artificial. Confira já!",
           routeIcon: Globe
         });
-  
-        await AsyncStorage.setItem(ITINERARY_STORAGE_KEY, JSON.stringify(userTrips));
       }
     } catch (error) {
       console.error('Erro ao gerar roteiro surpresa:', error);
@@ -535,7 +619,7 @@ export function ItineraryMapMenu() {
               w={50}
               h={50}
               style={{ position: "absolute", top: 65, left: 10 }} 
-              onPress={ () => navigation.navigate("GenerateItineraryMenu") }
+              onPress={ handleBackPress }
             >
               <ButtonIcon as={ ChevronLeft } color="#000" size="xl" />
             </Button>
@@ -966,6 +1050,23 @@ export function ItineraryMapMenu() {
       {
         openChooseBackground 
           ? <ChooseBackgroundDialog showAlertDialog={ openChooseBackground } handleClose={ () => setOpenChooseBackground(false) } imageUri={ handleBackgroundChange } /> 
+          : null
+      }
+      {
+        openSaveDialog
+          ? <SaveItineraryDialog 
+              showAlertDialog={ openSaveDialog } 
+              handleClose={ () => {
+                setOpenSaveDialog(false);
+                // Navegar sem salvar
+                navigation.navigate("GenerateItineraryMenu");
+              }} 
+              onSave={ async (status, imageUri) => {
+                await saveNewItinerary(status, imageUri);
+                setIsNewItinerary(false);
+                navigation.navigate("GenerateItineraryMenu");
+              }} 
+            /> 
           : null
       }
     </View>
