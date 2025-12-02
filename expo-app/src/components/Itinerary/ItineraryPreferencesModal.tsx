@@ -7,7 +7,8 @@ import {
   TextInput,
   TouchableOpacity,
   Dimensions,
-  Image
+  Image,
+  Alert
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 
@@ -144,7 +145,18 @@ export function ItineraryPreferencesModal({ showAlertDialog, setShowAlertDialog 
       setDays(1);
     } else {
       const newDays = calculateDays(selectedDate, endDate);
-      setDays(newDays);
+      if (newDays > 45) {
+        Alert.alert(
+          'Limite de dias excedido',
+          'O itinerário não pode ultrapassar 45 dias. Ajustando automaticamente para 45 dias.',
+          [{ text: 'OK' }]
+        );
+        const adjustedEndDate = new Date(selectedDate.getTime() + 44 * 24 * 60 * 60 * 1000);
+        setEndDate(adjustedEndDate);
+        setDays(45);
+      } else {
+        setDays(newDays);
+      }
     }
     setActiveCalendar(null);
   };
@@ -152,14 +164,33 @@ export function ItineraryPreferencesModal({ showAlertDialog, setShowAlertDialog 
   const handleEndDateChange = (day: DateData) => {
     const selectedDate = new Date(day.year, day.month - 1, day.day);
     if (selectedDate >= startDate) {
-      setEndDate(selectedDate);
       const newDays = calculateDays(startDate, selectedDate);
-      setDays(newDays);
+      if (newDays > 45) {
+        Alert.alert(
+          'Limite de dias excedido',
+          'O itinerário não pode ultrapassar 45 dias. Ajustando automaticamente para 45 dias.',
+          [{ text: 'OK' }]
+        );
+        const adjustedEndDate = new Date(startDate.getTime() + 44 * 24 * 60 * 60 * 1000);
+        setEndDate(adjustedEndDate);
+        setDays(45);
+      } else {
+        setEndDate(selectedDate);
+        setDays(newDays);
+      }
     }
     setActiveCalendar(null);
   };
 
   const incrementDays = () => {
+    if (days >= 45) {
+      Alert.alert(
+        'Limite de dias excedido',
+        'O itinerário não pode ultrapassar 45 dias. Por favor, ajuste as datas.',
+        [{ text: 'OK' }]
+      );
+      return;
+    }
     const newDays = days + 1;
     setDays(newDays);
     const newEndDate = new Date(startDate.getTime() + (newDays - 1) * 24 * 60 * 60 * 1000);
@@ -487,12 +518,20 @@ export function ItineraryPreferencesModal({ showAlertDialog, setShowAlertDialog 
                     </View>
 
                     <TouchableOpacity
-                      style={styles.dayButton}
+                      style={[styles.dayButton, days >= 45 && { opacity: 0.5 }]}
                       onPress={incrementDays}
+                      disabled={days >= 45}
                     >
                       <Plus size={20} color="#fff" />
                     </TouchableOpacity>
                   </View>
+                  {days >= 45 && (
+                    <View style={{ marginTop: 10, backgroundColor: '#FEF3C7', padding: 10, borderRadius: 8, borderWidth: 1, borderColor: '#F59E0B' }}>
+                      <Text style={{ color: '#D97706', fontSize: 12, textAlign: 'center', fontWeight: '600' }}>
+                        Limite máximo de 45 dias atingido
+                      </Text>
+                    </View>
+                  )}
                 </View>
               </View>
 
