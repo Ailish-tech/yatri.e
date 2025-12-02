@@ -24,8 +24,9 @@ import { CategoriesCounterTypes } from "../../../@types/CategoriesCounterTypes";
 
 import DefaultStatsBackground from "@assets/background.webp";
 
-import { Bed, ChevronLeft, Compass, Globe, Heart, Images, Landmark, PartyPopper, Plane, ShoppingBag, TreePine, UtensilsCrossed } from 'lucide-react-native';
+import { Bed, ChevronLeft, Compass, FileDown, Globe, Heart, Images, Landmark, Palette, PartyPopper, Plane, ShoppingBag, TreePine, UtensilsCrossed } from 'lucide-react-native';
 import { ChooseBackgroundDialog } from "@components/Dialogs/ChooseBackgroundDialog";
+import { exportItineraryToPDF } from './html/printExportItinerary';
 
 type ShowMapStatsInformationType = {
   show: "Map" | "Stats"
@@ -66,6 +67,23 @@ export function ItineraryMapMenu() {
   const mapUserPositionRef = useRef<MapView | null>(null);
 
   const ITINERARY_STORAGE_KEY = '@eztripai_allUserTripItineraries';
+  const BACKGROUND_STORAGE_KEY = '@eztripai_statsBackground';
+
+  // Carregar background salvo ao iniciar
+  useEffect(() => {
+    const loadSavedBackground = async () => {
+      try {
+        const savedBackground = await AsyncStorage.getItem(BACKGROUND_STORAGE_KEY);
+        if (savedBackground) {
+          setImageBackground(savedBackground);
+        }
+      } catch (error) {
+        console.error('Erro ao carregar background salvo:', error);
+      }
+    };
+
+    loadSavedBackground();
+  }, []);
 
   // Aplicando filtros aos dados recebidos
   const filteredItineraryData = filterItineraryData(route.params.itineraryData);
@@ -448,6 +466,42 @@ export function ItineraryMapMenu() {
     }
   }, [itinerary]);
 
+  // Função para salvar o background escolhido
+  const handleBackgroundChange = async (imagePath: any) => {
+    try {
+      setImageBackground(imagePath);
+      await AsyncStorage.setItem(BACKGROUND_STORAGE_KEY, imagePath.toString());
+    } catch (error) {
+      console.error('Erro ao salvar background:', error);
+    }
+  };
+
+  // Função para exportar itinerário
+  const handleExportItinerary = async () => {
+    if (isExporting || !itinerary || itinerary.length === 0) {
+      return;
+    }
+
+    try {
+      setIsExporting(true);
+      
+      // Formatar o nome do arquivo com título e datas
+      const fileName = `${filteredItineraryData.title || "Roteiro"}_${dateBegin}_${dateEnd}`.replace(/\s+/g, '_');
+      
+      await exportItineraryToPDF({
+        itinerary: itinerary,
+        title: filteredItineraryData.title || "Roteiro de Viagem",
+        dateBegin: dateBegin,
+        dateEnd: dateEnd,
+        fileName: fileName
+      });
+    } catch (error) {
+      console.error('Erro ao exportar itinerário:', error);
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
   const styles = StyleSheet.create({
     containerStyle: {
       marginTop: 135,
@@ -531,7 +585,10 @@ export function ItineraryMapMenu() {
               />
               <ScrollView>
                 <GlassContainer spacing={10} style={ styles.containerStyle }>
-                  <GlassView style={ styles.glass } glassEffectStyle="clear">
+                  {
+                    !hideBackButton && (
+                      <>
+                        <GlassView style={ styles.glass } glassEffectStyle="clear">
                     {
                       isLiquidGlassAvailable()
                         ?
@@ -843,83 +900,52 @@ export function ItineraryMapMenu() {
                         </View>
                     }
                   </GlassView>
-                  <GlassView style={ styles.glass } glassEffectStyle="clear">
-                    {
-                      isLiquidGlassAvailable()
-                        ?
-                        <Button 
-                          borderRadius={100} 
-                          justifyContent="center" 
-                          alignItems="center" 
-                          w={90} 
-                          h={90}
-                          onPress={ () => setOpenChooseBackground(true) }
+                  <View style={{ ...styles.glass, marginBottom: 70 }}>
+                    <View flex={1} bgColor="rgba(255, 255, 255, 0.7)" p={12} borderRadius={20} justifyContent="center" alignItems="center">
+                      <Button 
+                        bgColor="transparent"
+                        width="100%"
+                        onPress={ () => setOpenChooseBackground(true) }
+                      >
+                        <View
+                          p={12}
+                          mb={12}
+                          flexDirection="row"
+                          justifyContent="center"
+                          alignItems="center"
+                          width="100%"
                         >
-                          <View
-                            p={12}
-                            borderRadius={100}
-                            bgColor="rgba(255, 255, 255, 0.2)"
-                            flexDirection="row"
-                            justifyContent="space-between"
-                            alignItems="center"
-                          >
-                            <Images size={40} color="#FFF" strokeWidth={2.25} />
-                          </View>
-                        </Button>
-                        :
-                        <Button 
-                          bgColor="rgba(255, 255, 255, 0.452)" 
-                          borderRadius={100} 
-                          justifyContent="center" 
-                          alignItems="center" 
-                          w={90} 
-                          h={90}
-                          onPress={ () => setOpenChooseBackground(true) }
+                          <Palette size={45} color="#000" strokeWidth={2.25} />
+                        </View>
+                      </Button>
+                      <Text fontSize="$lg" fontWeight="$semibold" color="#000" textAlign="center">Alterar Background</Text>
+                    </View>
+                  </View>
+                  <View style={{ ...styles.glass, marginBottom: 35 }}>
+                    <View flex={1} bgColor="rgba(255, 255, 255, 0.7)" p={12} borderRadius={20} justifyContent="center" alignItems="center">
+                      <Button 
+                        bgColor="transparent"
+                        width="100%"
+                        onPress={ handleExportItinerary }
+                        disabled={ isExporting || loading }
+                      >
+                        <View
+                          p={12}
+                          mb={12}
+                          flexDirection="row"
+                          justifyContent="center"
+                          alignItems="center"
+                          width="100%"
                         >
-                          <View
-                            p={12}
-                            borderRadius={100}
-                            bgColor="rgba(255, 255, 255, 0.2)"
-                            flexDirection="row"
-                            justifyContent="space-between"
-                            alignItems="center"
-                          >
-                            <Images size={40} color="#FFF" strokeWidth={2.25} />
-                          </View>
-                        </Button>
-                    }
-                  </GlassView>
-                  <GlassView style={styles.glass} glassEffectStyle="clear">
-                    {
-                      isLiquidGlassAvailable()
-                        ?
-                        <View borderRadius={100} justifyContent="center" alignItems="center" w={90} h={90}>
-                          <View
-                            p={12}
-                            borderRadius={100}
-                            bgColor="rgba(255, 255, 255, 0.2)"
-                            flexDirection="row"
-                            justifyContent="space-between"
-                            alignItems="center"
-                          >
-                            <Heart size={40} color="#FFF" strokeWidth={2.25} />
-                          </View>
+                          <FileDown size={45} color="#000" strokeWidth={2.25} />
                         </View>
-                        :
-                        <View bgColor="rgba(255, 255, 255, 0.452)" borderRadius={100} justifyContent="center" alignItems="center" w={90} h={90}>
-                          <View
-                            p={12}
-                            borderRadius={100}
-                            bgColor="rgba(255, 255, 255, 0.2)"
-                            flexDirection="row"
-                            justifyContent="space-between"
-                            alignItems="center"
-                          >
-                            <Heart size={40} color="#FFF" strokeWidth={2.25} />
-                          </View>
-                        </View>
-                    }
-                  </GlassView>
+                      </Button>
+                      <Text fontSize="$lg" fontWeight="$semibold" color="#000" textAlign="center">Exportar{"\n"}Itinerário</Text>
+                    </View>
+                  </View>
+                      </>
+                    )
+                  }
                 </GlassContainer>
               </ScrollView>
             </View>
@@ -939,7 +965,7 @@ export function ItineraryMapMenu() {
       </View>
       {
         openChooseBackground 
-          ? <ChooseBackgroundDialog showAlertDialog={ openChooseBackground } handleClose={ () => setOpenChooseBackground(false) } imageUri={ (imagePath) => setImageBackground(imagePath) } /> 
+          ? <ChooseBackgroundDialog showAlertDialog={ openChooseBackground } handleClose={ () => setOpenChooseBackground(false) } imageUri={ handleBackgroundChange } /> 
           : null
       }
     </View>
