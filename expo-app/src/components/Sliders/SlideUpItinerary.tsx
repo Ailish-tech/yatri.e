@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from "react";
-import { StyleSheet, Dimensions, FlatList } from "react-native";
+import { StyleSheet, Dimensions, FlatList, Alert } from "react-native";
 import { RouteProp, useNavigation, useRoute } from "@react-navigation/native";
 
 import {
@@ -20,6 +20,8 @@ import Timeline from 'react-native-timeline-flatlist';
 
 import { ItineraryCategoriesDefine } from "@components/Itinerary/ItineraryCategoriesDefine";
 import { ItinerarySliderDateShow } from "@components/Itinerary/ItinerarySliderDateShow";
+
+import { useFavoritePlaces } from "../../hooks/useFavoritePlaces";
 
 import { AuthNavigationProp } from "@routes/auth.routes";
 
@@ -70,6 +72,8 @@ export function SlideUpItinerary({ isLoading, hideBackButton, setFirstLatitude, 
     dateEnd,
     itinerary,
   } = route.params.itineraryData;
+
+  const { addFavoritePlace, isFavorite } = useFavoritePlaces();
 
   const [allTripDays, setAllTripDays] = useState<CalendarDaysTypes[]>([]);
   const [selectedDayIndex, setSelectedDayIndex] = useState<number>(0);
@@ -213,6 +217,53 @@ export function SlideUpItinerary({ isLoading, hideBackButton, setFirstLatitude, 
 
     setShowCategories(false);
     setEditingTimelineIndex(null);
+  };
+
+  const handleAddToFavorites = async (rowData: TimelineItemTypes, index: number) => {
+    const currentDay = itineraryState[selectedDayIndex];
+    
+    if (!currentDay) return;
+
+    // Gera um ID único para o local favorito
+    const placeId = `${title}-${currentDay.day}-${index}-${rowData.time}`;
+
+    // Verifica se já está nos favoritos
+    if (isFavorite(placeId)) {
+      Alert.alert(
+        "Já está nos favoritos",
+        `"${rowData.title}" já foi adicionado aos seus locais favoritos.`,
+        [{ text: "OK" }]
+      );
+      return;
+    }
+
+    try {
+      await addFavoritePlace({
+        id: placeId,
+        title: rowData.title,
+        description: rowData.description,
+        coordinates: rowData.coordinates || "0.0000,0.0000",
+        category: rowData.category || "",
+        location: currentDay.location,
+        date: currentDay.date,
+        itineraryTitle: title,
+        favoritedAt: new Date().toISOString(),
+        images: currentDay.images || []
+      });
+
+      Alert.alert(
+        "Adicionado aos Favoritos!",
+        `"${rowData.title}" foi adicionado à sua lista de locais favoritos.`,
+        [{ text: "OK" }]
+      );
+    } catch (error) {
+      // DEBUG: console.error('Erro ao adicionar aos favoritos:', error);
+      Alert.alert(
+        "Erro",
+        "Não foi possível adicionar este local aos favoritos. Tente novamente.",
+        [{ text: "OK" }]
+      );
+    }
   };
 
   const getCategoryIcon = (category: string) => {
@@ -432,7 +483,15 @@ export function SlideUpItinerary({ isLoading, hideBackButton, setFirstLatitude, 
           </View>
           <ButtonIcon as={ ChevronRight } color="$black" />
         </Button>
-        <Button flexDirection="row" justifyContent="space-between" mt={10} bgColor="transparent" borderWidth={1} borderColor="lightgray">
+        <Button 
+          flexDirection="row" 
+          justifyContent="space-between" 
+          mt={10} 
+          bgColor="transparent" 
+          borderWidth={1} 
+          borderColor="lightgray"
+          onPress={() => handleAddToFavorites(rowData, index)}
+        >
           <View flexDirection="row">
             <ButtonIcon as={ Heart } color="$black" mr={8} />
             <ButtonText color="$black">Favoritar Local</ButtonText>

@@ -408,7 +408,7 @@ export function GenerateItineraryMenu(){
           alignSelf="center"
           w="95%"
           minHeight={50}
-          onPress={ () => {} }
+          onPress={ () => navigation.navigate("FavoritePlaces") }
           mt={20}
         >
           <View flexDirection="row" alignItems="center">
