@@ -116,7 +116,7 @@ export function Home() {
       const { latitude, longitude } = location.coords;
 
       const response = await fetch(
-        `http://https://guiaturisticoeztripai.vercel.app/api/googlePlacesApi?latitude=${latitude}&longitude=${longitude}`,
+        `https://guiaturisticoeztripai.vercel.app/api/googlePlacesApi?latitude=${latitude}&longitude=${longitude}`,
         {
           method: 'GET',
           headers: {

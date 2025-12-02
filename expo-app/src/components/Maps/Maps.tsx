@@ -59,7 +59,7 @@ export const Maps = forwardRef<MapView, MapsProps>((props, ref) => {
 
       try {
         const response = await fetch(
-          `http://https://guiaturisticoeztripai.vercel.app/api/googlePlacesApi?latitude=${location.coords.latitude}&longitude=${location.coords.longitude}`
+          `https://guiaturisticoeztripai.vercel.app/api/googlePlacesApi?latitude=${location.coords.latitude}&longitude=${location.coords.longitude}`
         );
 
         if (!response.ok) {

@@ -4,15 +4,6 @@ Helpers para acessar os endpoints do backend que intermediam chamadas à OpenAI.
 
 Este arquivo documenta a API cliente localizada em `src/utils/gptRequests.ts` e traz exemplos, recomendações de uso e tratamento de erros.
 
-## Endpoints
-
-Observação: havia URLs com o prefixo duplicado (`http://https://...`). Use sempre URLs válidas. Exemplo correto do endpoint (exemplo):
-
-- `https://guiaturisticoeztripai.vercel.app/api/generateItinerary`
-- `https://guiaturisticoeztripai.vercel.app/api/justchat`
-
-No desenvolvimento local é comum apontar para `http://localhost:3000` ou para o host definido em `src/config.ts` (variável `API_URL`). Sempre prefira usar `API_URL` centralizado em `src/config.ts` para evitar hardcodes.
-
 ## API (assinaturas)
 
 - `generateItinerary(prompt: string): Promise<string>`

@@ -1,1 +1,1 @@
-export const API_URL = "http://https://guiaturisticoeztripai.vercel.app/api";
+export const API_URL = "https://guiaturisticoeztripai.vercel.app/api";

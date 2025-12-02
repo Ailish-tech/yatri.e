@@ -41,7 +41,7 @@ export function ItineraryVisaCheck(){
       try{
         const originCode = getCountryCode(itineraryData.originCountry);
         setLastCheckedCountryCode(currentCountry);
-        const response = await fetch(`http://https://guiaturisticoeztripai.vercel.app/api/passportVisa?origin=${originCode}&destination=${currentCountry}`);
+        const response = await fetch(`https://guiaturisticoeztripai.vercel.app/api/passportVisa?origin=${originCode}&destination=${currentCountry}`);
 
         if(!response.ok){
           throw new Error("Failed to fetch Visa Information");
