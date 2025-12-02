@@ -275,7 +275,7 @@ export function GenerateItineraryMenu(){
     
     const getUserTripsData = async () => {
       try {
-        //await AsyncStorage.clear();
+        //PARA HARD RESET DOS ITINERÁRIOS PADRÕES: await AsyncStorage.clear();
         const jsonValue = await AsyncStorage.getItem('@eztripai_allUserTripItineraries');
         if (jsonValue) {
           setAllUserItineraries(JSON.parse(jsonValue));

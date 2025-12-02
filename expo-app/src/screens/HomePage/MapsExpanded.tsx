@@ -22,7 +22,8 @@ export function MapsExpanded() {
   const navigation = useNavigation<AuthNavigationProp>();
   const route = useRoute<SlideUpPlacesRouteProp>();
   const { places, isLoading } = route.params;
-  const { location } = useContext(LocationContext);
+  const locationContext = useContext(LocationContext);
+  const location = locationContext?.location || null;
 
   const mapUserPositionRef = useRef<MapView | null>(null);
 

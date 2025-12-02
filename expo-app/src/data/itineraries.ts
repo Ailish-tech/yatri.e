@@ -3,8 +3,8 @@ import { CreatingItinerary } from "../../@types/CreatingItinerary";
 export let userTrips: CreatingItinerary[] = [
   {
     title: "Vive la France (Demo)",
-    dateBegin: new Date("2025-12-01"),
-    dateEnd: new Date("2025-12-06"),
+    dateBegin: new Date("2026-01-20"),
+    dateEnd: new Date("2026-01-26"),
     days: 6,
     continent: "Europe",
     countries: [

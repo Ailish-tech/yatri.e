@@ -116,7 +116,7 @@ export function Home() {
       const { latitude, longitude } = location.coords;
 
       const response = await fetch(
-        `http://SEU-IP-AQUI:3000/api/googlePlacesApi?latitude=${latitude}&longitude=${longitude}`,
+        `http://192.168.1.156:3000/api/googlePlacesApi?latitude=${latitude}&longitude=${longitude}`,
         {
           method: 'GET',
           headers: {
