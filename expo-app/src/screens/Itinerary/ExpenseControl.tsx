@@ -374,7 +374,7 @@ export function ExpenseControl() {
         </View>
       )}
 
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginTop: 20, marginLeft: 15, paddingBottom: 20 }}>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginTop: 20, marginLeft: 15, paddingBottom: 30 }}>
         { categories.map((category) => (
           <TouchableOpacity
             key={category}
