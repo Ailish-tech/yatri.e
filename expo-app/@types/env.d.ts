@@ -5,4 +5,5 @@ declare module "@env" {
   export const WEB_CLIENT_ID: string
   export const ADMOB_ANDROID_APP_ID: string
   export const ADMOB_IOS_APP_ID: string
+  export const DEV_API_URL: string
 }

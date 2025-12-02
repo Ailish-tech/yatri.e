@@ -3,6 +3,8 @@ import { useContext, useEffect, useState } from "react";
 import { KeyboardAvoidingView, Platform, SafeAreaView, StatusBar } from 'react-native';
 import { RouteProp, useNavigation, useRoute } from "@react-navigation/native";
 
+import { API_URL } from '../../config';
+
 // Importação de componentes UI do Gluestack
 import { Text, View, Input, InputField, InputIcon, Pressable, ScrollView, Button, ButtonIcon, AvatarBadge, InputSlot } from "@gluestack-ui/themed";
 
@@ -176,7 +178,7 @@ export function AIChat() {
         return { temperature: "--", condition: "--" };
       }
       const { latitude, longitude } = location.coords;
-      const response = await fetch(`https://guiaturisticoeztripai.vercel.app/api/weather?latitude=${latitude}&longitude=${longitude}`);
+      const response = await fetch(`${API_URL}/weather?latitude=${latitude}&longitude=${longitude}`);
       if (!response.ok) {
         console.error(`Failed to fetch weather data: ${response.status} ${response.statusText}`);
         return { temperature: "--", condition: "--" };

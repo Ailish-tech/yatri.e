@@ -2,6 +2,8 @@ import { useContext, useEffect, useState, useImperativeHandle, forwardRef, useRe
 import MapView, { Marker, Polyline } from "react-native-maps";
 import * as Linking from 'expo-linking';
 
+import { API_URL } from '../../config';
+
 import { View, Text } from "@gluestack-ui/themed";
 
 import { Loading } from "@components/Loading/Loading";
@@ -59,7 +61,7 @@ export const Maps = forwardRef<MapView, MapsProps>((props, ref) => {
 
       try {
         const response = await fetch(
-          `https://guiaturisticoeztripai.vercel.app/api/googlePlacesApi?latitude=${location.coords.latitude}&longitude=${location.coords.longitude}`
+          `${API_URL}/googlePlacesApi?latitude=${location.coords.latitude}&longitude=${location.coords.longitude}`
         );
 
         if (!response.ok) {

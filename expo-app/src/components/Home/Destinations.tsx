@@ -3,6 +3,8 @@ import { StyleSheet, Pressable } from 'react-native';
 
 import { Box, Text, View, HStack, Image } from '@gluestack-ui/themed';
 
+import { API_URL } from '../../config';
+
 import { OpenStatusBadge } from '@components/Badges/OpenStatusBadge';
 import { HighRatingBadge } from '@components/Badges/HighRatingBadge';
 
@@ -28,7 +30,7 @@ export function HomeDestinations({ item, userLocation, currentScreen }: Destinat
   const [isHovered, setIsHovered] = useState(false);
 
   const photoUrl = item.photos?.[0]
-    ? `https://guiaturisticoeztripai.vercel.app/api/googlePhotoProxy?photo_reference=${item.photos[0].photo_reference}`
+    ? `${API_URL}/googlePhotoProxy?photo_reference=${item.photos[0].photo_reference}`
     : null;
 
   const calculateDistance = () => {

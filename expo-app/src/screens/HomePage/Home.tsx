@@ -3,6 +3,8 @@ import { StatusBar, TouchableOpacity, } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { Drawer } from "react-native-drawer-layout";
 
+import { API_URL } from '../../config';
+
 import * as Location from 'expo-location';
 import { GlassView, GlassContainer, isLiquidGlassAvailable } from 'expo-glass-effect';
 
@@ -116,7 +118,7 @@ export function Home() {
       const { latitude, longitude } = location.coords;
 
       const response = await fetch(
-        `https://guiaturisticoeztripai.vercel.app/api/googlePlacesApi?latitude=${latitude}&longitude=${longitude}`,
+        `${API_URL}/googlePlacesApi?latitude=${latitude}&longitude=${longitude}`,
         {
           method: 'GET',
           headers: {
