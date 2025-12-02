@@ -14,7 +14,7 @@ import { useNavigation } from "@react-navigation/native";
 import * as Contacts from 'expo-contacts';
 import { Contact } from "expo-contacts";
 
-import RNDateTimePicker from "@react-native-community/datetimepicker";
+import { Calendar, DateData } from 'react-native-calendars';
 
 import { 
   FormControl,
@@ -56,6 +56,7 @@ export function ItineraryPreferencesModal({ showAlertDialog, setShowAlertDialog 
   const [startDate, setStartDate] = useState<Date>(new Date());
   const [endDate, setEndDate] = useState<Date>(new Date(new Date().getTime() + 24 * 60 * 60 * 1000));
   const [showDatePickers, setShowDatePickers] = useState<boolean>(false);
+  const [activeCalendar, setActiveCalendar] = useState<'start' | 'end' | null>(null);
   const [days, setDays] = useState<number>(1);
   const [originCountry, setOriginCountry] = useState<string>("");
   const [showOriginCountrySelector, setShowOriginCountrySelector] = useState<boolean>(false);
@@ -134,22 +135,28 @@ export function ItineraryPreferencesModal({ showAlertDialog, setShowAlertDialog 
     return diffDays;
   };
 
-  const handleStartDateChange = (event: any, selectedDate?: Date) => {
-    if (selectedDate) {
-      setStartDate(selectedDate);
+  const handleStartDateChange = (day: DateData) => {
+    const selectedDate = new Date(day.year, day.month - 1, day.day);
+    setStartDate(selectedDate);
+    if (selectedDate > endDate) {
+      const newEndDate = new Date(selectedDate.getTime() + 24 * 60 * 60 * 1000);
+      setEndDate(newEndDate);
+      setDays(1);
+    } else {
       const newDays = calculateDays(selectedDate, endDate);
       setDays(newDays);
-      setTimeout(() => setShowDatePickers(false), 300);
     }
+    setActiveCalendar(null);
   };
 
-  const handleEndDateChange = (event: any, selectedDate?: Date) => {
-    if (selectedDate) {
+  const handleEndDateChange = (day: DateData) => {
+    const selectedDate = new Date(day.year, day.month - 1, day.day);
+    if (selectedDate >= startDate) {
       setEndDate(selectedDate);
       const newDays = calculateDays(startDate, selectedDate);
       setDays(newDays);
-      setTimeout(() => setShowDatePickers(false), 300);
     }
+    setActiveCalendar(null);
   };
 
   const incrementDays = () => {
@@ -373,23 +380,91 @@ export function ItineraryPreferencesModal({ showAlertDialog, setShowAlertDialog 
                     <View style={styles.datePickersRow}>
                       <View style={styles.datePickerColumn}>
                         <Text style={styles.datePickerLabel}>Data de Início</Text>
-                        <RNDateTimePicker
-                          mode="date"
-                          value={startDate}
-                          minimumDate={new Date()}
-                          maximumDate={new Date(2030, 11, 31)}
-                          onChange={handleStartDateChange}
-                        />
+                        <TouchableOpacity
+                          onPress={() => setActiveCalendar(activeCalendar === 'start' ? null : 'start')}
+                          style={{
+                            backgroundColor: '#F8F8F8',
+                            padding: 12,
+                            borderRadius: 10,
+                            borderWidth: 1,
+                            borderColor: activeCalendar === 'start' ? '#2752B7' : '#E5E5E5',
+                            marginBottom: 10
+                          }}
+                        >
+                          <Text style={{ color: '#000', fontSize: 14 }}>
+                            {formatDate(startDate)}
+                          </Text>
+                        </TouchableOpacity>
+                        {activeCalendar === 'start' && (
+                          <Calendar
+                            current={startDate.toISOString().split('T')[0]}
+                            onDayPress={handleStartDateChange}
+                            minDate={new Date().toISOString().split('T')[0]}
+                            maxDate={new Date(2030, 11, 31).toISOString().split('T')[0]}
+                            markedDates={{
+                              [startDate.toISOString().split('T')[0]]: { selected: true, selectedColor: '#2752B7' }
+                            }}
+                            theme={{
+                              backgroundColor: '#F8F8F8',
+                              calendarBackground: '#F8F8F8',
+                              textSectionTitleColor: '#2752B7',
+                              selectedDayBackgroundColor: '#2752B7',
+                              selectedDayTextColor: '#ffffff',
+                              todayTextColor: '#2752B7',
+                              dayTextColor: '#2d4150',
+                              textDisabledColor: '#d9e1e8',
+                              monthTextColor: '#2752B7',
+                              textMonthFontWeight: 'bold',
+                              textDayFontSize: 14,
+                              textMonthFontSize: 16,
+                              textDayHeaderFontSize: 12
+                            }}
+                          />
+                        )}
                       </View>
                       <View style={styles.datePickerColumn}>
                         <Text style={styles.datePickerLabel}>Data de Fim</Text>
-                        <RNDateTimePicker
-                          mode="date"
-                          value={endDate}
-                          minimumDate={startDate}
-                          maximumDate={new Date(2030, 11, 31)}
-                          onChange={handleEndDateChange}
-                        />
+                        <TouchableOpacity
+                          onPress={() => setActiveCalendar(activeCalendar === 'end' ? null : 'end')}
+                          style={{
+                            backgroundColor: '#F8F8F8',
+                            padding: 12,
+                            borderRadius: 10,
+                            borderWidth: 1,
+                            borderColor: activeCalendar === 'end' ? '#2752B7' : '#E5E5E5',
+                            marginBottom: 10
+                          }}
+                        >
+                          <Text style={{ color: '#000', fontSize: 14 }}>
+                            {formatDate(endDate)}
+                          </Text>
+                        </TouchableOpacity>
+                        {activeCalendar === 'end' && (
+                          <Calendar
+                            current={endDate.toISOString().split('T')[0]}
+                            onDayPress={handleEndDateChange}
+                            minDate={startDate.toISOString().split('T')[0]}
+                            maxDate={new Date(2030, 11, 31).toISOString().split('T')[0]}
+                            markedDates={{
+                              [endDate.toISOString().split('T')[0]]: { selected: true, selectedColor: '#2752B7' }
+                            }}
+                            theme={{
+                              backgroundColor: '#F8F8F8',
+                              calendarBackground: '#F8F8F8',
+                              textSectionTitleColor: '#2752B7',
+                              selectedDayBackgroundColor: '#2752B7',
+                              selectedDayTextColor: '#ffffff',
+                              todayTextColor: '#2752B7',
+                              dayTextColor: '#2d4150',
+                              textDisabledColor: '#d9e1e8',
+                              monthTextColor: '#2752B7',
+                              textMonthFontWeight: 'bold',
+                              textDayFontSize: 14,
+                              textMonthFontSize: 16,
+                              textDayHeaderFontSize: 12
+                            }}
+                          />
+                        )}
                       </View>
                     </View>
                   </View>

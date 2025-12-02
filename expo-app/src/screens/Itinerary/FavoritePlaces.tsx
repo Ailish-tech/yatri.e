@@ -1,15 +1,18 @@
 import { useState, useCallback } from "react";
 import { SafeAreaView, StatusBar, Image as RNImage, TouchableOpacity, Alert } from "react-native";
 import { useNavigation, useFocusEffect } from "@react-navigation/native";
+
 import { ScrollView, Text, View, Spinner } from "@gluestack-ui/themed";
-import { ArrowLeft, Trash2, MapPin, Calendar, Heart } from "lucide-react-native";
 
 import { IconButton } from "@components/Buttons/IconButton";
+
 import { AuthNavigationProp } from "@routes/auth.routes";
 
 import { useFavoritePlaces } from "../../hooks/useFavoritePlaces";
 
 import DefaultImage from '@assets/adaptive-icon.png';
+
+import { ArrowLeft, Trash2, MapPin, Calendar, Heart } from "lucide-react-native";
 
 export function FavoritePlaces() {
   const navigation = useNavigation<AuthNavigationProp>();

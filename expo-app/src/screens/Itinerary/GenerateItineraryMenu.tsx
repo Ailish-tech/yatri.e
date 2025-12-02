@@ -38,8 +38,9 @@ import { CreatingItinerary } from "../../../@types/CreatingItinerary";
 
 import DefaultImage from '@assets/adaptive-icon.png';
 
-import { ArrowLeft, ChevronRight, Coins, Crown, Heart, Plus } from "lucide-react-native";
 import { utilsGetSelectedTags } from "@utils/selectedTagsStore";
+
+import { ArrowLeft, ChevronRight, Coins, Crown, Heart, Plus } from "lucide-react-native";
 
 type MenuItineraryTypes = {
   dialog: boolean,
@@ -433,7 +434,7 @@ export function GenerateItineraryMenu(){
           alignSelf="center"
           w="95%"
           minHeight={50}
-          onPress={ () => {} }
+          onPress={ () => navigation.navigate("ExpenseControl") }
           mt={10}
         >
           <View flexDirection="row" alignItems="center">

@@ -20,8 +20,11 @@ import Timeline from 'react-native-timeline-flatlist';
 
 import { ItineraryCategoriesDefine } from "@components/Itinerary/ItineraryCategoriesDefine";
 import { ItinerarySliderDateShow } from "@components/Itinerary/ItinerarySliderDateShow";
+import { AddExpenseModal } from "@components/Modals/AddExpenseModal";
+import { ExpenseAddedModal } from "@components/Modals/ExpenseAddedModal";
 
 import { useFavoritePlaces } from "../../hooks/useFavoritePlaces";
+import { useExpenseControl } from "../../hooks/useExpenseControl";
 
 import { AuthNavigationProp } from "@routes/auth.routes";
 
@@ -74,11 +77,16 @@ export function SlideUpItinerary({ isLoading, hideBackButton, setFirstLatitude, 
   } = route.params.itineraryData;
 
   const { addFavoritePlace, isFavorite } = useFavoritePlaces();
+  const { addExpense } = useExpenseControl();
 
   const [allTripDays, setAllTripDays] = useState<CalendarDaysTypes[]>([]);
   const [selectedDayIndex, setSelectedDayIndex] = useState<number>(0);
   const [isEditing, setIsEditing] = useState<boolean>(false);
   const [showCategories, setShowCategories] = useState<boolean>(false);
+  const [showExpenseModal, setShowExpenseModal] = useState<boolean>(false);
+  const [showExpenseAddedModal, setShowExpenseAddedModal] = useState<boolean>(false);
+  const [lastAddedExpense, setLastAddedExpense] = useState<{ title: string; amount: number } | null>(null);
+  const [currentExpenseContext, setCurrentExpenseContext] = useState<{ title: string, description: string, date: string, location: string } | null>(null);
   const [editingTimelineIndex, setEditingTimelineIndex] = useState<number | null>(null);
   const [itineraryState, setItineraryState] = useState<DayItineraryTypes[]>(Array.isArray(itinerary) ? itinerary : []);
 
@@ -264,6 +272,44 @@ export function SlideUpItinerary({ isLoading, hideBackButton, setFirstLatitude, 
         [{ text: "OK" }]
       );
     }
+  };
+
+  const handleOpenExpenseModal = (rowData: TimelineItemTypes, index: number) => {
+    const currentDay = itineraryState[selectedDayIndex];
+    
+    if (!currentDay) return;
+
+    setCurrentExpenseContext({
+      title: rowData.title,
+      description: rowData.description,
+      date: currentDay.date,
+      location: currentDay.location
+    });
+    setShowExpenseModal(true);
+  };
+
+  const handleAddExpense = async (expense: { title: string; amount: number; category: any; description: string; date: string }) => {
+    if (!currentExpenseContext) return;
+
+    const expenseId = `${title}-${Date.now()}`;
+
+    await addExpense({
+      id: expenseId,
+      title: expense.title,
+      amount: expense.amount,
+      category: expense.category,
+      description: expense.description,
+      date: expense.date,
+      itineraryTitle: title,
+      activityTitle: currentExpenseContext.title,
+      location: currentExpenseContext.location,
+      createdAt: new Date().toISOString()
+    });
+
+    setShowExpenseModal(false);
+    setCurrentExpenseContext(null);
+    setLastAddedExpense({ title: expense.title, amount: expense.amount });
+    setShowExpenseAddedModal(true);
   };
 
   const getCategoryIcon = (category: string) => {
@@ -476,7 +522,15 @@ export function SlideUpItinerary({ isLoading, hideBackButton, setFirstLatitude, 
           </View>
           <ButtonIcon as={ ChevronRight } color="$black" />
         </Button>
-        <Button flexDirection="row" justifyContent="space-between" mt={10} bgColor="transparent" borderWidth={1} borderColor="lightgray">
+        <Button
+          flexDirection="row"
+          justifyContent="space-between"
+          mt={10}
+          bgColor="transparent"
+          borderWidth={1}
+          borderColor="lightgray"
+          onPress={() => handleOpenExpenseModal(rowData, index)}
+        >
           <View flexDirection="row">
             <ButtonIcon as={ HandCoins } color="$black" mr={8} />
             <ButtonText color="$black">Adicionar Custos</ButtonText>
@@ -716,6 +770,31 @@ export function SlideUpItinerary({ isLoading, hideBackButton, setFirstLatitude, 
           showModal={ showCategories }
           setShowModal={ () => setShowCategories(false) }
           onSelectCategory={ handleSelectCategory }
+        />
+
+        <AddExpenseModal
+          visible={showExpenseModal}
+          onClose={() => {
+            setShowExpenseModal(false);
+            setCurrentExpenseContext(null);
+          }}
+          onAdd={handleAddExpense}
+          defaultTitle={currentExpenseContext?.title || ""}
+          defaultDescription={currentExpenseContext?.description || ""}
+          defaultDate={currentExpenseContext?.date || ""}
+          defaultLocation={currentExpenseContext?.location || ""}
+          itineraryTitle={title}
+        />
+
+        <ExpenseAddedModal
+          visible={showExpenseAddedModal}
+          onClose={() => setShowExpenseAddedModal(false)}
+          onViewExpenses={() => {
+            setShowExpenseAddedModal(false);
+            navigation.navigate("ExpenseControl");
+          }}
+          expenseTitle={lastAddedExpense?.title || ""}
+          expenseAmount={lastAddedExpense?.amount || 0}
         />
       </Animated.View>
     </GestureDetector>

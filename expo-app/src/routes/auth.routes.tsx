@@ -10,6 +10,7 @@ import { GenerateItineraryFeaturesIntroduction } from "@screens/Itinerary/Genera
 import { GenerateItineraryPreferences } from "@screens/Itinerary/GenerateItineraryPreferences";
 import { ItineraryMapMenu } from "@screens/Itinerary/ItineraryMapMenu";
 import { FavoritePlaces } from "@screens/Itinerary/FavoritePlaces";
+import { ExpenseControl } from "@screens/Itinerary/ExpenseControl";
 import { AIChat } from "@screens/AIChat/AIChat";
 import { AIVoiceChat } from "@screens/AIChat/AIVoiceChat";
 import { AIMascotIntroduction } from "@screens/AIChat/AIMascotIntroduction";
@@ -40,6 +41,7 @@ type AuthStackParamList = {
   CancelPremiumPlan: undefined,
   DestinationDetail: { destinationId: number },
   EditProfile: undefined,
+  ExpenseControl: undefined,
   FavoritePlaces: undefined,
   GenerateItineraryFeaturesIntroduction: undefined,
   GenerateItineraryMenu: undefined,
@@ -178,6 +180,11 @@ export function AuthRoute() {
       <Stack.Screen 
         name="FavoritePlaces" 
         component={ FavoritePlaces } 
+        options={{ animation: 'none' }}
+      />
+      <Stack.Screen 
+        name="ExpenseControl" 
+        component={ ExpenseControl } 
         options={{ animation: 'none' }}
       />
       <Stack.Screen 
