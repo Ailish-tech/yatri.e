@@ -335,7 +335,8 @@ export function ItineraryPreferencesModal({ showAlertDialog, setShowAlertDialog 
                     acconpanying: acconpanyingType!,
                     tripStyle,
                     locomotionMethod,
-                    specialWish
+                    specialWish,
+                    isSurpriseMode: true
                   });
                 }}
               >

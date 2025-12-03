@@ -29,6 +29,7 @@ import { VisaModelTypes } from "./VisaModelTypes";
  * @property status - Status of the itinerary ("Planejado", "Rascunho", or "Passado").
  * @property coverImage - Optional cover image URI for the itinerary.
  * @property isNew - Optional flag to indicate if this is a newly created itinerary.
+ * @property isSurpriseMode - Optional flag to indicate if this is a surprise mode itinerary (skips visa check).
  */
 export type CreatingItinerary = {
   title: string, 
@@ -54,5 +55,6 @@ export type CreatingItinerary = {
   images?: Object,
   status?: "Planejado" | "Rascunho" | "Passado",
   coverImage?: string,
-  isNew?: boolean
+  isNew?: boolean,
+  isSurpriseMode?: boolean
 }
