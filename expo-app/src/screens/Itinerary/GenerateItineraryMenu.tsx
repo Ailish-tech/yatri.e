@@ -29,11 +29,11 @@ import { UnlockProgressModal } from "@components/Itinerary/UnlockProgressModal";
 import { ItinerariesError } from "@components/Errors/ItinerariesError";
 import { PastItinerariesError } from "@components/Errors/PastItinerariesError";
 import { IconButton } from "@components/Buttons/IconButton";
-import { SimulatedAd } from "@components/SimulatedAd";
 import { ChooseGenerateStyle } from "@components/Itinerary/ChooseGenerateStyle";
 import { ItineraryPreferencesModal } from "@components/Itinerary/ItineraryPreferencesModal";
 import { ItineraryCard } from "@components/Cards/ItineraryCard";
 import { ItineraryActionsDialog } from "@components/Dialogs/ItineraryActionsDialog";
+// REIMPORT CASO SEJA NECESSÁRIO PARA TESTES: import { SimulatedAd } from "@components/SimulatedAd";
 
 import { userTrips } from "@data/itineraries";
 
@@ -59,7 +59,6 @@ export function GenerateItineraryMenu(){
   const [selectedFilter, setSelectedFilter] = useState<MenuItineraryTypes["filters"]>("Planejados");
   const [adLoaded, setAdLoaded] = useState<boolean>(false);
   const [disableAdIsLoading, setDisableAdIsLoading] = useState<boolean>(false);
-  const [showAdImage, setShowAdImage] = useState<boolean>(false);
   const [showAdProgressModal, setShowAdProgressModal] = useState<boolean>(false);
   const [watchedAdsCount, setWatchedAdsCount] = useState<number>(0);
   const [isAdPlaying, setIsAdPlaying] = useState<boolean>(false);
@@ -78,9 +77,9 @@ export function GenerateItineraryMenu(){
   // Configuração do AdMob
   const getCorrectIdForPlatform = () => {
     if(Platform.OS === "android"){
-      return process.env.ADMOB_ANDROID_APP_ID;
+      return process.env.EXPO_PUBLIC_ADMOB_ANDROID_APP_ID;
     }
-    return process.env.ADMOB_IOS_APP_ID;
+    return process.env.EXPO_PUBLIC_ADMOB_IOS_APP_ID;
   }
 
   const loadNewAd = () => {
@@ -176,29 +175,25 @@ export function GenerateItineraryMenu(){
 
   const handleContinueAfterAd = () => {
     if (watchedAdsCount < totalAdsRequired) {
-      if (isExpoGo || !RewardedAd || !rewardedRef.current) {
-        setShowAdImage(true);
-        setShowAdProgressModal(false);
-        setDisableAdIsLoading(false);
-        setWatchedAdsCount(prev => prev + 1);
-        return;
-      } else {
+      if (adLoaded && rewardedRef.current && !isExpoGo) {
+        // Tentar mostrar anúncio real
         setDisableAdIsLoading(true);
-        if (adLoaded && rewardedRef.current) {
-          try {
-            setIsAdPlaying(true);
-            setShowAdProgressModal(false);
-            rewardedRef.current.show();
-          } catch (error) {
-            console.log('Error showing ad:', error);
-            setAdLoaded(false);
-            setDisableAdIsLoading(false);
-            setIsAdPlaying(false);
-            setShowAdProgressModal(true);
-          }
-        } else {
+        try {
+          setIsAdPlaying(true);
+          setShowAdProgressModal(false);
+          rewardedRef.current.show();
+        } catch (error) {
+          console.log('Error showing ad:', error);
+          setAdLoaded(false);
           setDisableAdIsLoading(false);
+          setIsAdPlaying(false);
+          setShowAdProgressModal(true);
         }
+      } else {
+        // Fallback: simular visualização de anúncio (para desenvolvimento ou quando anúncio não carrega)
+        console.log('Ad not available, simulating ad view');
+        setWatchedAdsCount(prev => prev + 1);
+        setDisableAdIsLoading(false);
       }
     } else {
       setShowAdProgressModal(false);
@@ -211,13 +206,6 @@ export function GenerateItineraryMenu(){
     setShowAdProgressModal(false);
     setDisableAdIsLoading(false);
     navigation.navigate("PremiumPlans");
-  };
-
-  const handleCloseAdImage = () => {
-    setShowAdImage(false);
-    setDisableAdIsLoading(false);
-    setIsAdPlaying(false);
-    setShowAdProgressModal(true);
   };
 
   const handleCloseChooseGenerateModal = () => {
@@ -341,10 +329,10 @@ export function GenerateItineraryMenu(){
   }, []);
 
   useEffect(() => {
-    if (!showAdProgressModal && !showAdImage && !showAlertDialog && !isAdPlaying) {
+    if (!showAdProgressModal && !showAlertDialog && !isAdPlaying) {
       setDisableAdIsLoading(false);
     }
-  }, [showAdProgressModal, showAdImage, showAlertDialog, isAdPlaying]);
+  }, [showAdProgressModal, showAlertDialog, isAdPlaying]);
 
   useEffect(() => {
     const ifEmptyRestoreDefaultUserTripData = async (value: Object) => {
@@ -779,11 +767,6 @@ export function GenerateItineraryMenu(){
         onUpgradeToPremium={ handleUpgradeToPremium }
         watchedAds={ watchedAdsCount }
         totalAds={ totalAdsRequired }
-      />
-
-      <SimulatedAd 
-        showAdImage={ showAdImage }
-        handleCloseAdImage={ handleCloseAdImage }
       />
 
       {selectedItineraryIndex !== null && (
