@@ -106,7 +106,7 @@ export class ResponseCache {
       }
     }
     
-    console.log(`Cache miss: "${query}"`);
+    // DEBUG: console.log(`Cache miss: "${query}"`);
     return null;
   }
 

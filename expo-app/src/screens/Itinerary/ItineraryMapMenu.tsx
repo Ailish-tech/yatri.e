@@ -1,8 +1,10 @@
 import { useEffect, useRef, useState } from "react";
-import { SafeAreaView, StatusBar, StyleSheet, Image } from "react-native";
+import { SafeAreaView, StatusBar, StyleSheet, Image, Alert } from "react-native";
 import { RouteProp, useNavigation, useRoute } from "@react-navigation/native";
 import MapView from "react-native-maps";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+
+import Constants from 'expo-constants';
 
 import { Button, ButtonText, View, Text, ButtonIcon, ScrollView } from "@gluestack-ui/themed";
 
@@ -30,6 +32,20 @@ import { Bed, ChevronLeft, Compass, FileDown, Globe, Landmark, Palette, PartyPop
 
 import { exportItineraryToPDF } from './html/printExportItinerary';
 
+let RewardedAd: any, RewardedAdEventType: any, TestIds: any;
+const isExpoGo = Constants.appOwnership === 'expo';
+
+if (!isExpoGo) {
+  try {
+    const admobModule = require('react-native-google-mobile-ads');
+    RewardedAd = admobModule.RewardedAd;
+    RewardedAdEventType = admobModule.RewardedAdEventType;
+    TestIds = admobModule.TestIds;
+  } catch (error) {
+    console.log('AdMob module not available:', error);
+  }
+}
+
 type ShowMapStatsInformationType = {
   show: "Map" | "Stats"
 }
@@ -50,6 +66,7 @@ export function ItineraryMapMenu() {
   const [imageBackground, setImageBackground] = useState<string>("");
   const [openSaveDialog, setOpenSaveDialog] = useState<boolean>(false);
   const [isNewItinerary, setIsNewItinerary] = useState<boolean>(false);
+  const [adLoaded, setAdLoaded] = useState<boolean>(false);
   const [categoriesCounter, setCategoriesCounter] = useState<CategoriesCounterTypes>({
     touristAttractions: 0,
     restaurant: 0,
@@ -69,9 +86,50 @@ export function ItineraryMapMenu() {
   const addNotification = useNotificationStore(state => state.addNotification);
 
   const mapUserPositionRef = useRef<MapView | null>(null);
+  const rewardedRef = useRef<any>(null);
 
   const ITINERARY_STORAGE_KEY = '@eztripai_allUserTripItineraries';
   const BACKGROUND_STORAGE_KEY = '@eztripai_statsBackground';
+
+  const getCorrectIdForPlatform = () => {
+    const Platform = require('react-native').Platform;
+    if(Platform.OS === "android"){
+      return process.env.EXPO_PUBLIC_ADMOB_ANDROID_APP_ID;
+    }
+    return process.env.EXPO_PUBLIC_ADMOB_IOS_APP_ID;
+  };
+
+  const loadAd = () => {
+    if (isExpoGo || !RewardedAd || !RewardedAdEventType || !TestIds) {
+      setAdLoaded(true);
+      return;
+    }
+
+    try {
+      const adUnitId = __DEV__ ? TestIds.REWARDED : getCorrectIdForPlatform();
+      const newRewarded = RewardedAd.createForAdRequest(adUnitId, {
+        keywords: ['travel', 'tourism', 'vacation'],
+      });
+
+      rewardedRef.current = newRewarded;
+
+      const unsubscribeLoaded = newRewarded.addAdEventListener(
+        RewardedAdEventType.LOADED,
+        () => {
+          setAdLoaded(true);
+        },
+      );
+
+      newRewarded.load();
+
+      return () => {
+        unsubscribeLoaded();
+      };
+    } catch (error) {
+      console.log('Error loading ad:', error);
+      setAdLoaded(true);
+    }
+  };
 
   // Detectar se é um roteiro novo ou já existente
   useEffect(() => {
@@ -211,6 +269,11 @@ export function ItineraryMapMenu() {
     };
 
     loadSavedBackground();
+  }, []);
+
+  // Carregar anúncio ao montar o componente
+  useEffect(() => {
+    loadAd();
   }, []);
 
   // Aplicando filtros aos dados recebidos
@@ -594,8 +657,8 @@ export function ItineraryMapMenu() {
     }
   };
 
-  // Função para exportar itinerário
-  const handleExportItinerary = async () => {
+  // Função auxiliar para realizar a exportação
+  const performExport = async () => {
     if (isExporting || !itinerary || itinerary.length === 0) {
       return;
     }
@@ -617,6 +680,42 @@ export function ItineraryMapMenu() {
       console.error('Erro ao exportar itinerário:', error);
     } finally {
       setIsExporting(false);
+    }
+  };
+
+  // Função para exportar itinerário com anúncio
+  const handleExportItinerary = () => {
+    if (adLoaded && rewardedRef.current && !isExpoGo) {
+      try {
+        rewardedRef.current.show();
+        const unsubscribeEarned = rewardedRef.current.addAdEventListener(
+          RewardedAdEventType.EARNED_REWARD,
+          () => {
+            performExport();
+          }
+        );
+        return () => unsubscribeEarned();
+      } catch (error) {
+        console.log('Error showing ad:', error);
+        performExport();
+      }
+    } else {
+      if (isExpoGo) {
+        Alert.alert(
+          'Anúncio Simulado',
+          'No ExpoGo, os anúncios são simulados. Em uma build de produção, um anúncio real seria exibido aqui.',
+          [
+            {
+              text: 'OK',
+              onPress: () => {
+                performExport();
+              }
+            }
+          ]
+        );
+      } else {
+        performExport();
+      }
     }
   };
 

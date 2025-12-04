@@ -408,7 +408,7 @@ export function GenerateItineraryMenu(){
           />
         </View>
 
-        <Text color='#2752B7' ml={25} mt={20} fontSize="$3xl" fontWeight="$bold">Itinerários</Text>
+        <Text color='#2752B7' ml={25} mt={20} fontSize="$3xl" fontWeight="$bold">Itinerários de Viagem</Text>
 
         {(() => {
           const latestItinerary = getLatestValidItinerary();
