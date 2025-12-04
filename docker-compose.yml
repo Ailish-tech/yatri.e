@@ -8,6 +8,7 @@ services:
       - '3000:3000'
     environment:
       - NODE_ENV=development
+      - GOOGLE_PLACES_API_KEY=AIzaSyA_GPmsbUvJr2n_CnYNL9m-cldKYgq1_1w
     env_file:
       - ./nextjs-api/.env.local
     volumes:

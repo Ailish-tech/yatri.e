@@ -45,8 +45,6 @@ import { ProvideUserNetInfo } from '@contexts/NetInfo';
 
 import { Routes } from '@routes/index';
 
-import { appPreloader } from '@services/AppPreloader';
-
 SplashScreen.preventAutoHideAsync();
 
 SplashScreen.setOptions({
@@ -77,16 +75,6 @@ export default function App() {
       try {
         setLoadingMessage("Carregando textos...");
         if (!fontsLoaded) return;
-
-        setLoadingMessage("Verificando conexão à internet...");
-        const isApiAvailable = await appPreloader.checkApiAvailability();
-        
-        if (isApiAvailable) {
-          setLoadingMessage("Verificando nossos serviços...");
-          await appPreloader.preloadCriticalResources();
-        } else {
-          setLoadingMessage("Modo offline detectado...");
-        }
 
         setLoadingMessage("Personalizando anúncios para você...");
         

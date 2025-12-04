@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { StatusBar, TouchableOpacity, } from "react-native";
+import { StatusBar, TouchableOpacity, ActivityIndicator } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { Drawer } from "react-native-drawer-layout";
 
@@ -46,6 +46,108 @@ const destinations = destinationsData
 
 const recommended = destinations.slice(0, 5);
 const popular = destinations.slice(5, 10);
+
+// Componente para Card de Lugar com Loading e Fallback
+const PlaceCard = ({ item }: { item: any }) => {
+  // Se não tem foto (placeholder), usar ícone diretamente sem loading
+  const hasNoPhoto = item.img.uri.includes('placeholder') || item.img.uri.includes('Sem+Foto');
+  const initialUri = hasNoPhoto && item.iconFallback ? item.iconFallback : item.img.uri;
+  const isIconFallback = hasNoPhoto && item.iconFallback;
+  
+  const [imageLoading, setImageLoading] = useState(!hasNoPhoto);
+  const [imageError, setImageError] = useState(false);
+  const [currentImageUri, setCurrentImageUri] = useState(initialUri);
+  const [usingIcon, setUsingIcon] = useState(isIconFallback);
+
+  useEffect(() => {
+    const noPhoto = item.img.uri.includes('placeholder') || item.img.uri.includes('Sem+Foto');
+    const uri = noPhoto && item.iconFallback ? item.iconFallback : item.img.uri;
+    const isIcon = noPhoto && item.iconFallback;
+    
+    setImageLoading(!noPhoto);
+    setImageError(false);
+    setCurrentImageUri(uri);
+    setUsingIcon(isIcon);
+  }, [item.img.uri, item.iconFallback]);
+
+  const handleImageError = () => {
+    // DEBUG: console.log(`Erro ao carregar imagem de ${item.name}, usando ícone como fallback`);
+    setImageError(true);
+    setImageLoading(false);
+    
+    // Usar o ícone como fallback se disponível
+    if (item.iconFallback) {
+      setCurrentImageUri(item.iconFallback);
+      setUsingIcon(true);
+    }
+  };
+
+  return (
+    <Box
+      w={160}
+      h={230}
+      borderRadius="$2xl"
+      overflow="hidden"
+      bg="#f0f0f0"
+      shadowColor="#000"
+      shadowOpacity={0.1}
+      shadowRadius={6}
+      mr="$3"
+    >
+      <Image
+        source={{ uri: currentImageUri }}
+        style={{ 
+          width: "100%", 
+          height: "100%",
+          padding: usingIcon ? 30 : 0,
+        }}
+        resizeMode={usingIcon ? "contain" : "cover"}
+        alt={`Imagem de ${item.name}`}
+        onLoadStart={() => setImageLoading(true)}
+        onLoadEnd={() => setImageLoading(false)}
+        onError={handleImageError}
+      />
+      
+      {imageLoading && (
+        <Box
+          position="absolute"
+          top={0}
+          left={0}
+          right={0}
+          bottom={0}
+          justifyContent="center"
+          alignItems="center"
+          bg="rgba(0,0,0,0.3)"
+        >
+          <ActivityIndicator size="large" color="#fff" />
+        </Box>
+      )}
+      
+      <Box
+        position="absolute"
+        bottom={0}
+        w="100%"
+        minHeight={45}
+        px="$2"
+        py="$2"
+        bg="rgba(0,0,0,0.7)"
+        alignItems="center"
+        justifyContent="center"
+      >
+        <Text 
+          color="#fff" 
+          bold 
+          fontSize="$sm"
+          textAlign="center"
+          numberOfLines={2}
+          ellipsizeMode="tail"
+        >
+          {item.name}
+        </Text>
+      </Box>
+    </Box>
+  );
+};
 
 export function Home() {
   const navigation = useNavigation<AuthNavigationProp>();
@@ -101,6 +203,23 @@ export function Home() {
     navigation.navigate('DestinationDetail', { destinationId });
   };
 
+  const handleViewMap = () => {
+    // Navega para o mapa passando os lugares já carregados
+    // Converter o formato para o esperado pelo componente Maps
+    const placesForMap = nearbyPlaces.map(place => ({
+      id: place.id,
+      name: place.name,
+      vicinity: place.vicinity || '',
+      rating: place.rating,
+      geometry: place.geometry,
+      opening_hours: place.opening_hours,
+      open_now: place.opening_hours?.open_now || false,
+      photos: place.img?.uri ? [{ photo_url: place.img.uri }] : []
+    }));
+    
+    navigation.navigate('MapsExpanded', { places: placesForMap, loading: false });
+  };
+
   const fetchNearbyPlaces = async () => {
     try {
       setLoadingNearby(true);
@@ -129,18 +248,39 @@ export function Home() {
 
       if (response.ok) {
         const data = await response.json();
+        // DEBUG: console.log('Dados recebidos da API:', data.results?.length || 0, 'lugares');
+        
         if (data.results && data.results.length > 0) {
-          const formattedPlaces = data.results.map((place: any, index: number) => ({
-            id: `nearby-${index}`,
-            name: place.name,
-            img: { uri: place.photo || 'https://via.placeholder.com/160x230' },
-            rating: place.rating || 0,
-          }));
+          const formattedPlaces = data.results.slice(0, 10).map((place: any, index: number) => {
+            // Obter URL da foto real do Google Places
+            let photoUrl = 'https://via.placeholder.com/160x230?text=Sem+Foto';
+            
+            if (place.photos && place.photos.length > 0 && place.photos[0].photo_url) {
+              photoUrl = place.photos[0].photo_url;
+              // DEBUG: console.log(`Lugar ${place.name} - URL da foto:`, photoUrl.substring(0, 80));
+            } else {
+              // DEBUG: console.log(`Lugar ${place.name} - SEM FOTO`);
+            }
+            
+            return {
+              id: `nearby-${index}`,
+              name: place.name,
+              img: { uri: photoUrl },
+              iconFallback: place.icon || null,
+              rating: place.rating || 0,
+              vicinity: place.vicinity || '',
+              geometry: place.geometry,
+              opening_hours: place.opening_hours,
+              open_now: place.opening_hours?.open_now || false,
+            };
+          });
           setNearbyPlaces(formattedPlaces);
         } else {
           setNearbyPlaces(popular);
         }
       } else {
+        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+        console.error('Erro na resposta da API:', response.status, errorData);
         setNearbyPlaces(popular);
       }
     } catch (error: any) {
@@ -615,13 +755,13 @@ export function Home() {
               </Text>
               {loadingNearby ? (
                 <Text size="sm" color="#6B7280">Carregando...</Text>
-              ) : (
-                <Pressable mr={12} onPress={() => navigation.navigate('MapsExpanded', { places: nearbyPlaces, loading: false })}>
+              ) : nearbyPlaces.length > 0 ? (
+                <Pressable mr={12} onPress={handleViewMap}>
                   <Text size="sm" color="#0A84FF" fontWeight="$semibold">
                     Ver mapa
                   </Text>
                 </Pressable>
-              )}
+              ) : null}
             </View>
 
             {hasNearbyError ? (
@@ -643,9 +783,20 @@ export function Home() {
                   Encontramos um erro ao buscar os locais próximos a você. Por favor, verifique sua conexão à internet.
                 </Text>
               </View>
-            ) : (
+            ) : loadingNearby ? (
+              <View
+                flexDirection="row"
+                alignItems="center"
+                justifyContent="center"
+                py={40}
+              >
+                <Text size="md" color="#6B7280">
+                  Buscando lugares próximos...
+                </Text>
+              </View>
+            ) : nearbyPlaces.length === 0 ? (
               <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                {nearbyPlaces.map((item, index) => (
+                {popular.map((item, index) => (
                   <Box
                     key={item.id}
                     w={160}
@@ -668,15 +819,31 @@ export function Home() {
                       position="absolute"
                       bottom={0}
                       w="100%"
+                      minHeight={45}
+                      px="$2"
                       py="$2"
-                      bg="rgba(0,0,0,0.4)"
+                      bg="rgba(0,0,0,0.7)"
                       alignItems="center"
+                      justifyContent="center"
                     >
-                      <Text color="#fff" bold>
+                      <Text 
+                        color="#fff" 
+                        bold 
+                        fontSize="$sm"
+                        textAlign="center"
+                        numberOfLines={2}
+                        ellipsizeMode="tail"
+                      >
                         {item.name}
                       </Text>
                     </Box>
                   </Box>
+                ))}
+              </ScrollView>
+            ) : (
+              <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                {nearbyPlaces.map((item) => (
+                  <PlaceCard key={item.id} item={item} />
                 ))}
               </ScrollView>
             )}

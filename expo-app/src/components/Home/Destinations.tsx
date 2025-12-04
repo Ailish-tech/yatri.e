@@ -29,9 +29,18 @@ export function HomeDestinations({ item, userLocation, currentScreen }: Destinat
   const [imageError, setImageError] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
 
-  const photoUrl = item.photos?.[0]
-    ? `${API_URL}/googlePhotoProxy?photo_reference=${item.photos[0].photo_reference}`
-    : null;
+  // Verificar se photos existe e tem photo_reference ou photo_url
+  let photoUrl = null;
+  if (item.photos?.[0]) {
+    // Se tem photo_reference, usar o proxy
+    if (item.photos[0].photo_reference) {
+      photoUrl = `${API_URL}/googlePhotoProxy?photo_reference=${item.photos[0].photo_reference}`;
+    }
+    // Se tem photo_url diretamente (vindo da Home), usar ela
+    else if (item.photos[0].photo_url) {
+      photoUrl = item.photos[0].photo_url;
+    }
+  }
 
   const calculateDistance = () => {
     const toRad = (value: number) => (value * Math.PI) / 180;
@@ -99,7 +108,20 @@ export function HomeDestinations({ item, userLocation, currentScreen }: Destinat
             mr={ currentScreen === "MapsExpanded" ? 10 : 0 }
           />
         ) : (
-          <Default width="100%" height={120} style={{ borderRadius: 10, marginBottom: 20 }} />
+          <View
+            w={ currentScreen === "Home" ? "100%" : "35%" }
+            h={120}
+            borderRadius={10}
+            marginBottom={15}
+            borderWidth={2}
+            borderColor='#2752B7'
+            mr={ currentScreen === "MapsExpanded" ? 10 : 0 }
+            overflow="hidden"
+            justifyContent="center"
+            alignItems="center"
+          >
+            <Default width="100%" height={120} />
+          </View>
         )}
         <View style={ currentScreen === "Home" ? styles.homeStyle : styles.mapsExpandedStyle }>
           <View flexDirection="column">
@@ -121,7 +143,7 @@ export function HomeDestinations({ item, userLocation, currentScreen }: Destinat
                   : ''
               }
             </View>
-            <View flexDirection='row' alignItems="center" justifyContent="center">
+            <View flexDirection='row' alignItems="center">
               {[...Array(5)].map((_, index) => (
                 <Star
                   key={index}

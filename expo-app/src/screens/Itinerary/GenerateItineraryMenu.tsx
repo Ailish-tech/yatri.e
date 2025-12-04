@@ -191,7 +191,7 @@ export function GenerateItineraryMenu(){
         }
       } else {
         // Fallback: simular visualização de anúncio (para desenvolvimento ou quando anúncio não carrega)
-        console.log('Ad not available, simulating ad view');
+        // DEBUG: console.log('Ad not available, simulating ad view');
         setWatchedAdsCount(prev => prev + 1);
         setDisableAdIsLoading(false);
       }

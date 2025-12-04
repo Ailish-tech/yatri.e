@@ -36,7 +36,8 @@ interface PointsPlaces {
 interface MapsProps {
   initialLatitude?: string,
   initialLongitude?: string,
-  itineraryPlaces?: Array<PointsPlaces>
+  itineraryPlaces?: Array<PointsPlaces>,
+  externalPlaces?: Place[]
 }
 
 export const Maps = forwardRef<MapView, MapsProps>((props, ref) => {
@@ -49,10 +50,16 @@ export const Maps = forwardRef<MapView, MapsProps>((props, ref) => {
 
   useImperativeHandle(ref, () => mapUserPositionRef.current as MapView);
   
-  const { initialLatitude, initialLongitude, itineraryPlaces } = props;
+  const { initialLatitude, initialLongitude, itineraryPlaces, externalPlaces } = props;
   const mapUserPositionRef = useRef<MapView | null>(null);
 
   useEffect(() => {
+    // Se recebeu lugares externos, usar eles ao invés de buscar
+    if (externalPlaces && externalPlaces.length > 0) {
+      setPlaces(externalPlaces);
+      return;
+    }
+
     const fetchNearbyPlaces = async () => {
       if (!location) return;
 
@@ -69,7 +76,7 @@ export const Maps = forwardRef<MapView, MapsProps>((props, ref) => {
         }
 
         const data = await response.json();
-        setPlaces(data.places || []);
+        setPlaces(data.results || []);
       } catch (err: any) {
         setError(err.message);
       } finally {
@@ -78,7 +85,7 @@ export const Maps = forwardRef<MapView, MapsProps>((props, ref) => {
     };
 
     fetchNearbyPlaces();
-  }, [location]);
+  }, [location, externalPlaces]);
 
   useEffect(() => {
     if (initialLatitude && initialLongitude) {
@@ -129,8 +136,8 @@ export const Maps = forwardRef<MapView, MapsProps>((props, ref) => {
         initialRegion={{
           latitude: latitude ?? location.coords.latitude,
           longitude: longitude ?? location.coords.longitude,
-          latitudeDelta: 0.0102,
-          longitudeDelta: 0.0021,
+          latitudeDelta: 0.01173,
+          longitudeDelta: 0.002415,
         }}
         showsUserLocation
       >
