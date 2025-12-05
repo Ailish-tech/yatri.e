@@ -15,7 +15,7 @@ import Animated, {
   runOnJS,
 } from 'react-native-reanimated';
 
-import { Box, Spinner, View, Text, Button, ButtonIcon, ButtonText } from "@gluestack-ui/themed";
+import { Box, Spinner, View, Text, Button, ButtonIcon, ButtonText, Icon } from "@gluestack-ui/themed";
 
 import Timeline from 'react-native-timeline-flatlist';
 
@@ -258,6 +258,15 @@ export function SlideUpItinerary({ isLoading, hideBackButton, setFirstLatitude, 
     setEditingTimelineIndex(null);
   };
 
+  // Função para abrir modal de adicionar atividade em dia vazio
+  const handleAddFirstActivity = () => {
+    setEditingTimelineIndex(0);
+    setAddActivityPosition('before');
+    setNewActivityData({ time: '', title: '', description: '', category: '', coordinates: '0.0000,0.0000' });
+    setSelectedCoordinates(null);
+    setShowAddActivityModal(true);
+  };
+
   // Função para abrir modal de adicionar antes
   const handleAddBefore = (index: number) => {
     setEditingTimelineIndex(index);
@@ -331,8 +340,9 @@ export function SlideUpItinerary({ isLoading, hideBackButton, setFirstLatitude, 
       const newState = [...prevState];
       const dayData = newState[selectedDayIndex];
       
-      if (dayData && dayData.timeline) {
-        const newTimeline = [...dayData.timeline];
+      if (dayData) {
+        // Inicializa timeline se estiver vazio ou undefined
+        const newTimeline = dayData.timeline ? [...dayData.timeline] : [];
         
         if (addActivityPosition === 'move') {
           // Modo edição: substitui a atividade existente
@@ -1008,10 +1018,20 @@ export function SlideUpItinerary({ isLoading, hideBackButton, setFirstLatitude, 
                         } as any}
                       />
                     ) : (
-                      <View flex={1} justifyContent="center" alignItems="center">
-                        <Text color="#666" fontSize="$md">
+                      <View flex={1} justifyContent="center" alignItems="center" gap="$4">
+                        <Text color="#666" fontSize="$md" textAlign="center">
                           Nenhuma atividade programada para este dia
                         </Text>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          borderColor="#0066cc"
+                          onPress={handleAddFirstActivity}
+                          gap="$2"
+                        >
+                          <Icon as={SquarePlus} color="#0066cc" size="sm" />
+                          <ButtonText color="#0066cc">Adicionar Atividade</ButtonText>
+                        </Button>
                       </View>
                     )}</View>
                 </View>

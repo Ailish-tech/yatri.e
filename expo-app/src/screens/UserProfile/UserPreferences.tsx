@@ -177,9 +177,18 @@ export function UserPreferences() {
                 <Button
                   onPress={() => {
                     utilsSetSelectedTags(selectedTags);
-                    previousRouteName === "Profile"
-                    ? navigation.navigate("Profile")
-                    : navigation.navigate("ItineraryVisaCheck", { itineraryData: itineraryData, userPreferences: utilsGetSelectedTags() })
+                    if (previousRouteName === "Profile") {
+                      navigation.navigate("Profile");
+                    } else if (itineraryData.isSurpriseMode) {
+                      // Modo Surpresa: pular checagem de visto e ir direto para o mapa
+                      navigation.navigate("ItineraryMapMenu", { 
+                        itineraryData: itineraryData, 
+                        userPreferences: utilsGetSelectedTags(),
+                        visaIssue: "Unknown" // Sem checagem de visto no modo surpresa
+                      });
+                    } else {
+                      navigation.navigate("ItineraryVisaCheck", { itineraryData: itineraryData, userPreferences: utilsGetSelectedTags() });
+                    }
                   }}
                   w="48%"
                   bgColor="#fff"

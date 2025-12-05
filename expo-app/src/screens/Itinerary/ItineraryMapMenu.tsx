@@ -1,8 +1,10 @@
 import { useEffect, useRef, useState } from "react";
-import { SafeAreaView, StatusBar, StyleSheet, Image } from "react-native";
+import { SafeAreaView, StatusBar, StyleSheet, Image, Alert } from "react-native";
 import { RouteProp, useNavigation, useRoute } from "@react-navigation/native";
 import MapView from "react-native-maps";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+
+import Constants from 'expo-constants';
 
 import { Button, ButtonText, View, Text, ButtonIcon, ScrollView } from "@gluestack-ui/themed";
 
@@ -30,6 +32,20 @@ import { Bed, ChevronLeft, Compass, FileDown, Globe, Landmark, Palette, PartyPop
 
 import { exportItineraryToPDF } from './html/printExportItinerary';
 
+let RewardedAd: any, RewardedAdEventType: any, TestIds: any;
+const isExpoGo = Constants.appOwnership === 'expo';
+
+if (!isExpoGo) {
+  try {
+    const admobModule = require('react-native-google-mobile-ads');
+    RewardedAd = admobModule.RewardedAd;
+    RewardedAdEventType = admobModule.RewardedAdEventType;
+    TestIds = admobModule.TestIds;
+  } catch (error) {
+    console.log('AdMob module not available:', error);
+  }
+}
+
 type ShowMapStatsInformationType = {
   show: "Map" | "Stats"
 }
@@ -50,6 +66,7 @@ export function ItineraryMapMenu() {
   const [imageBackground, setImageBackground] = useState<string>("");
   const [openSaveDialog, setOpenSaveDialog] = useState<boolean>(false);
   const [isNewItinerary, setIsNewItinerary] = useState<boolean>(false);
+  const [adLoaded, setAdLoaded] = useState<boolean>(false);
   const [categoriesCounter, setCategoriesCounter] = useState<CategoriesCounterTypes>({
     touristAttractions: 0,
     restaurant: 0,
@@ -69,9 +86,50 @@ export function ItineraryMapMenu() {
   const addNotification = useNotificationStore(state => state.addNotification);
 
   const mapUserPositionRef = useRef<MapView | null>(null);
+  const rewardedRef = useRef<any>(null);
 
   const ITINERARY_STORAGE_KEY = '@eztripai_allUserTripItineraries';
   const BACKGROUND_STORAGE_KEY = '@eztripai_statsBackground';
+
+  const getCorrectIdForPlatform = () => {
+    const Platform = require('react-native').Platform;
+    if(Platform.OS === "android"){
+      return process.env.EXPO_PUBLIC_ADMOB_ANDROID_APP_ID;
+    }
+    return process.env.EXPO_PUBLIC_ADMOB_IOS_APP_ID;
+  };
+
+  const loadAd = () => {
+    if (isExpoGo || !RewardedAd || !RewardedAdEventType || !TestIds) {
+      setAdLoaded(true);
+      return;
+    }
+
+    try {
+      const adUnitId = __DEV__ ? TestIds.REWARDED : getCorrectIdForPlatform();
+      const newRewarded = RewardedAd.createForAdRequest(adUnitId, {
+        keywords: ['travel', 'tourism', 'vacation'],
+      });
+
+      rewardedRef.current = newRewarded;
+
+      const unsubscribeLoaded = newRewarded.addAdEventListener(
+        RewardedAdEventType.LOADED,
+        () => {
+          setAdLoaded(true);
+        },
+      );
+
+      newRewarded.load();
+
+      return () => {
+        unsubscribeLoaded();
+      };
+    } catch (error) {
+      console.log('Error loading ad:', error);
+      setAdLoaded(true);
+    }
+  };
 
   // Detectar se é um roteiro novo ou já existente
   useEffect(() => {
@@ -211,6 +269,11 @@ export function ItineraryMapMenu() {
     };
 
     loadSavedBackground();
+  }, []);
+
+  // Carregar anúncio ao montar o componente
+  useEffect(() => {
+    loadAd();
   }, []);
 
   // Aplicando filtros aos dados recebidos
@@ -370,7 +433,7 @@ export function ItineraryMapMenu() {
   };
 
   const generateDetailed = async () => {
-    const prompt = `Gere um itinerário turístico completo e detalhado para uma viagem. Para cada dia, use EXATAMENTE este formato: ${ answerPattern }. Use apenas os dados fornecidos do usuário: ${ preferencesAllDefinedText }. Retorne apenas o texto no formato mostrado, sem explicações extras. Seja específico nos nomes dos locais. Cada dia deve ter entre 5-8 atividades no TIMELINE. Retorne descrições ricas em detalhes com no mínimo 10 palavras. As opções de categorias são (retorne apenas 1): ${ possibleCategoriesOptionsTogether() }`;
+    const prompt = `Gere um itinerário turístico completo e detalhado para uma viagem. Para cada dia, use EXATAMENTE este formato: ${ answerPattern }. Use apenas os dados fornecidos do usuário: ${ preferencesAllDefinedText }. Retorne apenas o texto no formato mostrado, sem explicações extras. Seja específico nos nomes dos locais. IMPORTANTE: Cada dia DEVE ter NO MÍNIMO 3 atividades e NO MÁXIMO 8 atividades no TIMELINE. NUNCA gere menos de 3 atividades por dia. Retorne descrições ricas em detalhes com no mínimo 10 palavras. As opções de categorias são (retorne apenas 1): ${ possibleCategoriesOptionsTogether() }`;
 
     try {
       // Verifica se já existe itinerário nos parâmetros
@@ -420,8 +483,6 @@ export function ItineraryMapMenu() {
   }
 
   const generateSurprise = async () => {
-    const prompt = `Gere um itinerário turístico completo e detalhado para uma viagem com um destino surpresa em qualquer local do mundo. Para cada dia, use EXATAMENTE este formato: ${answerPattern}. Use apenas os dados fornecidos do usuário: ${preferencesSurpriseDestinationText}. Retorne apenas o texto no formato mostrado, sem explicações extras. Seja específico nos nomes dos locais. Cada dia deve ter entre 5-8 atividades no TIMELINE.  Retorne descrições ricas em detalhes com no mínimo 10 palavras. As opções de categorias são (retorne apenas 1): ${ possibleCategoriesOptionsTogether() }`;
-
     try {
       // Verifica se já existe itinerário nos parâmetros
       const hasExistingItinerary = route.params?.itineraryData?.itinerary && 
@@ -432,10 +493,43 @@ export function ItineraryMapMenu() {
         setLoading(true);
         setItinerary([]);
   
-        const result = await generateItinerary(prompt);
+        // ETAPA 1: Pedir para a IA escolher um destino surpresa baseado nas preferências
+        const destinationPrompt = `Você é um especialista em viagens. Baseado nas seguintes preferências do viajante, escolha UM continente específico e de 1 a 3 países que sejam perfeitos para esta viagem surpresa.
+          Preferências do viajante: ${preferencesSurpriseDestinationText}
+          Retorne APENAS no seguinte formato (sem explicações adicionais):
+          CONTINENT-> Nome do Continente
+          COUNTRIES-> País 1, País 2, País 3
+          Escolha destinos que combinem com o orçamento, estilo de viagem e preferências mencionadas. Seja específico e criativo na escolha.`;
+
+        const destinationResult = await generateItinerary(destinationPrompt);
+        
+        if (!destinationResult || typeof destinationResult !== 'string') {
+          throw new Error('Resposta inválida da API ao escolher destino');
+        }
+
+        // Parse do destino escolhido
+        const continentMatch = destinationResult.match(/CONTINENT->\s*([^\n]+)/);
+        const countriesMatch = destinationResult.match(/COUNTRIES->\s*([^\n]+)/);
+        
+        const selectedContinent = continentMatch ? continentMatch[1].trim() : "Europa";
+        const selectedCountries = countriesMatch 
+          ? countriesMatch[1].split(',').map(c => c.trim()).filter(c => c.length > 0)
+          : ["França"];
+
+        const selectedCountriesText = selectedCountries.join(', ');
+
+        // ETAPA 2: Gerar o itinerário detalhado com o destino escolhido
+        const surprisePreferencesText = `Início da viagem em ${dateBegin} e o fim em ${dateEnd}, possuindo ${days} dias de viagem.
+          Iremos para ${selectedContinent} e aos países ${selectedCountriesText} (Não acrescente outros locais). Somos ${acconpanying} com ${peopleQuantity} pessoas e
+          de ${originCountry}. Temos um orçamento de ${budget}. Viagem com foco em ${allTripStylesTogether}, utilizaremos ${allVehicleTypesTogether}
+          e temos um desejo para a viagem: ${specialWish}. Gostamos de ${filteredUserPreferences?.join(', ')}.`;
+
+        const itineraryPrompt = `Gere um itinerário turístico completo e detalhado para uma viagem. Para cada dia, use EXATAMENTE este formato: ${answerPattern}. Use apenas os dados fornecidos do usuário: ${surprisePreferencesText}. Retorne apenas o texto no formato mostrado, sem explicações extras. Seja específico nos nomes dos locais. IMPORTANTE: Cada dia DEVE ter NO MÍNIMO 3 atividades e NO MÁXIMO 8 atividades no TIMELINE. NUNCA gere menos de 3 atividades por dia. Retorne descrições ricas em detalhes com no mínimo 10 palavras. As opções de categorias são (retorne apenas 1): ${possibleCategoriesOptionsTogether()}`;
+
+        const result = await generateItinerary(itineraryPrompt);
         
         if (!result || typeof result !== 'string') {
-          throw new Error('Resposta inválida da API');
+          throw new Error('Resposta inválida da API ao gerar itinerário');
         }
 
         // Parse do PlainText estruturado para formato de objeto
@@ -447,17 +541,20 @@ export function ItineraryMapMenu() {
         
         setItinerary(generatedItinerary);
 
+        // Atualiza os parâmetros com o continente e países escolhidos pela IA
         navigation.setParams({
           itineraryData: {
             ...route.params.itineraryData,
+            continent: selectedContinent,
+            countries: selectedCountries,
             itinerary: generatedItinerary,
             isNew: true
           }
         });
   
         addNotification({
-          title: "Novo Roteiro Pronto",
-          description: "Um novo roteiro para a sua incrível próxima viagem foi gerado pela Inteligência Artificial. Confira já!",
+          title: "Destino Surpresa Revelado!",
+          description: `Sua viagem surpresa será para ${ selectedCountriesText }! Confira o roteiro completo.`,
           routeIcon: Globe
         });
       }
@@ -560,8 +657,8 @@ export function ItineraryMapMenu() {
     }
   };
 
-  // Função para exportar itinerário
-  const handleExportItinerary = async () => {
+  // Função auxiliar para realizar a exportação
+  const performExport = async () => {
     if (isExporting || !itinerary || itinerary.length === 0) {
       return;
     }
@@ -583,6 +680,42 @@ export function ItineraryMapMenu() {
       console.error('Erro ao exportar itinerário:', error);
     } finally {
       setIsExporting(false);
+    }
+  };
+
+  // Função para exportar itinerário com anúncio
+  const handleExportItinerary = () => {
+    if (adLoaded && rewardedRef.current && !isExpoGo) {
+      try {
+        rewardedRef.current.show();
+        const unsubscribeEarned = rewardedRef.current.addAdEventListener(
+          RewardedAdEventType.EARNED_REWARD,
+          () => {
+            performExport();
+          }
+        );
+        return () => unsubscribeEarned();
+      } catch (error) {
+        console.log('Error showing ad:', error);
+        performExport();
+      }
+    } else {
+      if (isExpoGo) {
+        Alert.alert(
+          'Anúncio Simulado',
+          'No ExpoGo, os anúncios são simulados. Em uma build de produção, um anúncio real seria exibido aqui.',
+          [
+            {
+              text: 'OK',
+              onPress: () => {
+                performExport();
+              }
+            }
+          ]
+        );
+      } else {
+        performExport();
+      }
     }
   };
 

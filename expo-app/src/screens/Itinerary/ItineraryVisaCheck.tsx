@@ -3,6 +3,8 @@ import { RouteProp, useNavigation, useRoute } from "@react-navigation/native";
 
 import { VisaModel } from "@components/Itinerary/VisaModel";
 
+import { API_URL } from '../../config';
+
 import { AuthNavigationProp } from "@routes/auth.routes";
 
 import { getCountryCode } from '@data/countryCodes';
@@ -41,7 +43,7 @@ export function ItineraryVisaCheck(){
       try{
         const originCode = getCountryCode(itineraryData.originCountry);
         setLastCheckedCountryCode(currentCountry);
-        const response = await fetch(`https://guiaturisticoeztripai.vercel.app/api/passportVisa?origin=${originCode}&destination=${currentCountry}`);
+        const response = await fetch(`${API_URL}/passportVisa?origin=${originCode}&destination=${currentCountry}`);
 
         if(!response.ok){
           throw new Error("Failed to fetch Visa Information");

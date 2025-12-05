@@ -33,8 +33,8 @@ export function MapsExpanded() {
         {
           latitude: location.coords.latitude,
           longitude: location.coords.longitude,
-          latitudeDelta: 0.0102,
-          longitudeDelta: 0.0021
+          latitudeDelta: 0.01173,
+          longitudeDelta: 0.002415
         }, 1000
       );
     }
@@ -73,7 +73,7 @@ export function MapsExpanded() {
       </View>
         <StatusBar barStyle="dark-content"/>
         <View style={{ flex: 1 }}>
-          <Maps ref={ mapUserPositionRef } />
+          <Maps ref={ mapUserPositionRef } externalPlaces={ places } />
           <SafeAreaView>
             <SlideUp places={ places } isLoading={ isLoading } />
           </SafeAreaView>

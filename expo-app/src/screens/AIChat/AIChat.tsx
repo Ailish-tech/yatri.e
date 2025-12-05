@@ -1,7 +1,15 @@
 // Importação de hooks do React e componentes do React Native
 import { useContext, useEffect, useState } from "react";
-import { KeyboardAvoidingView, Platform, SafeAreaView, StatusBar } from 'react-native';
+import { KeyboardAvoidingView, Platform, SafeAreaView, StatusBar, Keyboard } from 'react-native';
 import { RouteProp, useNavigation, useRoute } from "@react-navigation/native";
+import Constants from 'expo-constants';
+
+import { API_URL } from '../../config';
+
+let GoogleSignin: any = null;
+if (Constants.appOwnership !== 'expo') {
+  GoogleSignin = require('@react-native-google-signin/google-signin').GoogleSignin;
+}
 
 // Importação de componentes UI do Gluestack
 import { Text, View, Input, InputField, InputIcon, Pressable, ScrollView, Button, ButtonIcon, AvatarBadge, InputSlot } from "@gluestack-ui/themed";
@@ -11,6 +19,7 @@ import { CharacterLimiter } from "@components/InputItems/CharacterLimiter";
 import { UserBalloon } from "@components/Chat/UserBalloon";
 import { AiBalloon } from "@components/Chat/AiBalloon";
 import { ConnectionErrorAlerter } from "@components/Errors/ConnectionErrorAlerter";
+import { DotIndicator } from 'react-native-indicators';
 
 // Ícones
 import { Bot, ArrowLeft, Send, Loader } from 'lucide-react-native';
@@ -76,6 +85,8 @@ export function AIChat() {
   const [lastModifiedDate, setLastModifiedDate] = useState<string>("Data indisponível");
   const [chatId] = useState<string>(() => receivedChatId || generateUniqueId());
   const [showModal, setShowModal] = useState<boolean>(true);
+  const [userName, setUserName] = useState<string>("");
+  const [userPhoto, setUserPhoto] = useState<string>("");
 
   // Contextos
   const { location } = useContext(LocationContext);
@@ -86,16 +97,49 @@ export function AIChat() {
 
   // Navegação
   const navigation = useNavigation<AuthNavigationProp>();
+
+  // Usuário autenticado
   const auth = getAuth();
   const user = auth.currentUser;
+
+  // Efeito para obter informações do usuário (nome e foto do Google)
+  useEffect(() => {
+    async function checkCurrentUser() {
+      const isExpoGo = Constants.appOwnership === 'expo';
+
+      if (isExpoGo) {
+        setUserName(user?.displayName || "Usuário Desconhecido");
+        setUserPhoto(user?.photoURL || "https://images.pexels.com/photos/346885/pexels-photo-346885.jpeg");
+      } else {
+        try {
+          const userInfo = await GoogleSignin.getCurrentUser();
+          setUserName(userInfo?.user.name || "Usuário");
+
+          const photoUrl = userInfo?.user.photo;
+          if (photoUrl && typeof photoUrl === 'string' && photoUrl.trim() !== '') {
+            setUserPhoto(photoUrl);
+          } else {
+            setUserPhoto("https://cdn.pixabay.com/photo/2022/07/16/04/19/biker-7324421_640.jpg");
+          }
+        } catch (error) {
+          console.error("Erro ao obter informações do usuário:", error);
+          setUserName("Usuário");
+          setUserPhoto("https://cdn.pixabay.com/photo/2022/07/16/04/19/biker-7324421_640.jpg");
+        }
+      }
+    }
+
+    checkCurrentUser();
+  }, []);
 
   // Função para enviar uma mensagem e receber resposta da IA
   const handleChatRequest = async (topicMessage?: string) => {
     try {
       setIsLoading(true);
+      Keyboard.dismiss();
   
       const messageToSend = topicMessage || currentMessage;
-      console.log("Mensagem enviada para a IA:", messageToSend);
+      // DEBUG: console.log("Mensagem enviada para a IA:", messageToSend);
   
       // Validação para mensagens muito curtas
       if (messageToSend.length < 10) {
@@ -106,8 +150,8 @@ export function AIChat() {
       const newUserMessage: MessageTypes = {
         sender: "user",
         text: messageToSend,
-        name: user?.displayName || "Usuário",
-        avatarUrl: "https://randomuser.me/api/portraits/men/32.jpg"
+        name: userName || user?.displayName || "Usuário",
+        avatarUrl: userPhoto || "https://cdn.pixabay.com/photo/2022/07/16/04/19/biker-7324421_640.jpg"
       }
   
       // Atualiza o estado das mensagens
@@ -122,11 +166,11 @@ export function AIChat() {
         console.log("Resposta cacheada/predefinida usada:", aiText);
       } else {
         // Adiciona o prefixo se não estiver no cache
-        promptText = `apenas responda a pergunta a seguir se ela for estritamente relacionada a turismo, caso nao seja, diga que nao pode responde-la por nao ser de turismo, e nao de mais informacoes: ${messageToSend}`;
-        console.log("Mensagem para a IA (com prefixo):", promptText);
+        promptText = `Apenas responda a pergunta a seguir se ela for minimamente relacionada a turismo ou uma sugestão de algo a se fazer em algum lugar, caso não seja, diga que não pode respondê-la por não ser de turismo. Não seja tão restrito também. ${messageToSend}`;
+        // DEBUG: console.log("Mensagem para a IA (com prefixo):", promptText);
         // Faz a requisição para a IA
         aiText = await generateChatAnswers(promptText);
-        console.log("Resposta recebida da IA:", aiText);
+        // DEBUG: console.log("Resposta recebida da IA:", aiText);
         // Armazena resposta no cache
         responseCache.storeResponse(messageToSend, aiText);
       }
@@ -176,7 +220,7 @@ export function AIChat() {
         return { temperature: "--", condition: "--" };
       }
       const { latitude, longitude } = location.coords;
-      const response = await fetch(`https://guiaturisticoeztripai.vercel.app/api/weather?latitude=${latitude}&longitude=${longitude}`);
+      const response = await fetch(`${API_URL}/weather?latitude=${latitude}&longitude=${longitude}`);
       if (!response.ok) {
         console.error(`Failed to fetch weather data: ${response.status} ${response.statusText}`);
         return { temperature: "--", condition: "--" };
@@ -249,8 +293,8 @@ export function AIChat() {
       <SafeAreaView style={{ flex: 1 }}>
         <KeyboardAvoidingView
           style={{ flex: 1 }}
-          behavior={ Platform.OS === "ios" ? "padding" : "height" }
-          keyboardVerticalOffset={0}
+          behavior={ Platform.OS === "ios" ? "padding" : undefined }
+          keyboardVerticalOffset={ Platform.OS === "ios" ? 0 : 0 }
         >
           <View flex={1} px={30} py={20} style={{ paddingBottom: 85 }}>
             {/* Header do chat */}
@@ -261,7 +305,7 @@ export function AIChat() {
               <View flexDirection="column" alignItems="center" ml={8}>
                 <Text fontSize="$lg" fontWeight="$bold">Felipe</Text>
                 <View flexDirection="row">
-                  <Text pr={25}>Online</Text>
+                  <Text pr={25}>{ isLoading ? "Digitando..." : "Online" }</Text>
                   <AvatarBadge />
                 </View>
               </View>
@@ -294,22 +338,43 @@ export function AIChat() {
                     </View>
                   </View>
                 ) : (
-                  messages.map((message, index) =>
-                    message.sender === "user" ? (
-                      <UserBalloon
-                        key={ index }
-                        message={ message.text }
-                        avatarUrl={ message.avatarUrl }
-                        senderName={ message.name }
-                      />
-                    ) : (
-                      <AiBalloon
-                        key={ index }
-                        message={ message.text }
-                        senderName={ message.name }
-                      />
-                    )
-                  )
+                  <>
+                    {messages.map((message, index) =>
+                      message.sender === "user" ? (
+                        <UserBalloon
+                          key={ index }
+                          message={ message.text }
+                          avatarUrl={ message.avatarUrl }
+                          senderName={ message.name }
+                        />
+                      ) : (
+                        <AiBalloon
+                          key={ index }
+                          message={ message.text }
+                          senderName={ message.name }
+                        />
+                      )
+                    )}
+                    {isLoading && (
+                      <View flexDirection="row" alignItems="center" mb={10}>
+                        <View
+                          bgColor="#2752B7"
+                          borderRadius={15}
+                          px={20}
+                          py={15}
+                          maxWidth="75%"
+                          height={50}
+                          justifyContent="center"
+                        >
+                          <DotIndicator 
+                            color="#FFFFFF"
+                            size={6}
+                            count={3}
+                          />
+                        </View>
+                      </View>
+                    )}
+                  </>
                 )}
               </ScrollView>
             </View>
@@ -325,10 +390,10 @@ export function AIChat() {
                   flex={1}
                 />
                 <InputSlot justifyContent="center" alignItems="center" mt={2} mr={6}>
-                  <CharacterLimiter currentCharactersQuantity={currentCharactersQuantity} characterLimitQuantity={200} />
+                  <CharacterLimiter currentCharactersQuantity={ currentCharactersQuantity } characterLimitQuantity={200} />
                 </InputSlot>
               </Input>
-              <Pressable onPress={() => handleChatRequest(currentMessage)} alignSelf="center" bgColor="#2752B7" p={10} borderRadius={10} disabled={isLoading || currentCharactersQuantity < 10}>
+              <Pressable onPress={ () => handleChatRequest(currentMessage) } alignSelf="center" bgColor="#2752B7" p={10} borderRadius={10} disabled={isLoading || currentCharactersQuantity < 10}>
                 <InputIcon as={ isLoading ? Loader : Send } color="$white" size="xl" />
               </Pressable>
             </View>

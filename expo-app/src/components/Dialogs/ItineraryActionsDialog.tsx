@@ -1,3 +1,8 @@
+import { useRef, useState, useEffect } from "react";
+import { Alert } from "react-native";
+
+import Constants from 'expo-constants';
+
 import { 
   AlertDialog, 
   AlertDialogBackdrop, 
@@ -13,6 +18,20 @@ import {
 } from "@gluestack-ui/themed";
 
 import { X, Edit, Trash2, ArrowRightLeft } from "lucide-react-native";
+
+let RewardedAd: any, RewardedAdEventType: any, TestIds: any;
+const isExpoGo = Constants.appOwnership === 'expo';
+
+if (!isExpoGo) {
+  try {
+    const admobModule = require('react-native-google-mobile-ads');
+    RewardedAd = admobModule.RewardedAd;
+    RewardedAdEventType = admobModule.RewardedAdEventType;
+    TestIds = admobModule.TestIds;
+  } catch (error) {
+    console.log('AdMob module not available:', error);
+  }
+}
 
 type ItineraryActionsDialogProps = {
   showAlertDialog: boolean;
@@ -31,6 +50,133 @@ export function ItineraryActionsDialog({
   onDelete,
   onMove
 }: ItineraryActionsDialogProps) {
+  
+  const rewardedRef = useRef<any>(null);
+  const [adLoaded, setAdLoaded] = useState<boolean>(false);
+
+  const getCorrectIdForPlatform = () => {
+    const Platform = require('react-native').Platform;
+    if(Platform.OS === "android"){
+      return process.env.EXPO_PUBLIC_ADMOB_ANDROID_APP_ID;
+    }
+    return process.env.EXPO_PUBLIC_ADMOB_IOS_APP_ID;
+  };
+
+  const loadAd = () => {
+    if (isExpoGo || !RewardedAd || !RewardedAdEventType || !TestIds) {
+      setAdLoaded(true);
+      return;
+    }
+
+    try {
+      const adUnitId = __DEV__ ? TestIds.REWARDED : getCorrectIdForPlatform();
+      const newRewarded = RewardedAd.createForAdRequest(adUnitId, {
+        keywords: ['travel', 'tourism', 'vacation'],
+      });
+
+      rewardedRef.current = newRewarded;
+
+      const unsubscribeLoaded = newRewarded.addAdEventListener(
+        RewardedAdEventType.LOADED,
+        () => {
+          setAdLoaded(true);
+        },
+      );
+
+      newRewarded.load();
+
+      return () => {
+        unsubscribeLoaded();
+      };
+    } catch (error) {
+      console.log('Error loading ad:', error);
+      setAdLoaded(true);
+    }
+  };
+
+  const handleEditWithAd = () => {
+    if (adLoaded && rewardedRef.current && !isExpoGo) {
+      try {
+        rewardedRef.current.show();
+        const unsubscribeEarned = rewardedRef.current.addAdEventListener(
+          RewardedAdEventType.EARNED_REWARD,
+          () => {
+            onEdit();
+            handleClose();
+          }
+        );
+        return () => unsubscribeEarned();
+      } catch (error) {
+        console.log('Error showing ad:', error);
+        onEdit();
+        handleClose();
+      }
+    } else {
+      if (isExpoGo) {
+        Alert.alert(
+          'Anúncio Simulado',
+          'No ExpoGo, os anúncios são simulados. Em uma build de produção, um anúncio real seria exibido aqui.',
+          [
+            {
+              text: 'OK',
+              onPress: () => {
+                onEdit();
+                handleClose();
+              }
+            }
+          ]
+        );
+      } else {
+        onEdit();
+        handleClose();
+      }
+    }
+  };
+
+  const handleDeleteWithAd = () => {
+    if (adLoaded && rewardedRef.current && !isExpoGo) {
+      try {
+        rewardedRef.current.show();
+        const unsubscribeEarned = rewardedRef.current.addAdEventListener(
+          RewardedAdEventType.EARNED_REWARD,
+          () => {
+            onDelete();
+            handleClose();
+          }
+        );
+        return () => unsubscribeEarned();
+      } catch (error) {
+        console.log('Error showing ad:', error);
+        onDelete();
+        handleClose();
+      }
+    } else {
+      if (isExpoGo) {
+        Alert.alert(
+          'Anúncio Simulado',
+          'No ExpoGo, os anúncios são simulados. Em uma build de produção, um anúncio real seria exibido aqui.',
+          [
+            {
+              text: 'OK',
+              onPress: () => {
+                onDelete();
+                handleClose();
+              }
+            }
+          ]
+        );
+      } else {
+        onDelete();
+        handleClose();
+      }
+    }
+  };
+
+  useEffect(() => {
+    if (showAlertDialog) {
+      loadAd();
+    }
+  }, [showAlertDialog]);
   
   const getMoveText = () => {
     if (currentStatus === "Planejado") {
@@ -103,10 +249,7 @@ export function ItineraryActionsDialog({
           <View gap={14}>
             {/* Botão Editar */}
             <Pressable
-              onPress={() => {
-                onEdit();
-                handleClose();
-              }}
+              onPress={handleEditWithAd}
             >
               {({ pressed }) => (
                 <View
@@ -210,10 +353,7 @@ export function ItineraryActionsDialog({
 
             {/* Botão Excluir */}
             <Pressable
-              onPress={() => {
-                onDelete();
-                handleClose();
-              }}
+              onPress={handleDeleteWithAd}
             >
               {({ pressed }) => (
                 <View

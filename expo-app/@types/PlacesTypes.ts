@@ -3,7 +3,7 @@ export interface Place {
   name: string,
   vicinity: string,
   rating: number,
-  photos?: { photo_reference: string }[],
+  photos?: { photo_reference?: string, photo_url?: string }[],
   geometry: {
     location: {
       lat: number,
