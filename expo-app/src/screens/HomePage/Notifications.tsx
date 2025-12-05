@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { SafeAreaView, StyleSheet } from "react-native";
+import { SafeAreaView, StyleSheet, StatusBar } from "react-native";
 
 import ReanimatedSwipeable from 'react-native-gesture-handler/ReanimatedSwipeable';
 import Reanimated, {
@@ -10,7 +10,7 @@ import Reanimated, {
 import { Pressable } from "@gluestack-ui/themed";
 
 import { NotificationCard } from "@components/Cards/NotificationCard";
-import { ChooseDialog } from "@components/ChooseDialog";
+import { ChooseDialog } from "@components/Dialogs/ChooseDialog";
 import { NotificationError } from "@components/Errors/NotificationsError";
 
 import { useNotificationStore } from '@utils/notificationStore';
@@ -69,6 +69,7 @@ export function Notifications() {
 
   return (
     <SafeAreaView style={{ flex: 1 }}>
+      <StatusBar barStyle="dark-content" backgroundColor="#fff" />
       <TitleAndBack pageTitle="Notificações" />
       <Reanimated.ScrollView>
         {

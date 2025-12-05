@@ -1,5 +1,5 @@
 import { useContext, useState } from "react";
-import { FlatList, StyleSheet } from "react-native";
+import { FlatList, StyleSheet, Text } from "react-native";
 
 import { Box, Spinner, View } from "@gluestack-ui/themed";
 
@@ -70,27 +70,48 @@ export function SlideUp({ places, isLoading }: PlacesSlider) {
       <Animated.View
         style={[animatedStyle, styles.slider]}
       >
-        <View>
+        <View alignItems="center" pt={12} pb={8}>
           <View 
-            style={{ 
-              borderColor: "#BBB", 
-              borderWidth: .5, 
-              width: 65, 
-              height: 6, 
-              borderRadius: 20, 
-              backgroundColor: "#BBB",
-              marginTop: 20,
-              marginBottom: 20,
-              margin: 'auto'
-            }}></View>
+            w={50}
+            h={5}
+            borderRadius={10}
+            bg="#D1D5DB"
+          />
+        </View>
+        <View px={16} pb={8} pt={8}>
+          <View flexDirection="row" justifyContent="center" alignItems="center">
+            <Box
+              bg="#2752B7"
+              px={12}
+              py={6}
+              borderRadius={20}
+            >
+              <Text style={{ color: "#fff", fontSize: 14, fontWeight: "bold" }}>
+                {places.length} lugares encontrados
+              </Text>
+            </Box>
+          </View>
         </View>
         <View>
           <FlatList
             data={ places }
-            keyExtractor={ (item) => item.id }
+            keyExtractor={ (item, index) => item.id?.toString() || `place-${index}` }
             showsVerticalScrollIndicator={ false }
             renderItem={({ item }) => (
-              <Box flex={1} px={4} py={2}>
+              <Box 
+                flex={1} 
+                px={16} 
+                py={6}
+                mb={8}
+                mx={12}
+                bg="#FFFFFF"
+                borderRadius={16}
+                shadowColor="#000"
+                shadowOpacity={0.08}
+                shadowRadius={8}
+                shadowOffset={{ width: 0, height: 2 }}
+                elevation={3}
+              >
                 { isLoading ? (
                   <Spinner size="large" color="#2752B7" />
                 ) : (

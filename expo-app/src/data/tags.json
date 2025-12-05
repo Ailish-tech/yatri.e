@@ -2,51 +2,51 @@
     {
         "id": "1",
         "name": "⚱️ Museus",
-        "image": "museu.png"
+        "image": "museus.png"
     },
     {
         "id": "2",
         "name": "🎉 Festas e Baladas",
-        "image": "balada.png"
+        "image": "nightclub.png"
     },
     {
         "id": "3",
         "name": "🍔 Eventos",
-        "image": "eventos.png"
+        "image": "evento.png"
     },
     {
         "id": "4",
         "name": "🕍 Monumentos Históricos",
-        "image": "monumentos.png"
+        "image": "monumentoshistoricos.png"
     },
     {
         "id": "5",
         "name": "🕋 Templos e Igrejas",
-        "image": "igrejas.png"
+        "image": "church.png"
     },
     {
         "id": "6",
         "name": "🌳 Parques",
-        "image": "parques.png"
+        "image": "park.png"
     },
     {
         "id": "7",
         "name": "🌄 Trilhas e Cachoeiras",
-        "image": "cachoeiras.png"
+        "image": "cachoeira.png"
     },
     {
         "id": "8",
         "name": "🚀 Ciências",
-        "image": "ciencias.png"
+        "image": "ciencia.png"
     },
     {
         "id": "9",
         "name": "👘 Cultura",
-        "image": "cultura.png"
+        "image": "culturas.png"
     },
     {
         "id": "10",
         "name": "🍔 Comida ",
-        "image": "comida.png"
+        "image": "comidas.png"
     }
 ]

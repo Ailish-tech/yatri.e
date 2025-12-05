@@ -18,23 +18,28 @@ type SelectedPlanTypes = {
 
 const benefits = {
   premium: [
-    "Gere mais 5 roteiros completos e personalizáveis por mês",
-    "Mais 20 créditos de conversas com o Felipe por mês",
-    "Customização total dos seus roteiros gerados",
-    "Salve até 10 interações com o Felipe no Histórico",
-    "Veja eventos próximos a você em tempo real",
-    "Conversas (limitadas) por voz com o Felipe"
+    "5 roteiros personalizados mensais",
+    "20 créditos extras de chat com Felipe",
+    "Customização completa dos roteiros",
+    "Histórico de 10 conversas salvas",
+    "Eventos locais em tempo real",
+    "Conversas por voz (limitadas)",
+    "Geração de roteiros mais rápida",
+    "Recomendações baseadas em suas preferências"
   ],
   deluxe: [
-    "Converse por voz com o Felipe",
-    "Roteiros Ilimitados todo mês e quando precisar",
-    "Créditos ilimitados de conversas com o Felipe",
-    "Recomendações Avançadas com IA (clima real, orçamento e preferências detalhadas, entre outos)",
-    "Tenha acesso a Roteiros Exclusivos para diversos destinos no mundo",
-    "Suporte Prioritário",
-    "Customização total dos seus roteiros gerados",
-    "Salve quantas interações quiser com o Felipe no Histórico",
-    "Veja eventos próximos a você em tempo real"
+    "Conversas ilimitadas por voz com Felipe",
+    "Roteiros ilimitados sempre que precisar",
+    "Créditos ilimitados de conversas",
+    "IA avançada (clima, orçamento, preferências)",
+    "Roteiros exclusivos para destinos globais",
+    "Suporte prioritário 24/7",
+    "Customização total e avançada",
+    "Histórico ilimitado de conversas",
+    "Eventos e experiências VIP",
+    "Acesso antecipado a novos recursos",
+    "Modo offline para roteiros salvos",
+    "Badge exclusivo de membro Deluxe"
   ]
 };
 
@@ -63,14 +68,14 @@ export function PremiumPlans(){
             <View flexDirection="row">
               <RadioGroup flexDirection="row" gap={15} mt={15} value={ selectedPeriod.selectedPeriod } onChange={ (value) => setSelectedPeriod({ selectedPeriod: value as "Monthly" | "Yearly" }) }>
                 <Radio value="Monthly" size="lg" isInvalid={ false } isDisabled={ false }>
-                  <RadioIndicator>
-                    <RadioIcon as={ CircleIcon } />
+                  <RadioIndicator borderColor="$white" $checked={{ borderColor: "$white" }}>
+                    <RadioIcon as={ CircleIcon } color="$white" />
                   </RadioIndicator>
                   <RadioLabel color="$white" ml={5}>Mensal</RadioLabel>
                 </Radio>
                 <Radio value="Yearly" size="lg" isInvalid={ false } isDisabled={ false }>
-                  <RadioIndicator>
-                    <RadioIcon as={ CircleIcon } />
+                  <RadioIndicator borderColor="$white" $checked={{ borderColor: "$white" }}>
+                    <RadioIcon as={ CircleIcon } color="$white" />
                   </RadioIndicator>
                   <RadioLabel color="$white" ml={5}>Anual</RadioLabel>
                 </Radio>
@@ -101,7 +106,7 @@ export function PremiumPlans(){
               onPress={ () => setSelectedPlan({ selectedPlan: "Premium" }) }
             >
               <Text fontSize="$xl" fontWeight="$bold" color={ selectedPlan.selectedPlan === "Premium" ? '$warmGray600' : '$white' }>Premium</Text>
-              <Text fontSize="$3xl" fontWeight="$bold"  color={ selectedPlan.selectedPlan === "Premium" ? '$black' : '$white' } mt={10}>{ selectedPeriod.selectedPeriod === "Monthly" ? "$5.99" : "$60" }</Text>
+              <Text fontSize="$3xl" fontWeight="$bold"  color={ selectedPlan.selectedPlan === "Premium" ? '$black' : '$white' } mt={10}>{ selectedPeriod.selectedPeriod === "Monthly" ? "$6.99" : "$60" }</Text>
               <View bgColor="#fae050" borderRadius={20} mt={5} alignSelf="center" w="100%">
                 <Text textAlign="center" color={ selectedPlan.selectedPlan === "Premium" ? '$warmGray600' : '$black' }>{ selectedPeriod.selectedPeriod === "Monthly" ? "Salve 40%" : "Salve 60%" }</Text>
               </View>
@@ -139,7 +144,7 @@ export function PremiumPlans(){
               onPress={ () => setSelectedPlan({ selectedPlan: "Deluxe" }) }
             >
               <Text fontSize="$xl" fontWeight="$bold" color={ selectedPlan.selectedPlan === "Deluxe" ? '$warmGray600' : '$white' }>Premium Deluxe</Text>
-              <Text fontSize="$3xl" fontWeight="$bold" color={ selectedPlan.selectedPlan === "Deluxe" ? '$black' : '$white' } mt={10}>{ selectedPeriod.selectedPeriod === "Monthly" ? "$14.99" : "$150" }</Text>
+              <Text fontSize="$3xl" fontWeight="$bold" color={ selectedPlan.selectedPlan === "Deluxe" ? '$black' : '$white' } mt={10}>{ selectedPeriod.selectedPeriod === "Monthly" ? "$9.99" : "$100" }</Text>
               <View bgColor="#fae050" borderRadius={20} mt={5} w="100%">
                 <Text textAlign="center" color={ selectedPlan.selectedPlan === "Deluxe" ? '$warmGray600' : '$black' }>{ selectedPeriod.selectedPeriod === "Monthly" ? "Salve 67%" : "Salve 86%" }</Text>
               </View>
@@ -158,23 +163,93 @@ export function PremiumPlans(){
           { 
             selectedPlan.selectedPlan === "Premium"
             ?
-              <View px={20} mt={25} w="90%">
+              <View px={15} mt={25} w="100%" alignSelf="center">
+                <Text 
+                  fontSize="$xl" 
+                  color="$white" 
+                  fontWeight="$bold" 
+                  textAlign="center" 
+                  mb={20}
+                >
+                  O que você ganha com o Premium
+                </Text>
                 { 
                   benefits.premium.map((data, index) => (
-                    <View key={ index } flexDirection="row" mb={15} alignItems="center">
-                      <Check color="white" size={40} />
-                      <Text fontSize="$lg" color="$white" ml={8}>{ data }</Text>
+                    <View 
+                      key={ index } 
+                      flexDirection="row" 
+                      mb={15} 
+                      alignItems="center"
+                      bg="rgba(255,255,255,0.1)"
+                      borderRadius={15}
+                      p={16}
+                      mx={5}
+                      minHeight={65}
+                    >
+                      <View 
+                        bg="rgba(255,215,0,0.3)" 
+                        borderRadius={20} 
+                        p={8} 
+                        mr={15}
+                      >
+                        <Check color="#FFD700" size={22} />
+                      </View>
+                      <Text 
+                        fontSize="$lg" 
+                        color="$white" 
+                        flex={1}
+                        fontWeight="$medium"
+                        lineHeight="$lg"
+                      >
+                        { data }
+                      </Text>
                     </View>
                   ))
                 }
               </View>
             : 
-              <View px={20} mt={25} w="90%">
+              <View px={15} mt={25} w="100%" alignSelf="center">
+                <Text 
+                  fontSize="$xl" 
+                  color="$white" 
+                  fontWeight="$bold" 
+                  textAlign="center" 
+                  mb={20}
+                >
+                  O que você ganha com o Premium Deluxe
+                </Text>
                 {
                   benefits.deluxe.map((data, index) => (
-                    <View key={ index } flexDirection="row" mb={15} alignItems="center">
-                      <Check color="white" size={40} />
-                      <Text fontSize="$lg" color="$white" ml={8}>{ data }</Text>
+                    <View 
+                      key={ index } 
+                      flexDirection="row" 
+                      mb={15} 
+                      alignItems="center"
+                      bg="rgba(255,255,255,0.15)"
+                      borderRadius={15}
+                      p={16}
+                      mx={5}
+                      borderWidth={1}
+                      borderColor="rgba(255,215,0,0.3)"
+                      minHeight={65}
+                    >
+                      <View 
+                        bg="rgba(255,215,0,0.3)" 
+                        borderRadius={20} 
+                        p={8} 
+                        mr={15}
+                      >
+                        <Check color="#FFD700" size={22} />
+                      </View>
+                      <Text 
+                        fontSize="$lg" 
+                        color="$white" 
+                        flex={1}
+                        fontWeight="$medium"
+                        lineHeight="$lg"
+                      >
+                        { data }
+                      </Text>
                     </View>
                   ))
                 }

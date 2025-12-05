@@ -16,16 +16,16 @@ export function Button({ title, variant = "solid", isLoading = false, ...rest }:
       borderRadius="$xl"
       w="$full"
       $active-bg={variant === "outline" ? "" : "$darkBlue700"}
-      disabled={isLoading}
+      disabled={ isLoading }
       {...rest}>
 
-      {isLoading ? (
+      { isLoading ? (
         <ButtonSpinner color="$white" />
       ) : (
         <Text
-          color={variant === "outline" ? "$darkBlue600" : "$trueGray50"}
+          color={ variant === "outline" ? "$darkBlue600" : "$trueGray50" }
           fontFamily="$body">
-          {title}
+          { title }
         </Text>
       )}
     </GluestackButton>

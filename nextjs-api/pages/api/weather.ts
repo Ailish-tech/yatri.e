@@ -8,11 +8,14 @@ export default async function CurrentWeather(req: NextApiRequest, res: NextApiRe
     if (!latitude || !longitude) {
       return res.status(400).json({ error: "Latitude e longitude são obrigatórios" });
     }
+
+    if (!weatherApi) {
+      console.error("WEATHER API key is not configured");
+      return res.status(500).json({ error: "Weather API key not configured" });
+    }
     
     try {
       const response = await fetch(`http://api.weatherapi.com/v1/current.json?key=${weatherApi}&q=${latitude},${longitude}&aqi=no`)
-
-      console.log("Latitude:", latitude, "Longitude:", longitude);
 
       if(!response.ok){
         throw new Error ("Failed to fetch weather information");

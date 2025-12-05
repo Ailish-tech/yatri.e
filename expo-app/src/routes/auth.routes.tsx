@@ -5,7 +5,12 @@ import { Home } from "@screens/HomePage/Home";
 import { Profile } from "@screens/UserProfile/Profile";
 import { EditProfile } from "@screens/UserProfile/EditProfile";
 import { UserPreferences } from "@screens/UserProfile/UserPreferences";
-import { GenerateItinerary } from "@screens/Itinerary/GenerateItinerary";
+import { GenerateItineraryMenu } from "@screens/Itinerary/GenerateItineraryMenu";
+import { GenerateItineraryFeaturesIntroduction } from "@screens/Itinerary/GenerateItineraryFeaturesIntroduction";
+import { GenerateItineraryPreferences } from "@screens/Itinerary/GenerateItineraryPreferences";
+import { ItineraryMapMenu } from "@screens/Itinerary/ItineraryMapMenu";
+import { FavoritePlaces } from "@screens/Itinerary/FavoritePlaces";
+import { ExpenseControl } from "@screens/Itinerary/ExpenseControl";
 import { AIChat } from "@screens/AIChat/AIChat";
 import { AIVoiceChat } from "@screens/AIChat/AIVoiceChat";
 import { AIMascotIntroduction } from "@screens/AIChat/AIMascotIntroduction";
@@ -13,40 +18,51 @@ import { AIChatMenu } from "@screens/AIChat/AIChatMenu";
 import { MapsExpanded } from "@screens/HomePage/MapsExpanded";
 import { Notifications } from "@screens/HomePage/Notifications";
 import { DestinationDetails } from "@screens/HomePage/DestinationDetails";
+import { RecommendedDestinations } from "@screens/HomePage/RecommendedDestinations";
 import { PremiumPlans } from "@screens/Premium/PremiumPlans";
 import { WelcomePremiumPlan } from "@screens/Premium/WelcomePremiumPlan";
 import { ManagePremiumPlan } from "@screens/Premium/ManagePremiumPlan";
 import { OptionsManagePremiumPlan } from "@screens/Premium/OptionsManagePremiumPlan";
 import { CancelPremiumPlan } from "@screens/Premium/CancelPremiumPlan";
+import { ItineraryVisaCheck } from "@screens/Itinerary/ItineraryVisaCheck";
 
 import { NavigationBar } from "@components/NavigationBar";
 
 import { Place } from '../../@types/PlacesTypes';
-
-const Stack = createNativeStackNavigator();
+import { CreatingItinerary } from "../../@types/CreatingItinerary";
+import { VisaModelTypes } from "../../@types/VisaModelTypes";
 
 type AuthStackParamList = {
-  Home: undefined;
-  Settings: undefined;
-  Profile: undefined;
-  EditProfile: undefined;
-  GenerateItinerary: undefined;
-  UserPreferences: undefined;
-  AIChat: { chatId?: string, topic?: string } | undefined;
-  AIVoiceChat: undefined;
-  AIMascotIntroduction: undefined;
-  AIChatMenu: undefined;
-  MapsExpanded: { places: Place[], loading: boolean };
-  Notifications: undefined;
-  DestinationDetail: { destinationId: number };
-  PremiumPlans: undefined;
-  WelcomePremium: undefined;
-  ManagePremiumPlan: undefined;
-  OptionsManagePremiumPlan: undefined;
-  CancelPremiumPlan: undefined;
+  Home:  { name: string, email: string, photo: string },
+  AIMascotIntroduction: undefined,
+  AIChat: { chatId?: string, topic?: string } | undefined,
+  AIChatMenu: undefined,
+  AIVoiceChat: undefined,
+  CancelPremiumPlan: undefined,
+  DestinationDetail: { destinationId: number },
+  EditProfile: undefined,
+  ExpenseControl: undefined,
+  FavoritePlaces: undefined,
+  GenerateItineraryFeaturesIntroduction: undefined,
+  GenerateItineraryMenu: undefined,
+  GenerateItineraryPreferences: { title: CreatingItinerary["title"], dateBegin: CreatingItinerary["dateBegin"], dateEnd: CreatingItinerary["dateEnd"], days: CreatingItinerary["days"], continent: CreatingItinerary["continent"], countries: CreatingItinerary["countries"], originCountry: CreatingItinerary["originCountry"], contacts: CreatingItinerary["contacts"] },
+  ItineraryMapMenu: { itineraryData: CreatingItinerary, userPreferences: string[], visaIssue: VisaModelTypes["results"] },
+  ItineraryVisaCheck: { itineraryData: CreatingItinerary, userPreferences: string[] },
+  ManagePremiumPlan: undefined,
+  MapsExpanded: { places: Place[], loading: boolean },
+  Notifications: undefined,
+  OptionsManagePremiumPlan: undefined,
+  PremiumPlans: undefined,
+  Profile: undefined,
+  RecommendedDestinations: undefined,
+  Settings: undefined,
+  UserPreferences: CreatingItinerary,
+  WelcomePremium: undefined
 };
 
 export type AuthNavigationProp = NativeStackNavigationProp<AuthStackParamList>;
+
+const Stack = createNativeStackNavigator();
 
 function ScreenWrapper({ children }: { children: React.ReactNode }) {
   return (
@@ -54,14 +70,6 @@ function ScreenWrapper({ children }: { children: React.ReactNode }) {
       {children}
       <NavigationBar />
     </>
-  );
-}
-
-function HomeWithNavBar() {
-  return (
-    <ScreenWrapper>
-      <Home />
-    </ScreenWrapper>
   );
 }
 
@@ -73,10 +81,18 @@ function ProfileWithNavBar() {
   );
 }
 
-function GenerateItineraryWithNavBar() {
+function GenerateItineraryMenuWithNavBar() {
   return (
     <ScreenWrapper>
-      <GenerateItinerary />
+      <GenerateItineraryMenu />
+    </ScreenWrapper>
+  );
+}
+
+function ItineraryMapMenuWithNavBar() {
+  return (
+    <ScreenWrapper>
+      <ItineraryMapMenu />
     </ScreenWrapper>
   );
 }
@@ -118,7 +134,7 @@ export function AuthRoute() {
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       <Stack.Screen 
         name="Home"
-        component={ HomeWithNavBar } 
+        component={ Home } 
         options={{ animation: 'none' }}
       />
       <Stack.Screen 
@@ -137,8 +153,38 @@ export function AuthRoute() {
         options={{ animation: 'none' }}
       />
       <Stack.Screen 
-        name="GenerateItinerary" 
-        component={ GenerateItineraryWithNavBar } 
+        name="GenerateItineraryFeaturesIntroduction" 
+        component={ GenerateItineraryFeaturesIntroduction } 
+        options={{ animation: 'none' }}
+      />
+      <Stack.Screen 
+        name="GenerateItineraryMenu" 
+        component={ GenerateItineraryMenuWithNavBar } 
+        options={{ animation: 'none' }}
+      />
+      <Stack.Screen 
+        name="GenerateItineraryPreferences" 
+        component={ GenerateItineraryPreferences } 
+        options={{ animation: 'none' }}
+      />
+      <Stack.Screen 
+        name="ItineraryMapMenu"
+        component={ ItineraryMapMenuWithNavBar } 
+        options={{ animation: 'none' }}
+      />
+      <Stack.Screen 
+        name="ItineraryVisaCheck"
+        component={ ItineraryVisaCheck } 
+        options={{ animation: 'none' }}
+      />
+      <Stack.Screen 
+        name="FavoritePlaces" 
+        component={ FavoritePlaces } 
+        options={{ animation: 'none' }}
+      />
+      <Stack.Screen 
+        name="ExpenseControl" 
+        component={ ExpenseControl } 
         options={{ animation: 'none' }}
       />
       <Stack.Screen 
@@ -174,6 +220,11 @@ export function AuthRoute() {
       <Stack.Screen 
         name="DestinationDetail" 
         component={ DestinationDetails }
+        options={{ animation: 'none' }}
+      />
+      <Stack.Screen 
+        name="RecommendedDestinations" 
+        component={ RecommendedDestinations }
         options={{ animation: 'none' }}
       />
       <Stack.Screen 
