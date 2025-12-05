@@ -9,6 +9,8 @@ import { GenerateItineraryMenu } from "@screens/Itinerary/GenerateItineraryMenu"
 import { GenerateItineraryFeaturesIntroduction } from "@screens/Itinerary/GenerateItineraryFeaturesIntroduction";
 import { GenerateItineraryPreferences } from "@screens/Itinerary/GenerateItineraryPreferences";
 import { ItineraryMapMenu } from "@screens/Itinerary/ItineraryMapMenu";
+import { FavoritePlaces } from "@screens/Itinerary/FavoritePlaces";
+import { ExpenseControl } from "@screens/Itinerary/ExpenseControl";
 import { AIChat } from "@screens/AIChat/AIChat";
 import { AIVoiceChat } from "@screens/AIChat/AIVoiceChat";
 import { AIMascotIntroduction } from "@screens/AIChat/AIMascotIntroduction";
@@ -39,6 +41,8 @@ type AuthStackParamList = {
   CancelPremiumPlan: undefined,
   DestinationDetail: { destinationId: number },
   EditProfile: undefined,
+  ExpenseControl: undefined,
+  FavoritePlaces: undefined,
   GenerateItineraryFeaturesIntroduction: undefined,
   GenerateItineraryMenu: undefined,
   GenerateItineraryPreferences: { title: CreatingItinerary["title"], dateBegin: CreatingItinerary["dateBegin"], dateEnd: CreatingItinerary["dateEnd"], days: CreatingItinerary["days"], continent: CreatingItinerary["continent"], countries: CreatingItinerary["countries"], originCountry: CreatingItinerary["originCountry"], contacts: CreatingItinerary["contacts"] },
@@ -171,6 +175,16 @@ export function AuthRoute() {
       <Stack.Screen 
         name="ItineraryVisaCheck"
         component={ ItineraryVisaCheck } 
+        options={{ animation: 'none' }}
+      />
+      <Stack.Screen 
+        name="FavoritePlaces" 
+        component={ FavoritePlaces } 
+        options={{ animation: 'none' }}
+      />
+      <Stack.Screen 
+        name="ExpenseControl" 
+        component={ ExpenseControl } 
         options={{ animation: 'none' }}
       />
       <Stack.Screen 

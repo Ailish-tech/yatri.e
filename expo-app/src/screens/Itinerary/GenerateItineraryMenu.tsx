@@ -1,7 +1,9 @@
 import { useEffect, useState, useRef } from "react";
+
 import { Platform, SafeAreaView, StatusBar, Image as RNImage, TouchableOpacity } from "react-native";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useCallback } from "react";
 
 import Constants from 'expo-constants';
 
@@ -25,10 +27,13 @@ import { ButtonIconLeft } from "@components/Buttons/ButtonIconLeft";
 import { ItineraryCreateDialog } from "@components/Itinerary/ItineraryCreateDialog";
 import { UnlockProgressModal } from "@components/Itinerary/UnlockProgressModal";
 import { ItinerariesError } from "@components/Errors/ItinerariesError";
+import { PastItinerariesError } from "@components/Errors/PastItinerariesError";
 import { IconButton } from "@components/Buttons/IconButton";
 import { SimulatedAd } from "@components/SimulatedAd";
 import { ChooseGenerateStyle } from "@components/Itinerary/ChooseGenerateStyle";
 import { ItineraryPreferencesModal } from "@components/Itinerary/ItineraryPreferencesModal";
+import { ItineraryCard } from "@components/Cards/ItineraryCard";
+import { ItineraryActionsDialog } from "@components/Dialogs/ItineraryActionsDialog";
 
 import { userTrips } from "@data/itineraries";
 
@@ -38,8 +43,9 @@ import { CreatingItinerary } from "../../../@types/CreatingItinerary";
 
 import DefaultImage from '@assets/adaptive-icon.png';
 
-import { ArrowLeft, ChevronRight, Coins, Crown, Heart, Plus } from "lucide-react-native";
 import { utilsGetSelectedTags } from "@utils/selectedTagsStore";
+
+import { ArrowLeft, ChevronRight, Coins, Crown, Heart, Plus } from "lucide-react-native";
 
 type MenuItineraryTypes = {
   dialog: boolean,
@@ -58,6 +64,8 @@ export function GenerateItineraryMenu(){
   const [watchedAdsCount, setWatchedAdsCount] = useState<number>(0);
   const [isAdPlaying, setIsAdPlaying] = useState<boolean>(false);
   const [allUserItineraries, setAllUserItineraries] = useState<CreatingItinerary[]>([]);
+  const [selectedItineraryIndex, setSelectedItineraryIndex] = useState<number | null>(null);
+  const [showActionsDialog, setShowActionsDialog] = useState<boolean>(false);
 
   const totalAdsRequired = 3;
   
@@ -251,6 +259,83 @@ export function GenerateItineraryMenu(){
     return daysDifference;
   }
 
+  // Função para obter o último itinerário válido (não passado)
+  const getLatestValidItinerary = (): CreatingItinerary | null => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    // Filtra itinerários que não passaram ainda
+    const validItineraries = allUserItineraries.filter(itinerary => {
+      const endDate = new Date(itinerary.dateEnd);
+      endDate.setHours(0, 0, 0, 0);
+      return endDate >= today;
+    });
+
+    // Retorna o último itinerário adicionado (último do array)
+    return validItineraries.length > 0 ? validItineraries[validItineraries.length - 1] : null;
+  };
+
+  // Função para filtrar itinerários com base no filtro selecionado
+  const getFilteredItineraries = (): CreatingItinerary[] => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    return allUserItineraries.filter(itinerary => {
+      const endDate = new Date(itinerary.dateEnd);
+      endDate.setHours(0, 0, 0, 0);
+      
+      // Se não tiver status definido, considera como Rascunho
+      const status = itinerary.status || "Rascunho";
+
+      if (selectedFilter === "Planejados") {
+        return status === "Planejado" && endDate >= today;
+      } else if (selectedFilter === "Rascunhos") {
+        return status === "Rascunho";
+      } else if (selectedFilter === "Passados") {
+        return endDate < today || status === "Passado";
+      }
+      return false;
+    });
+  };
+
+  // Função para editar itinerário
+  const handleEditItinerary = (itinerary: CreatingItinerary) => {
+    navigation.navigate("ItineraryMapMenu", { 
+      itineraryData: itinerary, 
+      userPreferences: itinerary.visitPreferences || utilsGetSelectedTags(), 
+      visaIssue: itinerary.visa === true ? "Positive" : itinerary.visa === false ? "Negative" : itinerary.visa 
+    });
+  };
+
+  // Função para excluir itinerário
+  const handleDeleteItinerary = async (index: number) => {
+    try {
+      const updatedItineraries = [...allUserItineraries];
+      updatedItineraries.splice(index, 1);
+      
+      await AsyncStorage.setItem('@eztripai_allUserTripItineraries', JSON.stringify(updatedItineraries));
+      setAllUserItineraries(updatedItineraries);
+    } catch (error) {
+      console.error('Erro ao excluir itinerário:', error);
+    }
+  };
+
+  // Função para mover itinerário entre status
+  const handleMoveItinerary = async (index: number) => {
+    try {
+      const updatedItineraries = [...allUserItineraries];
+      const currentStatus = updatedItineraries[index].status || "Rascunho";
+      
+      // Alternar entre Planejado e Rascunho
+      updatedItineraries[index].status = currentStatus === "Planejado" ? "Rascunho" : "Planejado";
+      
+      await AsyncStorage.setItem('@eztripai_allUserTripItineraries', JSON.stringify(updatedItineraries));
+      setAllUserItineraries(updatedItineraries);
+    } catch (error) {
+      console.error('Erro ao mover itinerário:', error);
+    }
+  };
+
   useEffect(() => {
     loadNewAd();
   }, []);
@@ -275,7 +360,7 @@ export function GenerateItineraryMenu(){
     
     const getUserTripsData = async () => {
       try {
-        //await AsyncStorage.clear();
+        // PARA HARD RESET DOS ITINERÁRIOS PADRÕES: await AsyncStorage.clear();
         const jsonValue = await AsyncStorage.getItem('@eztripai_allUserTripItineraries');
         if (jsonValue) {
           setAllUserItineraries(JSON.parse(jsonValue));
@@ -290,6 +375,24 @@ export function GenerateItineraryMenu(){
 
     getUserTripsData();
   }, []);
+
+  // Recarregar itinerários quando a tela receber foco
+  useFocusEffect(
+    useCallback(() => {
+      const reloadItineraries = async () => {
+        try {
+          const jsonValue = await AsyncStorage.getItem('@eztripai_allUserTripItineraries');
+          if (jsonValue) {
+            setAllUserItineraries(JSON.parse(jsonValue));
+          }
+        } catch (e) {
+          console.log("Erro ao recarregar itinerários: ", e);
+        }
+      };
+
+      reloadItineraries();
+    }, [])
+  );
   
   return(
     <SafeAreaView style={{ flex: 1 }}>
@@ -319,80 +422,115 @@ export function GenerateItineraryMenu(){
 
         <Text color='#2752B7' ml={25} mt={20} fontSize="$3xl" fontWeight="$bold">Itinerários</Text>
 
-        <TouchableOpacity
-          style={{
-            backgroundColor: "#ffffff",
-            borderRadius: 15,
-            shadowColor: "#000",
-            shadowOffset: { width: 0, height: 4 },
-            shadowOpacity: 0.2,
-            shadowRadius: 5,
-            elevation: 5,
-            justifyContent: "center",
-            alignItems: "center",
-            alignSelf: "center",
-            width: "95%",
-            minHeight: 260,
-            marginTop: 15
-          }}
-          onPress={ () => { 
-            const itineraryData = allUserItineraries[0];
-            if (itineraryData) {
-              navigation.navigate("ItineraryMapMenu", { 
-                itineraryData: itineraryData, 
-                userPreferences: utilsGetSelectedTags(), 
-                visaIssue: itineraryData.visa === true ? "Positive" : itineraryData.visa === false ? "Negative" : itineraryData.visa 
-              });
-            }
-          }}
-          activeOpacity={0.8}
-        >
-          <View>
-            {(() => {
-              const firstImage = itineraries?.[0]?.itinerary?.[0]?.images?.[0];
+        {(() => {
+          const latestItinerary = getLatestValidItinerary();
+          
+          if (!latestItinerary) {
+            return (
+              <View
+                bgColor="#ffffff"
+                borderRadius={15}
+                shadowColor="#000"
+                shadowOffset={{ width: 0, height: 4 }}
+                shadowOpacity={0.2}
+                shadowRadius={5}
+                elevation={5}
+                maxHeight={250}
+                justifyContent="center"
+                alignItems="center"
+                alignSelf="center"
+                w="95%"
+                py={15}
+                mt={15}
+              >
+                <View>
+                  <ItinerariesError />
+                  <ButtonIconLeft
+                    textContent="Novo Itinerário"
+                    icon={Plus}
+                    action={ handleNewItinerary }
+                    iconDimension={24}
+                    textColor="#FFF"
+                    disabled={ disableAdIsLoading }
+                    loading={ !adLoaded }
+                    iconStyles={{ marginRight: 5, color: '#FFF' }}
+                    buttonStyles={{ backgroundColor: '#2752B7', borderRadius: 20 }}
+                    styles={{ alignSelf: "center" }}
+                  />
+                </View>
+              </View>
+            );
+          }
 
-              return firstImage ? (
-                <RNImage
-                  source={{ uri: firstImage }}
-                  width={350}
-                  height={210}
-                  borderRadius={10}
-                  style={{
-                    alignSelf: 'center',
-                    marginTop: 13
-                  }}
-                />
-              ) : (
-                <RNImage
-                  source={{ uri: DefaultImage }}
-                  width={350}
-                  height={210}
-                  borderRadius={10}
-                  style={{
-                    alignSelf: 'center',
-                    marginTop: 13
-                  }}
-                />
-              );
-            })()}
-            <View>
-              {(() => {
-                const itineraries = allUserItineraries as any[];
-                const firstItinerary = itineraries?.[0];
-                return firstItinerary ? (
-                  <>
-                    <View flexDirection="row" alignItems="center" justifyContent="space-between" my={10}>
-                      <Text fontSize="$2xl" fontWeight="$bold" color="$black">{firstItinerary.title}</Text>
-                      <Text fontSize="$md" fontWeight="$semibold" color="$gray600" mr={8}>
-                        Em {daysUntilTravel(firstItinerary.dateBegin)} dias
-                      </Text>
-                    </View>
-                  </>
-                ) : null;
-              })()}
-            </View>
-          </View>
-        </TouchableOpacity>
+          const firstImage = (latestItinerary.itinerary as any)?.[0]?.images?.[0];
+          const imageUri = latestItinerary.coverImage || firstImage;
+
+          return (
+            <TouchableOpacity
+              style={{
+                backgroundColor: "#ffffff",
+                borderRadius: 15,
+                shadowColor: "#000",
+                shadowOffset: { width: 0, height: 4 },
+                shadowOpacity: 0.2,
+                shadowRadius: 5,
+                elevation: 5,
+                justifyContent: "center",
+                alignItems: "center",
+                alignSelf: "center",
+                width: "95%",
+                minHeight: 260,
+                marginTop: 15
+              }}
+              onPress={ () => { 
+                navigation.navigate("ItineraryMapMenu", { 
+                  itineraryData: latestItinerary, 
+                  userPreferences: latestItinerary.visitPreferences || utilsGetSelectedTags(), 
+                  visaIssue: latestItinerary.visa === true ? "Positive" : latestItinerary.visa === false ? "Negative" : latestItinerary.visa 
+                });
+              }}
+              activeOpacity={0.8}
+            >
+              <View>
+                {imageUri ? (
+                  <RNImage
+                    source={{ uri: imageUri }}
+                    style={{
+                      width: 350,
+                      height: 210,
+                      borderRadius: 10,
+                      alignSelf: 'center',
+                      marginTop: 13
+                    }}
+                    resizeMode="cover"
+                  />
+                ) : (
+                  <RNImage
+                    source={DefaultImage}
+                    style={{
+                      width: 350,
+                      height: 210,
+                      borderRadius: 10,
+                      alignSelf: 'center',
+                      marginTop: 13
+                    }}
+                    resizeMode="cover"
+                  />
+                )}
+                <View px={15}>
+                  <View flexDirection="row" alignItems="center" justifyContent="space-between" my={10}>
+                    <Text fontSize="$2xl" fontWeight="$bold" color="$black" flex={1} numberOfLines={1}>
+                      {latestItinerary.title}
+                    </Text>
+                    <Text fontSize="$md" fontWeight="$semibold" color="$gray600" ml={10}>
+                      Em {daysUntilTravel(latestItinerary.dateBegin)} dias
+                    </Text>
+                  </View>
+                </View>
+              </View>
+            </TouchableOpacity>
+          );
+        })()}
 
         <Button
           bgColor="#FFF"
@@ -408,7 +546,7 @@ export function GenerateItineraryMenu(){
           alignSelf="center"
           w="95%"
           minHeight={50}
-          onPress={ () => {} }
+          onPress={ () => navigation.navigate("FavoritePlaces") }
           mt={20}
         >
           <View flexDirection="row" alignItems="center">
@@ -433,7 +571,7 @@ export function GenerateItineraryMenu(){
           alignSelf="center"
           w="95%"
           minHeight={50}
-          onPress={ () => {} }
+          onPress={ () => navigation.navigate("ExpenseControl") }
           mt={10}
         >
           <View flexDirection="row" alignItems="center">
@@ -518,40 +656,95 @@ export function GenerateItineraryMenu(){
           </Button>
         </View>
 
-        <View
-          bgColor="#ffffff"
-          width={100}
-          borderRadius={15}
-          shadowColor="#000"
-          shadowOffset={{ width: 0, height: 4 }}
-          shadowOpacity={0.2}
-          shadowRadius={5}
-          elevation={5}
-          maxHeight={250}
-          justifyContent="center"
-          alignItems="center"
-          alignSelf="center"
-          w="95%"
-          py={15}
-          mt={15}
-          mb={95}
-        >
-          <View>
-            <ItinerariesError />
-            <ButtonIconLeft
-              textContent="Novo Itinerário"
-              icon={Plus}
-              action={ handleNewItinerary }
-              iconDimension={24}
-              textColor="#FFF"
-              disabled={ disableAdIsLoading }
-              loading={ !adLoaded }
-              iconStyles={{ marginRight: 5, color: '#FFF' }}
-              buttonStyles={{ backgroundColor: '#2752B7', borderRadius: 20 }}
-              styles={{ alignSelf: "center" }}
-            />
-          </View>
-        </View>
+        {
+          getFilteredItineraries().length > 0 ? (
+            <View
+              bgColor="#ffffff"
+              borderRadius={15}
+              shadowColor="#000"
+              shadowOffset={{ width: 0, height: 4 }}
+              shadowOpacity={0.2}
+              shadowRadius={5}
+              elevation={5}
+              alignSelf="center"
+              w="95%"
+              py={15}
+              mt={15}
+              mb={95}
+            >
+              <View width="100%" px={15}>
+                {
+                  getFilteredItineraries().map((itinerary, index) => {
+                    const firstImage = (itinerary.itinerary as any)?.[0]?.images?.[0];
+                    const imageUri = itinerary.coverImage || firstImage;
+                    
+                    // Encontrar o índice real no array original
+                    const originalIndex = allUserItineraries.findIndex(item => 
+                      item.title === itinerary.title && 
+                      new Date(item.dateBegin).getTime() === new Date(itinerary.dateBegin).getTime()
+                    );
+                    
+                    return (
+                      <ItineraryCard
+                        key={index}
+                        title={itinerary.title}
+                        dateBegin={new Date(itinerary.dateBegin).toLocaleDateString('pt-BR')}
+                        dateEnd={new Date(itinerary.dateEnd).toLocaleDateString('pt-BR')}
+                        imageUri={imageUri}
+                        daysUntil={daysUntilTravel(itinerary.dateBegin)}
+                        onPress={() => handleEditItinerary(itinerary)}
+                        onOptionsPress={() => {
+                          setSelectedItineraryIndex(originalIndex);
+                          setShowActionsDialog(true);
+                        }}
+                      />
+                    );
+                  })
+                }
+              </View>
+            </View>
+          ) : (
+            <View
+              bgColor="#ffffff"
+              borderRadius={15}
+              shadowColor="#000"
+              shadowOffset={{ width: 0, height: 4 }}
+              shadowOpacity={0.2}
+              shadowRadius={5}
+              elevation={5}
+              minHeight={200}
+              justifyContent="center"
+              alignItems="center"
+              alignSelf="center"
+              w="95%"
+              py={15}
+              mt={15}
+              mb={95}
+            >
+              {
+                selectedFilter === "Passados" ? (
+                  <PastItinerariesError />
+                ) : (
+                  <>
+                    <ItinerariesError />
+                    <ButtonIconLeft
+                      textContent="Novo Itinerário"
+                      icon={Plus}
+                      action={ handleNewItinerary }
+                      iconDimension={24}
+                      textColor="#FFF"
+                      disabled={ disableAdIsLoading }
+                      loading={ !adLoaded }
+                      iconStyles={{ marginRight: 5, color: '#FFF' }}
+                      buttonStyles={{ backgroundColor: '#2752B7', borderRadius: 20 }}
+                      styles={{ alignSelf: "center" }}
+                    />
+                  </>
+                )
+              }
+            </View>
+          )
+        }
       </ScrollView>
 
       <ChooseGenerateStyle 
@@ -592,6 +785,32 @@ export function GenerateItineraryMenu(){
         showAdImage={ showAdImage }
         handleCloseAdImage={ handleCloseAdImage }
       />
+
+      {selectedItineraryIndex !== null && (
+        <ItineraryActionsDialog
+          showAlertDialog={showActionsDialog}
+          currentStatus={allUserItineraries[selectedItineraryIndex]?.status || "Rascunho"}
+          handleClose={() => {
+            setShowActionsDialog(false);
+            setSelectedItineraryIndex(null);
+          }}
+          onEdit={() => {
+            if (selectedItineraryIndex !== null) {
+              handleEditItinerary(allUserItineraries[selectedItineraryIndex]);
+            }
+          }}
+          onDelete={() => {
+            if (selectedItineraryIndex !== null) {
+              handleDeleteItinerary(selectedItineraryIndex);
+            }
+          }}
+          onMove={() => {
+            if (selectedItineraryIndex !== null) {
+              handleMoveItinerary(selectedItineraryIndex);
+            }
+          }}
+        />
+      )}
     </SafeAreaView>
   )
 }

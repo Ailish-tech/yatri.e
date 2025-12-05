@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback } from "react";
-import { StyleSheet, Dimensions, FlatList } from "react-native";
+import { StyleSheet, Dimensions, FlatList, Alert, ScrollView as RNScrollView, TouchableOpacity, KeyboardAvoidingView, Platform, Modal, TextInput as RNTextInput } from "react-native";
 import { RouteProp, useNavigation, useRoute } from "@react-navigation/native";
+import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps';
 
 import {
   Gesture,
@@ -20,10 +21,15 @@ import Timeline from 'react-native-timeline-flatlist';
 
 import { ItineraryCategoriesDefine } from "@components/Itinerary/ItineraryCategoriesDefine";
 import { ItinerarySliderDateShow } from "@components/Itinerary/ItinerarySliderDateShow";
+import { AddExpenseModal } from "@components/Modals/AddExpenseModal";
+import { ExpenseAddedModal } from "@components/Modals/ExpenseAddedModal";
+
+import { useFavoritePlaces } from "../../hooks/useFavoritePlaces";
+import { useExpenseControl } from "../../hooks/useExpenseControl";
 
 import { AuthNavigationProp } from "@routes/auth.routes";
 
-import { ArrowDown, ArrowUp, CalendarX, ChevronRight, Compass, HandCoins, MessageCircle, Pen, SquarePlus, UtensilsCrossed, Bed, PartyPopper, TreePine, ShoppingBag, Landmark, Plane, Heart } from "lucide-react-native";
+import { ArrowDown, ArrowUp, CalendarX, ChevronRight, Compass, HandCoins, MessageCircle, Pen, SquarePlus, UtensilsCrossed, Bed, PartyPopper, TreePine, ShoppingBag, Landmark, Plane, Heart, Clock, FileText, Tag, MapPin, Move, X } from "lucide-react-native";
 
 import { CreatingItinerary } from "../../../@types/CreatingItinerary";
 import { CategoriesCounterTypes } from "../../../@types/CategoriesCounterTypes";
@@ -71,12 +77,24 @@ export function SlideUpItinerary({ isLoading, hideBackButton, setFirstLatitude, 
     itinerary,
   } = route.params.itineraryData;
 
+  const { addFavoritePlace, isFavorite } = useFavoritePlaces();
+  const { addExpense, expenses } = useExpenseControl();
+
   const [allTripDays, setAllTripDays] = useState<CalendarDaysTypes[]>([]);
   const [selectedDayIndex, setSelectedDayIndex] = useState<number>(0);
   const [isEditing, setIsEditing] = useState<boolean>(false);
   const [showCategories, setShowCategories] = useState<boolean>(false);
+  const [showExpenseModal, setShowExpenseModal] = useState<boolean>(false);
+  const [showExpenseAddedModal, setShowExpenseAddedModal] = useState<boolean>(false);
+  const [lastAddedExpense, setLastAddedExpense] = useState<{ title: string; amount: number } | null>(null);
+  const [currentExpenseContext, setCurrentExpenseContext] = useState<{ title: string, description: string, date: string, location: string } | null>(null);
   const [editingTimelineIndex, setEditingTimelineIndex] = useState<number | null>(null);
   const [itineraryState, setItineraryState] = useState<DayItineraryTypes[]>(Array.isArray(itinerary) ? itinerary : []);
+  const [showAddActivityModal, setShowAddActivityModal] = useState<boolean>(false);
+  const [addActivityPosition, setAddActivityPosition] = useState<'before' | 'after' | 'move' | null>(null);
+  const [newActivityData, setNewActivityData] = useState<{ time: string, title: string, description: string, category: string, coordinates: string }>({ time: '', title: '', description: '', category: '', coordinates: '0.0000,0.0000' });
+  const [showMapPicker, setShowMapPicker] = useState<boolean>(false);
+  const [selectedCoordinates, setSelectedCoordinates] = useState<{ latitude: number, longitude: number } | null>(null);
 
   const { height: screenHeight } = Dimensions.get('window');
 
@@ -124,6 +142,31 @@ export function SlideUpItinerary({ isLoading, hideBackButton, setFirstLatitude, 
       ],
     };
   });
+
+  // Função para gerar horários disponíveis (agora de 00:00 a 23:59)
+  const generateAvailableTimes = (beforeTime?: string, afterTime?: string): string[] => {
+    const times: string[] = [];
+    const startHour = beforeTime ? parseInt(beforeTime.split(':')[0]) : 0;
+    const startMinute = beforeTime ? parseInt(beforeTime.split(':')[1]) : 0;
+    const endHour = afterTime ? parseInt(afterTime.split(':')[0]) : 23;
+    const endMinute = afterTime ? parseInt(afterTime.split(':')[1]) : 59;
+
+    let currentHour = beforeTime ? startHour : 0;
+    let currentMinute = beforeTime ? startMinute + 15 : 0;
+
+    while (currentHour < endHour || (currentHour === endHour && currentMinute <= endMinute)) {
+      if (currentMinute >= 60) {
+        currentHour++;
+        currentMinute = 0;
+      }
+      if (currentHour < endHour || (currentHour === endHour && currentMinute < endMinute)) {
+        times.push(`${String(currentHour).padStart(2, '0')}:${String(currentMinute).padStart(2, '0')}`);
+      }
+      currentMinute += 15;
+    }
+
+    return times;
+  };
 
   const handleSelectCategory = (category: string) => {
     if (editingTimelineIndex === null) return;
@@ -213,6 +256,275 @@ export function SlideUpItinerary({ isLoading, hideBackButton, setFirstLatitude, 
 
     setShowCategories(false);
     setEditingTimelineIndex(null);
+  };
+
+  // Função para abrir modal de adicionar antes
+  const handleAddBefore = (index: number) => {
+    setEditingTimelineIndex(index);
+    setAddActivityPosition('before');
+    setNewActivityData({ time: '', title: '', description: '', category: '', coordinates: '0.0000,0.0000' });
+    setSelectedCoordinates(null);
+    setShowAddActivityModal(true);
+  };
+
+  // Função para abrir modal de adicionar depois
+  const handleAddAfter = (index: number) => {
+    setEditingTimelineIndex(index);
+    setAddActivityPosition('after');
+    setNewActivityData({ time: '', title: '', description: '', category: '', coordinates: '0.0000,0.0000' });
+    setSelectedCoordinates(null);
+    setShowAddActivityModal(true);
+  };
+
+  // Função para mover/editar atividade
+  const handleMoveActivity = (index: number) => {
+    const activity = itineraryState[selectedDayIndex]?.timeline[index];
+    if (!activity) return;
+
+    setEditingTimelineIndex(index);
+    setAddActivityPosition('move');
+    setNewActivityData({
+      time: activity.time,
+      title: activity.title,
+      description: activity.description,
+      category: activity.category,
+      coordinates: activity.coordinates || '0.0000,0.0000'
+    });
+
+    // Converte coordenadas string para objeto (suporta ; e ,)
+    if (activity.coordinates && activity.coordinates !== '0.0000,0.0000') {
+      const coordString = activity.coordinates.replace(/\s+/g, '');
+      const [lat, lng] = coordString.split(/[;,]/).map(Number);
+      if (!isNaN(lat) && !isNaN(lng)) {
+        setSelectedCoordinates({ latitude: lat, longitude: lng });
+      } else {
+        setSelectedCoordinates(null);
+      }
+    } else {
+      setSelectedCoordinates(null);
+    }
+
+    setShowAddActivityModal(true);
+  };
+
+  // Função para salvar nova atividade ou edição
+  const handleSaveNewActivity = () => {
+    if (editingTimelineIndex === null || !addActivityPosition) return;
+    if (!newActivityData.time || !newActivityData.title) {
+      Alert.alert('Erro', 'Por favor, preencha pelo menos o horário e o título da atividade.');
+      return;
+    }
+
+    const coordinates = selectedCoordinates 
+      ? `${selectedCoordinates.latitude.toFixed(4)}; ${selectedCoordinates.longitude.toFixed(4)}`
+      : newActivityData.coordinates || '0.0000,0.0000';
+
+    const activityData: TimelineItemTypes = {
+      time: newActivityData.time,
+      title: newActivityData.title,
+      description: newActivityData.description || newActivityData.title,
+      coordinates: coordinates,
+      category: newActivityData.category
+    };
+
+    setItineraryState((prevState) => {
+      const newState = [...prevState];
+      const dayData = newState[selectedDayIndex];
+      
+      if (dayData && dayData.timeline) {
+        const newTimeline = [...dayData.timeline];
+        
+        if (addActivityPosition === 'move') {
+          // Modo edição: substitui a atividade existente
+          newTimeline[editingTimelineIndex] = activityData;
+        } else {
+          // Modo adicionar: insere nova atividade
+          const insertIndex = addActivityPosition === 'before' ? editingTimelineIndex : editingTimelineIndex + 1;
+          newTimeline.splice(insertIndex, 0, activityData);
+        }
+        
+        dayData.timeline = newTimeline;
+      }
+
+      return newState;
+    });
+
+    setShowAddActivityModal(false);
+    setEditingTimelineIndex(null);
+    setAddActivityPosition(null);
+    setNewActivityData({ time: '', title: '', description: '', category: '', coordinates: '0.0000,0.0000' });
+    setSelectedCoordinates(null);
+  };
+
+  // Função para excluir visita
+  const handleDeleteActivity = (index: number) => {
+    const activity = itineraryState[selectedDayIndex]?.timeline[index];
+    if (!activity) return;
+
+    Alert.alert(
+      'Confirmar exclusão',
+      'Tem certeza que deseja excluir esta atividade?',
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: 'Excluir',
+          style: 'destructive',
+          onPress: () => {
+            const oldCategory = activity.category;
+            
+            // Atualiza o estado do itinerário
+            setItineraryState((prevState) => {
+              const newState = [...prevState];
+              const dayData = { ...newState[selectedDayIndex] };
+              
+              if (dayData && dayData.timeline) {
+                dayData.timeline = dayData.timeline.filter((_, i) => i !== index);
+                newState[selectedDayIndex] = dayData;
+              }
+
+              return newState;
+            });
+
+            // Atualiza contador de categorias de forma isolada
+            if (oldCategory) {
+              setCategoriesCounter((prev) => {
+                const newCounter = { ...prev };
+                switch (oldCategory) {
+                  case "Ponto Turístico":
+                    newCounter.touristAttractions = Math.max(0, newCounter.touristAttractions - 1);
+                    break;
+                  case "Gastronomia":
+                    newCounter.restaurant = Math.max(0, newCounter.restaurant - 1);
+                    break;
+                  case "Hospedagem":
+                    newCounter.accomodation = Math.max(0, newCounter.accomodation - 1);
+                    break;
+                  case "Vida Noturna":
+                    newCounter.nightLife = Math.max(0, newCounter.nightLife - 1);
+                    break;
+                  case "Parques":
+                    newCounter.parks = Math.max(0, newCounter.parks - 1);
+                    break;
+                  case "Shopping":
+                    newCounter.shopping = Math.max(0, newCounter.shopping - 1);
+                    break;
+                  case "Cultura":
+                    newCounter.culture = Math.max(0, newCounter.culture - 1);
+                    break;
+                  case "Viagens":
+                    newCounter.travel = Math.max(0, newCounter.travel - 1);
+                    break;
+                }
+                return newCounter;
+              });
+            }
+          }
+        }
+      ]
+    );
+  };
+
+  const handleAddToFavorites = async (rowData: TimelineItemTypes, index: number) => {
+    const currentDay = itineraryState[selectedDayIndex];
+    
+    if (!currentDay) return;
+
+    // Gera um ID único para o local favorito
+    const placeId = `${title}-${currentDay.day}-${index}-${rowData.time}`;
+
+    // Verifica se já está nos favoritos
+    if (isFavorite(placeId)) {
+      Alert.alert(
+        "Já está nos favoritos",
+        `"${rowData.title}" já foi adicionado aos seus locais favoritos.`,
+        [{ text: "OK" }]
+      );
+      return;
+    }
+
+    try {
+      await addFavoritePlace({
+        id: placeId,
+        title: rowData.title,
+        description: rowData.description,
+        coordinates: rowData.coordinates || "0.0000,0.0000",
+        category: rowData.category || "",
+        location: currentDay.location,
+        date: currentDay.date,
+        itineraryTitle: title,
+        favoritedAt: new Date().toISOString(),
+        images: currentDay.images || []
+      });
+
+      Alert.alert(
+        "Adicionado aos Favoritos!",
+        `"${rowData.title}" foi adicionado à sua lista de locais favoritos.`,
+        [{ text: "OK" }]
+      );
+    } catch (error) {
+      // DEBUG: console.error('Erro ao adicionar aos favoritos:', error);
+      Alert.alert(
+        "Erro",
+        "Não foi possível adicionar este local aos favoritos. Tente novamente.",
+        [{ text: "OK" }]
+      );
+    }
+  };
+
+  const handleOpenExpenseModal = (rowData: TimelineItemTypes, index: number) => {
+    const currentDay = itineraryState[selectedDayIndex];
+    
+    if (!currentDay) return;
+
+    setCurrentExpenseContext({
+      title: rowData.title,
+      description: rowData.description,
+      date: currentDay.date,
+      location: currentDay.location
+    });
+    setShowExpenseModal(true);
+  };
+
+  const handleAddExpense = async (expense: { title: string; amount: number; category: any; description: string; date: string }) => {
+    if (!currentExpenseContext) return;
+
+    const expenseId = `${title}-${Date.now()}`;
+
+    await addExpense({
+      id: expenseId,
+      title: expense.title,
+      amount: expense.amount,
+      category: expense.category,
+      description: expense.description,
+      date: expense.date,
+      itineraryTitle: title,
+      activityTitle: currentExpenseContext.title,
+      location: currentExpenseContext.location,
+      createdAt: new Date().toISOString()
+    });
+
+    setShowExpenseModal(false);
+    setCurrentExpenseContext(null);
+    setLastAddedExpense({ title: expense.title, amount: expense.amount });
+    setShowExpenseAddedModal(true);
+  };
+
+  // Função auxiliar para verificar se uma atividade está favoritada
+  const checkIfFavorited = (rowData: TimelineItemTypes, index: number): boolean => {
+    const currentDay = itineraryState[selectedDayIndex];
+    if (!currentDay) return false;
+    
+    const placeId = `${title}-${currentDay.day}-${index}-${rowData.time}`;
+    return isFavorite(placeId);
+  };
+
+  // Função auxiliar para obter total de gastos de uma atividade
+  const getActivityExpenses = (rowData: TimelineItemTypes): number => {
+    const activityExpenses = expenses.filter(
+      expense => expense.itineraryTitle === title && expense.activityTitle === rowData.title
+    );
+    
+    return activityExpenses.reduce((total, expense) => total + expense.amount, 0);
   };
 
   const getCategoryIcon = (category: string) => {
@@ -425,17 +737,39 @@ export function SlideUpItinerary({ isLoading, hideBackButton, setFirstLatitude, 
           </View>
           <ButtonIcon as={ ChevronRight } color="$black" />
         </Button>
-        <Button flexDirection="row" justifyContent="space-between" mt={10} bgColor="transparent" borderWidth={1} borderColor="lightgray">
+        <Button
+          flexDirection="row"
+          justifyContent="space-between"
+          mt={10}
+          bgColor="transparent"
+          borderWidth={1}
+          borderColor="lightgray"
+          onPress={() => handleOpenExpenseModal(rowData, index)}
+        >
           <View flexDirection="row">
-            <ButtonIcon as={ HandCoins } color="$black" mr={8} />
-            <ButtonText color="$black">Adicionar Custos</ButtonText>
+            <ButtonIcon as={ HandCoins } color={getActivityExpenses(rowData) > 0 ? "#2752B7" : "$black"} mr={8} />
+            <ButtonText color="$black">
+              {getActivityExpenses(rowData) > 0 
+                ? `Gastos: R$ ${getActivityExpenses(rowData).toFixed(2)}`
+                : "Adicionar Custos"}
+            </ButtonText>
           </View>
           <ButtonIcon as={ ChevronRight } color="$black" />
         </Button>
-        <Button flexDirection="row" justifyContent="space-between" mt={10} bgColor="transparent" borderWidth={1} borderColor="lightgray">
+        <Button 
+          flexDirection="row" 
+          justifyContent="space-between" 
+          mt={10} 
+          bgColor="transparent" 
+          borderWidth={1} 
+          borderColor="lightgray"
+          onPress={() => handleAddToFavorites(rowData, index)}
+        >
           <View flexDirection="row">
-            <ButtonIcon as={ Heart } color="$black" mr={8} />
-            <ButtonText color="$black">Favoritar Local</ButtonText>
+            <ButtonIcon as={ Heart } color={checkIfFavorited(rowData, index) ? "#FF0000" : "$black"} mr={8} />
+            <ButtonText color="$black">
+              {checkIfFavorited(rowData, index) ? "Local Favoritado" : "Favoritar Local"}
+            </ButtonText>
           </View>
           <ButtonIcon as={ ChevronRight } color="$black" />
         </Button>
@@ -443,24 +777,63 @@ export function SlideUpItinerary({ isLoading, hideBackButton, setFirstLatitude, 
           isEditing
             ?
             <View>
-              <Button flexDirection="row" justifyContent="space-between" mt={10} bgColor="transparent" borderWidth={1} borderColor="lightgray">
+              <Button 
+                flexDirection="row" 
+                justifyContent="space-between" 
+                mt={10} 
+                bgColor="transparent" 
+                borderWidth={1} 
+                borderColor="lightgray"
+                onPress={() => handleAddBefore(index)}
+              >
                 <View flexDirection="row">
                   <ButtonIcon as={ ArrowUp } color="$black" mr={8} />
                   <ButtonText color="$black">Adicionar antes</ButtonText>
                 </View>
                 <ButtonIcon as={ ChevronRight } color="$black" />
               </Button>
-              <Button flexDirection="row" justifyContent="space-between" mt={10} bgColor="transparent" borderWidth={1} borderColor="lightgray">
+              <Button 
+                flexDirection="row" 
+                justifyContent="space-between" 
+                mt={10} 
+                bgColor="transparent" 
+                borderWidth={1} 
+                borderColor="lightgray"
+                onPress={() => handleAddAfter(index)}
+              >
                 <View flexDirection="row">
                   <ButtonIcon as={ ArrowDown } color="$black" mr={8} />
                   <ButtonText color="$black">Adicionar depois</ButtonText>
                 </View>
                 <ButtonIcon as={ ChevronRight } color="$black" />
               </Button>
-              <Button flexDirection="row" justifyContent="space-between" mt={10} bgColor="transparent" borderWidth={1} borderColor="lightgray">
+              <Button 
+                flexDirection="row" 
+                justifyContent="space-between" 
+                mt={10} 
+                bgColor="transparent" 
+                borderWidth={1} 
+                borderColor="lightgray"
+                onPress={() => handleDeleteActivity(index)}
+              >
                 <View flexDirection="row">
                   <ButtonIcon as={ CalendarX } color="$black" mr={8} />
                   <ButtonText color="$black">Excluir visita</ButtonText>
+                </View>
+                <ButtonIcon as={ ChevronRight } color="$black" />
+              </Button>
+              <Button 
+                flexDirection="row" 
+                justifyContent="space-between" 
+                mt={10} 
+                bgColor="transparent" 
+                borderWidth={1} 
+                borderColor="lightgray"
+                onPress={() => handleMoveActivity(index)}
+              >
+                <View flexDirection="row">
+                  <ButtonIcon as={ Move } color="$black" mr={8} />
+                  <ButtonText color="$black">Mover atividade</ButtonText>
                 </View>
                 <ButtonIcon as={ ChevronRight } color="$black" />
               </Button>
@@ -469,7 +842,7 @@ export function SlideUpItinerary({ isLoading, hideBackButton, setFirstLatitude, 
         }
       </View>
     );
-  }, [isEditing]);
+  }, [isEditing, itineraryState, selectedDayIndex, title, expenses, isFavorite]);
 
   const getTimelineDataForDay = (dayIndex: number) => {  
     if (!itineraryState || !Array.isArray(itineraryState)) {
@@ -657,6 +1030,327 @@ export function SlideUpItinerary({ isLoading, hideBackButton, setFirstLatitude, 
           showModal={ showCategories }
           setShowModal={ () => setShowCategories(false) }
           onSelectCategory={ handleSelectCategory }
+        />
+
+        {/* Modal de Adicionar/Editar Atividade */}
+        {showAddActivityModal && (
+          <Modal
+            visible={showAddActivityModal}
+            transparent
+            animationType="slide"
+            onRequestClose={() => {
+              setShowAddActivityModal(false);
+              setShowMapPicker(false);
+            }}
+          >
+            <KeyboardAvoidingView
+              behavior={Platform.OS === "ios" ? "padding" : "height"}
+              style={{ flex: 1 }}
+            >
+              <View flex={1} bgColor="rgba(0, 0, 0, 0.5)" justifyContent="flex-end">
+                <View
+                  bgColor="#FFF"
+                  borderTopLeftRadius={25}
+                  borderTopRightRadius={25}
+                  maxHeight="90%"
+                >
+                  {/* Header */}
+                  <View
+                    flexDirection="row"
+                    justifyContent="space-between"
+                    alignItems="center"
+                    p={20}
+                    borderBottomWidth={1}
+                    borderBottomColor="#F0F0F0"
+                  >
+                    <Text fontSize="$xl" fontWeight="$bold" color="#2752B7">
+                      {addActivityPosition === 'before' 
+                        ? 'Adicionar Atividade Antes' 
+                        : addActivityPosition === 'after'
+                        ? 'Adicionar Atividade Depois'
+                        : 'Mover Atividade'}
+                    </Text>
+                    <TouchableOpacity onPress={() => {
+                      setShowAddActivityModal(false);
+                      setShowMapPicker(false);
+                    }}>
+                      <X size={24} color="#666" />
+                    </TouchableOpacity>
+                  </View>
+
+                  {/* Body */}
+                  <RNScrollView style={{ maxHeight: 500 }}>
+                    <View p={20}>
+                      {/* Horário */}
+                      <View mb={20}>
+                        <View flexDirection="row" alignItems="center" mb={8}>
+                          <Clock size={18} color="#2752B7" />
+                          <Text fontSize="$sm" fontWeight="$semibold" color="#333" ml={8}>
+                            Horário *
+                          </Text>
+                        </View>
+                        <RNScrollView 
+                          horizontal 
+                          showsHorizontalScrollIndicator={false}
+                          style={{
+                            backgroundColor: "#F8F8F8",
+                            borderRadius: 12,
+                            borderWidth: 1,
+                            borderColor: "#E5E5E5"
+                          }}
+                        >
+                          <View flexDirection="row" p={4}>
+                            {generateAvailableTimes(
+                              editingTimelineIndex !== null && editingTimelineIndex > 0 && addActivityPosition !== 'move'
+                                ? itineraryState[selectedDayIndex]?.timeline[editingTimelineIndex - 1]?.time 
+                                : undefined,
+                              editingTimelineIndex !== null && itineraryState[selectedDayIndex]?.timeline[editingTimelineIndex + 1] && addActivityPosition !== 'move'
+                                ? itineraryState[selectedDayIndex]?.timeline[editingTimelineIndex + 1]?.time
+                                : undefined
+                            ).map((time) => (
+                              <TouchableOpacity
+                                key={time}
+                                onPress={() => setNewActivityData({ ...newActivityData, time })}
+                                style={{ marginRight: 8 }}
+                              >
+                                <View
+                                  bgColor={newActivityData.time === time ? "#2752B7" : "#FFF"}
+                                  px={16}
+                                  py={10}
+                                  borderRadius={20}
+                                  borderWidth={1}
+                                  borderColor={newActivityData.time === time ? "#2752B7" : "#E5E5E5"}
+                                >
+                                  <Text
+                                    color={newActivityData.time === time ? "#FFF" : "#666"}
+                                    fontSize="$sm"
+                                    fontWeight="$semibold"
+                                  >
+                                    {time}
+                                  </Text>
+                                </View>
+                              </TouchableOpacity>
+                            ))}
+                          </View>
+                        </RNScrollView>
+                      </View>
+
+                      {/* Título */}
+                      <View mb={20}>
+                        <View flexDirection="row" alignItems="center" mb={8}>
+                          <FileText size={18} color="#2752B7" />
+                          <Text fontSize="$sm" fontWeight="$semibold" color="#333" ml={8}>
+                            Título da Atividade *
+                          </Text>
+                        </View>
+                        <RNTextInput
+                          value={newActivityData.title}
+                          onChangeText={(text: string) => setNewActivityData({ ...newActivityData, title: text })}
+                          placeholder="Ex: Visita à Torre Eiffel"
+                          placeholderTextColor="#999"
+                          style={{
+                            backgroundColor: "#F8F8F8",
+                            borderRadius: 12,
+                            padding: 14,
+                            fontSize: 15,
+                            color: "#000",
+                            borderWidth: 1,
+                            borderColor: "#E5E5E5"
+                          }}
+                        />
+                      </View>
+
+                      {/* Descrição */}
+                      <View mb={20}>
+                        <View flexDirection="row" alignItems="center" mb={8}>
+                          <FileText size={18} color="#2752B7" />
+                          <Text fontSize="$sm" fontWeight="$semibold" color="#333" ml={8}>
+                            Descrição (Opcional)
+                          </Text>
+                        </View>
+                        <RNTextInput
+                          value={newActivityData.description}
+                          onChangeText={(text: string) => setNewActivityData({ ...newActivityData, description: text })}
+                          placeholder="Detalhes adicionais sobre a atividade"
+                          placeholderTextColor="#999"
+                          multiline
+                          numberOfLines={3}
+                          style={{
+                            backgroundColor: "#F8F8F8",
+                            borderRadius: 12,
+                            padding: 14,
+                            fontSize: 15,
+                            color: "#000",
+                            borderWidth: 1,
+                            borderColor: "#E5E5E5",
+                            minHeight: 80,
+                            textAlignVertical: "top"
+                          }}
+                        />
+                      </View>
+
+                      {/* Categoria */}
+                      <View mb={20}>
+                        <View flexDirection="row" alignItems="center" mb={8}>
+                          <Tag size={18} color="#2752B7" />
+                          <Text fontSize="$sm" fontWeight="$semibold" color="#333" ml={8}>
+                            Categoria
+                          </Text>
+                        </View>
+                        <RNScrollView horizontal showsHorizontalScrollIndicator={false}>
+                          {["Ponto Turístico", "Gastronomia", "Hospedagem", "Vida Noturna", "Parques", "Shopping", "Cultura", "Viagens"].map((cat) => (
+                            <TouchableOpacity
+                              key={cat}
+                              onPress={() => setNewActivityData({ ...newActivityData, category: cat })}
+                              style={{ marginRight: 8 }}
+                            >
+                              <View
+                                bgColor={newActivityData.category === cat ? "#2752B7" : "#F8F8F8"}
+                                px={16}
+                                py={10}
+                                borderRadius={20}
+                                borderWidth={1}
+                                borderColor={newActivityData.category === cat ? "#2752B7" : "#E5E5E5"}
+                              >
+                                <Text
+                                  color={newActivityData.category === cat ? "#FFF" : "#666"}
+                                  fontSize="$sm"
+                                  fontWeight="$semibold"
+                                >
+                                  {cat}
+                                </Text>
+                              </View>
+                            </TouchableOpacity>
+                          ))}
+                        </RNScrollView>
+                      </View>
+
+                      {/* Localização no Mapa */}
+                      <View mb={10}>
+                        <View flexDirection="row" alignItems="center" mb={8}>
+                          <MapPin size={18} color="#2752B7" />
+                          <Text fontSize="$sm" fontWeight="$semibold" color="#333" ml={8}>
+                            Localização no Mapa (Opcional)
+                          </Text>
+                        </View>
+                        <TouchableOpacity onPress={() => setShowMapPicker(!showMapPicker)}>
+                          <View
+                            bgColor="#F8F8F8"
+                            p={14}
+                            borderRadius={12}
+                            borderWidth={1}
+                            borderColor="#E5E5E5"
+                          >
+                            <Text fontSize="$sm" color={selectedCoordinates ? "#000" : "#999"}>
+                              {selectedCoordinates 
+                                ? `${selectedCoordinates.latitude.toFixed(4)}; ${selectedCoordinates.longitude.toFixed(4)}`
+                                : 'Toque para selecionar no mapa'}
+                            </Text>
+                          </View>
+                        </TouchableOpacity>
+                        {showMapPicker && (
+                          <View mt={10}>
+                            <View 
+                              bgColor="#FFE5E5" 
+                              p={10} 
+                              borderRadius={8} 
+                              borderWidth={1} 
+                              borderColor="#FF0000"
+                              mb={10}
+                            >
+                              <Text fontSize="$xs" color="#FF0000" textAlign="center" fontWeight="$semibold">
+                                Clique duas vezes no mapa para selecionar a nova localização!
+                              </Text>
+                            </View>
+                            <View borderRadius={12} overflow="hidden" height={250}>
+                              <MapView
+                                provider={PROVIDER_GOOGLE}
+                                style={{ flex: 1 }}
+                                initialRegion={{
+                                  latitude: selectedCoordinates?.latitude || -23.5505,
+                                  longitude: selectedCoordinates?.longitude || -46.6333,
+                                  latitudeDelta: 0.0922,
+                                  longitudeDelta: 0.0421,
+                                }}
+                                onPress={(e) => {
+                                  setSelectedCoordinates(e.nativeEvent.coordinate);
+                                }}
+                              >
+                                {selectedCoordinates && (
+                                  <Marker
+                                    coordinate={selectedCoordinates}
+                                    title="Localização da atividade"
+                                  />
+                                )}
+                              </MapView>
+                            </View>
+                          </View>
+                        )}
+                      </View>
+                    </View>
+                  </RNScrollView>
+
+                  {/* Footer */}
+                  <View
+                    p={20}
+                    borderTopWidth={1}
+                    borderTopColor="#F0F0F0"
+                    flexDirection="row"
+                    gap={10}
+                  >
+                    <Button
+                      flex={1}
+                      bgColor="#F0F0F0"
+                      borderRadius={12}
+                      onPress={() => {
+                        setShowAddActivityModal(false);
+                        setShowMapPicker(false);
+                      }}
+                    >
+                      <ButtonText color="#666" fontWeight="$semibold">Cancelar</ButtonText>
+                    </Button>
+                    <Button
+                      flex={1}
+                      bgColor="#2752B7"
+                      borderRadius={12}
+                      onPress={handleSaveNewActivity}
+                      disabled={!newActivityData.time || !newActivityData.title}
+                      opacity={!newActivityData.time || !newActivityData.title ? 0.5 : 1}
+                    >
+                      <ButtonText color="#FFF" fontWeight="$semibold">
+                        {addActivityPosition === 'move' ? 'Atualizar' : 'Salvar'}
+                      </ButtonText>
+                    </Button>
+                  </View>
+                </View>
+              </View>
+            </KeyboardAvoidingView>
+          </Modal>
+        )}
+
+        <AddExpenseModal
+          visible={showExpenseModal}
+          onClose={() => {
+            setShowExpenseModal(false);
+            setCurrentExpenseContext(null);
+          }}
+          onAdd={handleAddExpense}
+          defaultTitle={currentExpenseContext?.title || ""}
+          defaultDescription={currentExpenseContext?.description || ""}
+          defaultDate={currentExpenseContext?.date || ""}
+          defaultLocation={currentExpenseContext?.location || ""}
+          itineraryTitle={title}
+        />
+
+        <ExpenseAddedModal
+          visible={showExpenseAddedModal}
+          onClose={() => setShowExpenseAddedModal(false)}
+          onViewExpenses={() => {
+            setShowExpenseAddedModal(false);
+            navigation.navigate("ExpenseControl");
+          }}
+          expenseTitle={lastAddedExpense?.title || ""}
+          expenseAmount={lastAddedExpense?.amount || 0}
         />
       </Animated.View>
     </GestureDetector>

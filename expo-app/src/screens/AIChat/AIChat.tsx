@@ -37,7 +37,8 @@ import FelipeNewChat from '@assets/Mascot/Felipe_Mascot_NewChat.svg';
 import { getAuth } from "firebase/auth";
 
 import { MessageTypes } from '../../../@types/MessagesTypes';
-import { responseCache } from "../../../../nextjs-api/utils/responseCache";
+
+import { responseCache } from '@utils/responseCache';
 
 // Função para gerar um ID único baseado no timestamp + random
 const generateUniqueId = (): string => {
@@ -175,7 +176,7 @@ export function AIChat() {
         return { temperature: "--", condition: "--" };
       }
       const { latitude, longitude } = location.coords;
-      const response = await fetch(`http://SEU-IP-AQUI:3000/api/weather?latitude=${latitude}&longitude=${longitude}`);
+      const response = await fetch(`https://guiaturisticoeztripai.vercel.app/api/weather?latitude=${latitude}&longitude=${longitude}`);
       if (!response.ok) {
         console.error(`Failed to fetch weather data: ${response.status} ${response.statusText}`);
         return { temperature: "--", condition: "--" };
