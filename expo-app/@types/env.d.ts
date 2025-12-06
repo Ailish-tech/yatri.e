@@ -6,4 +6,5 @@ declare module "@env" {
   export const EXPO_PUBLIC_ADMOB_ANDROID_APP_ID: string
   export const EXPO_PUBLIC_ADMOB_IOS_APP_ID: string
   export const DEV_API_URL: string
+  export const FORCE_PRODUCTION: string
 }

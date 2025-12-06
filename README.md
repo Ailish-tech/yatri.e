@@ -47,12 +47,13 @@
 ## Demonstrações
 
 <p align="center">
-  <img src="https://github.com/user-attachments/assets/0a34c558-13b0-4fe9-8387-9b8214406a68" width="33%" alt="Home Page da Aplicação" />
+  <img src="https://github.com/user-attachments/assets/763e637a-fd98-4907-aaf1-11539e782956" width="33%" alt="Home Page da Aplicação" />
   <img src="https://github.com/user-attachments/assets/e4e1f3d1-6526-472f-a86c-1eead05c4526" width="33%" alt="Menu de Chat com Assistente IA" />
   <img src="https://github.com/user-attachments/assets/be3b4a7c-02fa-4225-ab8e-9b5fb2012655" width="33%" alt="Chat por Texto com Assistente IA" />
   <img src="https://github.com/user-attachments/assets/319fc442-665d-48b7-bf62-f28c075bfe87" width="33%" alt="Chat por Voz com Assistente IA" />
   <img src="https://github.com/user-attachments/assets/91bb82d8-a475-4d32-a2e2-62fc7593bc7f" width="33%" alt="Página de Perfil do Usuário" />
-  <img src="https://github.com/user-attachments/assets/a512c2fa-e94a-4fc1-b8eb-edbc744bbf4f" width="33%" alt="Geração de Itinerários por Escrito com IA" />
+  <img src="https://github.com/user-attachments/assets/315d8d72-e900-4ee2-9115-b52bf6cb2866" width="33%" alt="Geração de Itinerários Dinâmicos e Personalizados com IA" />
+  <img src="https://github.com/user-attachments/assets/767ed35b-46aa-400f-8caf-6107e1edb36a" width="33%" alt="Informações Detalhadas sobre o Destino" />
 </p>
 
 ---
