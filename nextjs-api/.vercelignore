@@ -1,0 +1,10 @@
+.next
+node_modules
+.env*.local
+*.log
+.DS_Store
+coverage
+.vscode
+*.test.ts
+*.test.tsx
+__tests__
