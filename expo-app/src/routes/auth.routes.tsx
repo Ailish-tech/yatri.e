@@ -25,6 +25,12 @@ import { ManagePremiumPlan } from "@screens/Premium/ManagePremiumPlan";
 import { OptionsManagePremiumPlan } from "@screens/Premium/OptionsManagePremiumPlan";
 import { CancelPremiumPlan } from "@screens/Premium/CancelPremiumPlan";
 import { ItineraryVisaCheck } from "@screens/Itinerary/ItineraryVisaCheck";
+import { SafetyDashboard } from "@screens/Safety/SafetyDashboard";
+import { EmergencyContacts } from "@screens/Safety/EmergencyContacts";
+import { NearbyServices } from "@screens/Services/NearbyServices";
+import { VendorMarketplace } from "@screens/Vendors/VendorMarketplace";
+import { VendorProfile } from "@screens/Vendors/VendorProfile";
+import { VendorRegistration } from "@screens/Vendors/VendorRegistration";
 
 import { NavigationBar } from "@components/NavigationBar";
 
@@ -57,7 +63,13 @@ type AuthStackParamList = {
   RecommendedDestinations: undefined,
   Settings: undefined,
   UserPreferences: CreatingItinerary,
-  WelcomePremium: undefined
+  WelcomePremium: undefined,
+  SafetyDashboard: undefined,
+  EmergencyContacts: undefined,
+  NearbyServices: undefined,
+  VendorMarketplace: undefined,
+  VendorProfile: { vendor: any },
+  VendorRegistration: undefined,
 };
 
 export type AuthNavigationProp = NativeStackNavigationProp<AuthStackParamList>;
@@ -250,6 +262,36 @@ export function AuthRoute() {
       <Stack.Screen 
         name="CancelPremiumPlan" 
         component={ CancelPremiumPlan }
+        options={{ animation: 'none' }}
+      />
+      <Stack.Screen 
+        name="SafetyDashboard" 
+        component={ SafetyDashboard }
+        options={{ animation: 'none' }}
+      />
+      <Stack.Screen 
+        name="EmergencyContacts" 
+        component={ EmergencyContacts }
+        options={{ animation: 'none' }}
+      />
+      <Stack.Screen 
+        name="NearbyServices" 
+        component={ NearbyServices }
+        options={{ animation: 'none' }}
+      />
+      <Stack.Screen 
+        name="VendorMarketplace" 
+        component={ VendorMarketplace }
+        options={{ animation: 'none' }}
+      />
+      <Stack.Screen 
+        name="VendorProfile" 
+        component={ VendorProfile }
+        options={{ animation: 'none' }}
+      />
+      <Stack.Screen 
+        name="VendorRegistration" 
+        component={ VendorRegistration }
         options={{ animation: 'none' }}
       />
     </Stack.Navigator>

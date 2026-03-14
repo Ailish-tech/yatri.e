@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Smart Tourism Safety — Authority Dashboard</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Segoe UI', system-ui, sans-serif; background: #0f172a; color: #e2e8f0; }
+
+    /* Header */
+    .header { background: linear-gradient(135deg, #1e293b, #0f172a); padding: 16px 24px; border-bottom: 1px solid #334155; display: flex; align-items: center; justify-content: space-between; }
+    .header h1 { font-size: 20px; font-weight: 700; }
+    .header h1 span { color: #38bdf8; }
+    .header-status { display: flex; gap: 16px; align-items: center; }
+    .status-dot { width: 10px; height: 10px; border-radius: 50%; background: #22c55e; animation: pulse 2s infinite; }
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+    .chain-badge { padding: 4px 12px; border-radius: 6px; font-size: 12px; font-weight: 600; }
+    .chain-valid { background: #166534; color: #86efac; }
+    .chain-invalid { background: #991b1b; color: #fca5a5; }
+
+    /* Stats bar */
+    .stats-bar { display: flex; gap: 12px; padding: 12px 24px; background: #1e293b; border-bottom: 1px solid #334155; flex-wrap: wrap; }
+    .stat-card { flex: 1; min-width: 140px; background: #0f172a; border: 1px solid #334155; border-radius: 10px; padding: 12px 16px; }
+    .stat-value { font-size: 28px; font-weight: 800; }
+    .stat-label { font-size: 11px; color: #94a3b8; text-transform: uppercase; letter-spacing: 1px; margin-top: 2px; }
+    .stat-sos .stat-value { color: #ef4444; }
+    .stat-geo .stat-value { color: #f59e0b; }
+    .stat-beh .stat-value { color: #a78bfa; }
+    .stat-total .stat-value { color: #38bdf8; }
+
+    /* Tabs */
+    .tabs { display: flex; gap: 0; background: #1e293b; border-bottom: 1px solid #334155; }
+    .tab { padding: 10px 24px; cursor: pointer; font-size: 13px; font-weight: 600; color: #94a3b8; border-bottom: 2px solid transparent; transition: all 0.2s; }
+    .tab:hover { color: #e2e8f0; }
+    .tab.active { color: #38bdf8; border-bottom-color: #38bdf8; }
+
+    /* Content */
+    .content { display: flex; height: calc(100vh - 160px); }
+    .map-panel { flex: 2; position: relative; }
+    #map { width: 100%; height: 100%; }
+    .side-panel { flex: 1; max-width: 400px; overflow-y: auto; background: #1e293b; border-left: 1px solid #334155; }
+    .panel-header { padding: 14px 16px; font-size: 14px; font-weight: 700; border-bottom: 1px solid #334155; color: #38bdf8; }
+
+    /* Incident cards */
+    .incident { padding: 12px 16px; border-bottom: 1px solid #1e293b; background: #0f172a; cursor: pointer; transition: background 0.2s; }
+    .incident:hover { background: #1e293b; }
+    .incident-type { font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 4px; display: inline-block; text-transform: uppercase; }
+    .type-SOS { background: #991b1b; color: #fca5a5; }
+    .type-GEOFENCE { background: #92400e; color: #fcd34d; }
+    .type-BEHAVIOR { background: #5b21b6; color: #c4b5fd; }
+    .type-ALERT { background: #1e40af; color: #93c5fd; }
+    .type-WEATHER { background: #065f46; color: #6ee7b7; }
+    .type-MANUAL { background: #475569; color: #cbd5e1; }
+    .incident-details { font-size: 13px; margin-top: 6px; color: #cbd5e1; }
+    .incident-meta { font-size: 11px; color: #64748b; margin-top: 4px; }
+
+    /* Search prediction panel */
+    .search-panel { display: none; padding: 16px; }
+    .search-panel.active { display: block; }
+    .search-input { display: flex; gap: 8px; margin-bottom: 12px; }
+    .search-input input { flex: 1; padding: 8px 12px; border-radius: 8px; border: 1px solid #334155; background: #0f172a; color: #e2e8f0; font-size: 13px; }
+    .search-input button { padding: 8px 16px; border-radius: 8px; border: none; background: #2563eb; color: #fff; font-weight: 600; cursor: pointer; }
+    .search-result { background: #0f172a; border: 1px solid #334155; border-radius: 10px; padding: 14px; margin-bottom: 10px; }
+    .search-result h4 { color: #38bdf8; font-size: 13px; margin-bottom: 6px; }
+    .search-result p { font-size: 12px; color: #94a3b8; }
+
+    /* Fullscreen tab views */
+    .tab-content { display: none; }
+    .tab-content.active { display: flex; }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <div class="header">
+    <h1>🛡️ Smart Tourism <span>Safety Dashboard</span></h1>
+    <div class="header-status">
+      <div class="status-dot"></div>
+      <span style="font-size:12px; color:#94a3b8;">LIVE</span>
+      <span id="chainBadge" class="chain-badge chain-valid">Chain: Verified</span>
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats-bar">
+    <div class="stat-card stat-sos">
+      <div class="stat-value" id="sosCount">0</div>
+      <div class="stat-label">SOS Alerts</div>
+    </div>
+    <div class="stat-card stat-geo">
+      <div class="stat-value" id="geoCount">0</div>
+      <div class="stat-label">Geo-Fence Breaches</div>
+    </div>
+    <div class="stat-card stat-beh">
+      <div class="stat-value" id="behCount">0</div>
+      <div class="stat-label">Behavior Anomalies</div>
+    </div>
+    <div class="stat-card stat-total">
+      <div class="stat-value" id="totalCount">0</div>
+      <div class="stat-label">Total Incidents</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value" id="zoneCount" style="color:#f59e0b;">0</div>
+      <div class="stat-label">Active Danger Zones</div>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <div class="tab active" onclick="switchTab('heatmap')">🗺️ Heat Map</div>
+    <div class="tab" onclick="switchTab('incidents')">📋 Incidents</div>
+    <div class="tab" onclick="switchTab('search')">🔍 Search Prediction</div>
+    <div class="tab" onclick="switchTab('chain')">🔗 Blockchain</div>
+  </div>
+
+  <!-- Heat Map Tab -->
+  <div id="tab-heatmap" class="tab-content active">
+    <div class="map-panel"><div id="map"></div></div>
+    <div class="side-panel">
+      <div class="panel-header">📋 Recent Incidents</div>
+      <div id="incidentFeed"></div>
+    </div>
+  </div>
+
+  <!-- Incidents Tab -->
+  <div id="tab-incidents" class="tab-content">
+    <div style="flex:1; overflow-y:auto; padding:16px;">
+      <div style="display:flex; gap:8px; margin-bottom:16px; flex-wrap:wrap;">
+        <button onclick="filterIncidents(null)" style="padding:6px 14px; border-radius:8px; border:1px solid #334155; background:#0f172a; color:#e2e8f0; cursor:pointer;">All</button>
+        <button onclick="filterIncidents('SOS')" class="incident-type type-SOS" style="cursor:pointer; border:none; padding:6px 14px; border-radius:8px;">SOS</button>
+        <button onclick="filterIncidents('GEOFENCE')" class="incident-type type-GEOFENCE" style="cursor:pointer; border:none; padding:6px 14px; border-radius:8px;">Geo-Fence</button>
+        <button onclick="filterIncidents('BEHAVIOR')" class="incident-type type-BEHAVIOR" style="cursor:pointer; border:none; padding:6px 14px; border-radius:8px;">Behavior</button>
+        <button onclick="filterIncidents('ALERT')" class="incident-type type-ALERT" style="cursor:pointer; border:none; padding:6px 14px; border-radius:8px;">Alert</button>
+        <button onclick="filterIncidents('WEATHER')" class="incident-type type-WEATHER" style="cursor:pointer; border:none; padding:6px 14px; border-radius:8px;">Weather</button>
+      </div>
+      <div id="fullIncidentList"></div>
+    </div>
+  </div>
+
+  <!-- Search Prediction Tab -->
+  <div id="tab-search" class="tab-content">
+    <div class="map-panel"><div id="searchMap" style="width:100%;height:100%;"></div></div>
+    <div class="side-panel">
+      <div class="panel-header">🔍 Missing Tourist Search</div>
+      <div class="search-panel active">
+        <div class="search-input">
+          <input type="text" id="searchLat" placeholder="Last latitude" value="26.8482">
+          <input type="text" id="searchLon" placeholder="Last longitude" value="75.8130">
+        </div>
+        <div class="search-input">
+          <input type="text" id="searchHours" placeholder="Hours missing" value="2">
+          <button onclick="runSearch()">Predict</button>
+        </div>
+        <div id="searchResults"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Blockchain Tab -->
+  <div id="tab-chain" class="tab-content">
+    <div style="flex:1; padding:24px; overflow-y:auto;">
+      <div style="display:flex; gap:16px; margin-bottom:20px;">
+        <button onclick="verifyChain()" style="padding:10px 24px; border-radius:10px; border:none; background:#2563eb; color:#fff; font-weight:700; cursor:pointer; font-size:14px;">🔗 Verify Chain Integrity</button>
+      </div>
+      <div id="chainResult" style="display:none; background:#0f172a; border:1px solid #334155; border-radius:12px; padding:20px; margin-bottom:20px;"></div>
+      <div class="panel-header" style="border:none; padding:0 0 12px 0;">Block Explorer</div>
+      <div id="blockExplorer"></div>
+    </div>
+  </div>
+
+  <script>
+    // ─── Map Setup ──────────────────────────────────────────
+    const map = L.map('map').setView([26.8800, 75.8100], 11);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: 'OpenStreetMap'
+    }).addTo(map);
+
+    let heatLayer = null;
+    let searchMap = null;
+    let searchCircles = [];
+
+    // ─── Load Data ──────────────────────────────────────────
+    async function loadStats() {
+      const res = await fetch('/api/stats');
+      const data = await res.json();
+      const inc = data.incidents.by_type || {};
+      document.getElementById('sosCount').textContent = inc.SOS || 0;
+      document.getElementById('geoCount').textContent = inc.GEOFENCE || 0;
+      document.getElementById('behCount').textContent = inc.BEHAVIOR || 0;
+      document.getElementById('totalCount').textContent = data.incidents.total_incidents || 0;
+      document.getElementById('zoneCount').textContent = data.zones.total_zones || 0;
+
+      const badge = document.getElementById('chainBadge');
+      if (data.chain_integrity.valid) {
+        badge.className = 'chain-badge chain-valid';
+        badge.textContent = 'Chain: Verified ✓';
+      } else {
+        badge.className = 'chain-badge chain-invalid';
+        badge.textContent = 'Chain: TAMPERED ✗';
+      }
+    }
+
+    async function loadHeatMap() {
+      const res = await fetch('/api/heatmap');
+      const points = await res.json();
+      if (heatLayer) map.removeLayer(heatLayer);
+      heatLayer = L.heatLayer(points, {
+        radius: 30, blur: 20, maxZoom: 13,
+        gradient: { 0.2: '#22c55e', 0.4: '#eab308', 0.6: '#f97316', 0.8: '#ef4444', 1.0: '#dc2626' }
+      }).addTo(map);
+    }
+
+    async function loadZones() {
+      const res = await fetch('/api/zones');
+      const zones = await res.json();
+      const colors = { low: '#22c55e', medium: '#eab308', high: '#f97316', critical: '#ef4444' };
+      zones.forEach(z => {
+        L.circle([z.latitude, z.longitude], {
+          radius: z.radius_m, color: colors[z.risk_level] || '#888',
+          fillOpacity: 0.15, weight: 2
+        }).addTo(map).bindPopup(`<b>${z.name}</b><br>${z.risk_level.toUpperCase()}<br>${z.alert_message}`);
+      });
+    }
+
+    async function loadIncidents(type = null) {
+      const url = type ? `/api/incidents?type=${type}` : '/api/incidents';
+      const res = await fetch(url);
+      const incidents = await res.json();
+      return incidents;
+    }
+
+    function renderIncident(inc) {
+      const d = inc.data || {};
+      return `<div class="incident" onclick="flyTo(${d.lat},${d.lon})">
+        <span class="incident-type type-${inc.incident_type}">${inc.incident_type}</span>
+        <div class="incident-details">${d.details || 'No details'}</div>
+        <div class="incident-meta">Block #${inc.index} · ${d.user_id || 'Unknown'} · ${new Date(inc.timestamp).toLocaleString()}</div>
+      </div>`;
+    }
+
+    async function loadFeed() {
+      const incidents = await loadIncidents();
+      document.getElementById('incidentFeed').innerHTML = incidents.slice(0, 20).map(renderIncident).join('');
+
+      // Add markers
+      incidents.forEach(inc => {
+        const d = inc.data || {};
+        if (d.lat && d.lon) {
+          const colors = { SOS: '#ef4444', GEOFENCE: '#f59e0b', BEHAVIOR: '#a78bfa', ALERT: '#3b82f6', WEATHER: '#22c55e' };
+          L.circleMarker([d.lat, d.lon], {
+            radius: 6, fillColor: colors[inc.incident_type] || '#888',
+            fillOpacity: 0.9, weight: 1, color: '#fff'
+          }).addTo(map).bindPopup(`<b>${inc.incident_type}</b><br>${d.details}<br>${d.user_id}`);
+        }
+      });
+    }
+
+    async function filterIncidents(type) {
+      const incidents = await loadIncidents(type);
+      document.getElementById('fullIncidentList').innerHTML = incidents.map(renderIncident).join('');
+    }
+
+    function flyTo(lat, lon) {
+      if (lat && lon) map.flyTo([lat, lon], 14);
+    }
+
+    // ─── Search Prediction ──────────────────────────────────
+    async function runSearch() {
+      const lat = parseFloat(document.getElementById('searchLat').value);
+      const lon = parseFloat(document.getElementById('searchLon').value);
+      const hours = parseFloat(document.getElementById('searchHours').value);
+
+      const res = await fetch(`/api/search_prediction?lat=${lat}&lon=${lon}&hours=${hours}`);
+      const data = await res.json();
+
+      // Init search map if needed
+      if (!searchMap) {
+        searchMap = L.map('searchMap').setView([lat, lon], 11);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(searchMap);
+      }
+
+      // Clear old circles
+      searchCircles.forEach(c => searchMap.removeLayer(c));
+      searchCircles = [];
+
+      searchMap.setView([lat, lon], 11);
+
+      // Last known location marker
+      L.marker([lat, lon]).addTo(searchMap).bindPopup('Last Known Location').openPopup();
+
+      // Primary zone
+      const c1 = L.circle([lat, lon], {
+        radius: data.primary_search_zone.radius_m,
+        color: '#ef4444', fillOpacity: 0.1, weight: 2, dashArray: '5,5'
+      }).addTo(searchMap).bindPopup(`Primary Zone (${data.primary_search_zone.probability})`);
+      searchCircles.push(c1);
+
+      // Extended zone
+      const c2 = L.circle([lat, lon], {
+        radius: data.extended_search_zone.radius_m,
+        color: '#f59e0b', fillOpacity: 0.05, weight: 1, dashArray: '10,5'
+      }).addTo(searchMap).bindPopup(`Extended Zone (${data.extended_search_zone.probability})`);
+      searchCircles.push(c2);
+
+      // Results
+      const html = `
+        <div class="search-result">
+          <h4>🔴 Primary Zone (${data.primary_search_zone.probability})</h4>
+          <p>${data.primary_search_zone.description}</p>
+        </div>
+        <div class="search-result">
+          <h4>🟡 Extended Zone (${data.extended_search_zone.probability})</h4>
+          <p>${data.extended_search_zone.description}</p>
+        </div>
+        <div class="search-result">
+          <h4>📋 Recommendations</h4>
+          ${data.recommendations.map(r => `<p>• ${r}</p>`).join('')}
+        </div>
+      `;
+      document.getElementById('searchResults').innerHTML = html;
+    }
+
+    // ─── Blockchain Verification ────────────────────────────
+    async function verifyChain() {
+      const res = await fetch('/api/verify_chain');
+      const data = await res.json();
+      const el = document.getElementById('chainResult');
+      el.style.display = 'block';
+      el.innerHTML = `
+        <div style="font-size:24px; margin-bottom:8px;">${data.valid ? '✅ Chain Valid' : '❌ TAMPERED!'}</div>
+        <p>Total blocks: ${data.total_blocks}</p>
+        <p>${data.message}</p>
+        ${data.tampered_blocks.length ? `<p style="color:#ef4444;">Tampered blocks: ${data.tampered_blocks.join(', ')}</p>` : ''}
+      `;
+
+      // Load block explorer
+      const incRes = await fetch('/api/incidents?limit=100');
+      const incidents = await incRes.json();
+      document.getElementById('blockExplorer').innerHTML = incidents.map(inc => `
+        <div style="background:#0f172a; border:1px solid #334155; border-radius:10px; padding:14px; margin-bottom:8px;">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <span class="incident-type type-${inc.incident_type}">${inc.incident_type}</span>
+            <span style="font-size:11px; color:#64748b;">Block #${inc.index}</span>
+          </div>
+          <div style="font-size:12px; color:#94a3b8; margin-top:6px;">${inc.data?.details || ''}</div>
+          <div style="font-size:10px; color:#475569; margin-top:4px; font-family:monospace;">
+            Hash: ${inc.hash?.substring(0, 32)}...<br>
+            Prev: ${inc.previous_hash?.substring(0, 32)}...
+          </div>
+        </div>
+      `).join('');
+    }
+
+    // ─── Tab Switching ──────────────────────────────────────
+    function switchTab(tab) {
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+      document.getElementById('tab-' + tab).classList.add('active');
+      event.target.classList.add('active');
+
+      if (tab === 'incidents') filterIncidents(null);
+      if (tab === 'search' && searchMap) setTimeout(() => searchMap.invalidateSize(), 100);
+    }
+
+    // ─── Init ───────────────────────────────────────────────
+    loadStats();
+    loadHeatMap();
+    loadZones();
+    loadFeed();
+
+    // Auto-refresh every 30s
+    setInterval(() => { loadStats(); loadFeed(); }, 30000);
+
+    // Fix map tile rendering — force recalculate after page loads
+    setTimeout(() => map.invalidateSize(), 200);
+    setTimeout(() => map.invalidateSize(), 1000);
+    window.addEventListener('resize', () => {
+      map.invalidateSize();
+      if (searchMap) searchMap.invalidateSize();
+    });
+  </script>
+</body>
+</html>

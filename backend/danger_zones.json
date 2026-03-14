@@ -1,0 +1,112 @@
+[
+  {
+    "id": "zone_001",
+    "name": "Jagatpura & Mahal Road High-Traffic Zone",
+    "description": "Heavy, fast-moving traffic corridor with crowded intersections. Frequent accidents involving pedestrians and two-wheelers.",
+    "latitude": 26.8482,
+    "longitude": 75.8130,
+    "radius_m": 600,
+    "risk_level": "high",
+    "risk_type": "traffic",
+    "alert_message": "You are entering a high-alert zone. Stay vigilant of heavy, fast-moving traffic and keep valuables secure in crowded areas."
+  },
+  {
+    "id": "zone_002",
+    "name": "SKIT & JECRC Heavy Congestion Zone",
+    "description": "College area with extreme congestion during peak hours. Auto-rickshaws and bikes move unpredictably.",
+    "latitude": 26.8540,
+    "longitude": 75.8050,
+    "radius_m": 500,
+    "risk_level": "medium",
+    "risk_type": "traffic",
+    "alert_message": "Heavy congestion zone. Expect slow-moving, unpredictable traffic. Avoid crossing roads without pedestrian signals."
+  },
+  {
+    "id": "zone_003",
+    "name": "Akshaya Patra Temple Crowded Area",
+    "description": "Major temple area with large pilgrim gatherings. Risk of stampede during festivals and peak hours.",
+    "latitude": 26.8450,
+    "longitude": 75.8200,
+    "radius_m": 400,
+    "risk_level": "medium",
+    "risk_type": "crowd",
+    "alert_message": "Crowded temple zone. Keep belongings close, avoid peak prayer times (6-8 AM, 6-8 PM) for a safer visit."
+  },
+  {
+    "id": "zone_004",
+    "name": "Jagatpura Railway Station Transit Zone",
+    "description": "Busy transit area with unregulated auto-rickshaws, petty theft, and overcrowding during train arrivals.",
+    "latitude": 26.8390,
+    "longitude": 75.8280,
+    "radius_m": 500,
+    "risk_level": "medium",
+    "risk_type": "theft",
+    "alert_message": "Railway station transit zone. Watch for pickpockets and overcharging auto-rickshaws. Use pre-paid taxi counters."
+  },
+  {
+    "id": "zone_005",
+    "name": "Jaipur International Airport Transit Zone",
+    "description": "Airport area with unauthorized cab operators and tourist scams targeting arriving visitors.",
+    "latitude": 26.8242,
+    "longitude": 75.8122,
+    "radius_m": 800,
+    "risk_level": "low",
+    "risk_type": "scam",
+    "alert_message": "Airport area. Use only authorized airport taxis or app-based cabs. Avoid unsolicited travel offers."
+  },
+  {
+    "id": "zone_006",
+    "name": "Jaipur Old City Traffic Hazard",
+    "description": "Extremely narrow streets with heavy mixed traffic — vehicles, animals, and pedestrians in Pink City area.",
+    "latitude": 26.9239,
+    "longitude": 75.8267,
+    "radius_m": 700,
+    "risk_level": "high",
+    "risk_type": "traffic",
+    "alert_message": "Old City narrow lanes. Beware of fast-moving bikes, cattle, and heavy tourist crowds. Stay on sidewalks."
+  },
+  {
+    "id": "zone_007",
+    "name": "Nahargarh Fort Remote Trail Zone",
+    "description": "Steep, isolated hill trails with no mobile network coverage. Risk of falls and heat exhaustion.",
+    "latitude": 26.9376,
+    "longitude": 75.8154,
+    "radius_m": 1000,
+    "risk_level": "critical",
+    "risk_type": "remote",
+    "alert_message": "REMOTE AREA: Limited mobile network, steep trails. Carry water, inform someone of your route. Do not hike alone after 4 PM."
+  },
+  {
+    "id": "zone_008",
+    "name": "Amer Fort Overcrowding Zone",
+    "description": "Major tourist attraction with extreme crowding, steep steps, and heat exposure during midday.",
+    "latitude": 26.9855,
+    "longitude": 75.8513,
+    "radius_m": 500,
+    "risk_level": "medium",
+    "risk_type": "crowd",
+    "alert_message": "Peak crowding zone. Visit before 9 AM or after 4 PM. Watch for slippery steps and stay hydrated."
+  },
+  {
+    "id": "zone_009",
+    "name": "Sindhi Camp Bus Terminal Chaos Zone",
+    "description": "Jaipur's busiest bus terminal with aggressive touts, pickpockets, and chaotic traffic.",
+    "latitude": 26.9169,
+    "longitude": 75.7906,
+    "radius_m": 400,
+    "risk_level": "high",
+    "risk_type": "theft",
+    "alert_message": "High-risk transit zone. Keep bags zipped and in front. Negotiate bus/auto fares BEFORE boarding."
+  },
+  {
+    "id": "zone_010",
+    "name": "Malviya Nagar Night Safety Zone",
+    "description": "Commercial area that becomes poorly lit after 10 PM with reduced police patrols.",
+    "latitude": 26.8560,
+    "longitude": 75.8060,
+    "radius_m": 600,
+    "risk_level": "low",
+    "risk_type": "general",
+    "alert_message": "Safe during daytime. Exercise caution after 10 PM — reduced lighting and fewer people on streets."
+  }
+]

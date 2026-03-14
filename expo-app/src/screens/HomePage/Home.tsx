@@ -34,7 +34,9 @@ import destinationsData from "@data/destinations.json";
 
 import { AuthNavigationProp } from "@routes/auth.routes";
 
-import { Search, Plane, Menu, Building, TentTree, Crown, Bell, MessageCircle, Home as HomeIcon, BookMarked, User, Settings, WifiOff } from "lucide-react-native";
+import { Search, Plane, Menu, Building, TentTree, Crown, Bell, MessageCircle, Home as HomeIcon, BookMarked, User, Settings, WifiOff, Shield, Store, Compass } from "lucide-react-native";
+
+import { SOSButton } from '@components/Safety/SOSButton';
 
 const destinations = destinationsData
   .filter((item: any) => item.id && item.title && item.image)
@@ -336,6 +338,36 @@ export function Home() {
       }
     },
     {
+      key: 'Safety',
+      icon: Shield,
+      label: 'Safety',
+      action: () => {
+        setCurrentRoute('Safety');
+        navigation.navigate('SafetyDashboard');
+        setDrawerOpen(false);
+      }
+    },
+    {
+      key: 'Services',
+      icon: Compass,
+      label: 'Services',
+      action: () => {
+        setCurrentRoute('Services');
+        navigation.navigate('NearbyServices');
+        setDrawerOpen(false);
+      }
+    },
+    {
+      key: 'Vendors',
+      icon: Store,
+      label: 'Vendors',
+      action: () => {
+        setCurrentRoute('Vendors');
+        navigation.navigate('VendorMarketplace');
+        setDrawerOpen(false);
+      }
+    },
+    {
       key: 'Premium',
       icon: Crown,
       label: 'Premium',
@@ -531,42 +563,42 @@ export function Home() {
               <GlassContainer spacing={8} style={{ flexDirection: 'row', justifyContent: 'center', gap: 7 }}>
                 <GlassView style={{ width: 80, height: 100, borderRadius: 16 }} glassEffectStyle="clear">
                   {isLiquidGlassAvailable() ? (
-                    <TouchableOpacity style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-                      <Plane size={28} color="#fff" />
-                      <Text fontSize="$sm" fontWeight="$medium" color="#fff" textAlign="center" mt={8}>Vôos</Text>
+                    <TouchableOpacity style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }} onPress={() => navigation.navigate('SafetyDashboard')}>
+                      <Shield size={28} color="#fff" />
+                      <Text fontSize="$sm" fontWeight="$medium" color="#fff" textAlign="center" mt={8}>Safety</Text>
                     </TouchableOpacity>
                   ) : (
-                    <Button w={80} h={100} borderRadius="$2xl" bg="rgba(151, 151, 151, 0.4)" borderWidth={2} borderColor="$blue400" flexDirection="column" alignItems="center" justifyContent="center">
-                      <ButtonIcon as={Plane} size="xl" />
-                      <ButtonText w="180%" textAlign="center" fontWeight={"$medium"}>Vôos</ButtonText>
+                    <Button w={80} h={100} borderRadius="$2xl" bg="rgba(151, 151, 151, 0.4)" borderWidth={2} borderColor="$blue400" flexDirection="column" alignItems="center" justifyContent="center" onPress={() => navigation.navigate('SafetyDashboard')}>
+                      <ButtonIcon as={Shield} size="xl" />
+                      <ButtonText w="180%" textAlign="center" fontWeight={"$medium"}>Safety</ButtonText>
                     </Button>
                   )}
                 </GlassView>
 
                 <GlassView style={{ width: 80, height: 100, borderRadius: 16 }} glassEffectStyle="clear">
                   {isLiquidGlassAvailable() ? (
-                    <TouchableOpacity style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-                      <Building size={28} color="#fff" />
-                      <Text fontSize="$sm" fontWeight="$medium" color="#fff" textAlign="center" mt={8}>Hotel</Text>
+                    <TouchableOpacity style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }} onPress={() => navigation.navigate('NearbyServices')}>
+                      <Compass size={28} color="#fff" />
+                      <Text fontSize="$sm" fontWeight="$medium" color="#fff" textAlign="center" mt={8}>Services</Text>
                     </TouchableOpacity>
                   ) : (
-                    <Button w={80} h={100} borderRadius="$2xl" bg="rgba(151, 151, 151, 0.4)" borderWidth={2} borderColor="$blue400" flexDirection="column" alignItems="center" justifyContent="center">
-                      <ButtonIcon as={Building} size="xl" />
-                      <ButtonText w="180%" textAlign="center" fontWeight={"$medium"}>Hotel</ButtonText>
+                    <Button w={80} h={100} borderRadius="$2xl" bg="rgba(151, 151, 151, 0.4)" borderWidth={2} borderColor="$blue400" flexDirection="column" alignItems="center" justifyContent="center" onPress={() => navigation.navigate('NearbyServices')}>
+                      <ButtonIcon as={Compass} size="xl" />
+                      <ButtonText w="180%" textAlign="center" fontWeight={"$medium"}>Services</ButtonText>
                     </Button>
                   )}
                 </GlassView>
 
                 <GlassView style={{ width: 80, height: 100, borderRadius: 16 }} glassEffectStyle="clear">
                   {isLiquidGlassAvailable() ? (
-                    <TouchableOpacity style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-                      <TentTree size={28} color="#fff" />
-                      <Text fontSize="$sm" fontWeight="$medium" color="#fff" textAlign="center" mt={8}>Férias</Text>
+                    <TouchableOpacity style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }} onPress={() => navigation.navigate('VendorMarketplace')}>
+                      <Store size={28} color="#fff" />
+                      <Text fontSize="$sm" fontWeight="$medium" color="#fff" textAlign="center" mt={8}>Vendors</Text>
                     </TouchableOpacity>
                   ) : (
-                    <Button w={80} h={100} borderRadius="$2xl" bg="rgba(151, 151, 151, 0.4)" borderWidth={2} borderColor="$blue400" flexDirection="column" alignItems="center" justifyContent="center">
-                      <ButtonIcon as={TentTree} size="xl" />
-                      <ButtonText w="200%" textAlign="center" fontWeight={"$medium"}>Holiday</ButtonText>
+                    <Button w={80} h={100} borderRadius="$2xl" bg="rgba(151, 151, 151, 0.4)" borderWidth={2} borderColor="$blue400" flexDirection="column" alignItems="center" justifyContent="center" onPress={() => navigation.navigate('VendorMarketplace')}>
+                      <ButtonIcon as={Store} size="xl" />
+                      <ButtonText w="200%" textAlign="center" fontWeight={"$medium"}>Vendors</ButtonText>
                     </Button>
                   )}
                 </GlassView>
@@ -850,6 +882,8 @@ export function Home() {
           </Box>
         </ScrollView>
       </View>
+
+      <SOSButton />
 
       <ConnectionErrorAlerter
         showModal={showConnectionError}

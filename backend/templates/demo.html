@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Smart Tourism Safety Platform — Demo</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <style>
+    :root {
+      --bg: #0a0e1a; --card: #111827; --border: #1f2937;
+      --text: #e2e8f0; --dim: #94a3b8; --accent: #38bdf8;
+      --red: #ef4444; --green: #22c55e; --yellow: #eab308;
+      --orange: #f97316; --purple: #a78bfa; --pink: #f472b6;
+    }
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { font-family:'Inter',system-ui,sans-serif; background:var(--bg); color:var(--text); min-height:100vh; }
+
+    /* Header */
+    .hero { text-align:center; padding:40px 20px 24px; background:linear-gradient(180deg, #0f172a 0%, var(--bg) 100%); }
+    .hero h1 { font-size:32px; font-weight:900; letter-spacing:-0.5px; margin-bottom:6px; }
+    .hero h1 span { background:linear-gradient(135deg, #38bdf8, #818cf8, #a78bfa); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+    .hero p { color:var(--dim); font-size:14px; max-width:600px; margin:0 auto; }
+    .hero-badges { display:flex; gap:8px; justify-content:center; margin-top:14px; flex-wrap:wrap; }
+    .badge { padding:4px 12px; border-radius:20px; font-size:11px; font-weight:600; border:1px solid var(--border); display:flex; align-items:center; gap:4px; }
+    .badge-green { border-color:#166534; color:#86efac; background:#052e1633; }
+    .badge-blue { border-color:#1e40af; color:#93c5fd; background:#1e3a5f33; }
+    .badge-purple { border-color:#5b21b6; color:#c4b5fd; background:#3b1f6633; }
+
+    /* Grid */
+    .grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(340px, 1fr)); gap:16px; padding:20px 24px 40px; max-width:1400px; margin:0 auto; }
+
+    /* Cards */
+    .card { background:var(--card); border:1px solid var(--border); border-radius:16px; overflow:hidden; transition:all 0.3s; }
+    .card:hover { border-color:#334155; transform:translateY(-2px); box-shadow:0 8px 32px rgba(0,0,0,0.3); }
+    .card-header { padding:16px 18px 12px; display:flex; align-items:center; gap:12px; border-bottom:1px solid var(--border); }
+    .card-icon { width:44px; height:44px; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:22px; flex-shrink:0; }
+    .card-title { font-size:15px; font-weight:700; }
+    .card-subtitle { font-size:11px; color:var(--dim); margin-top:2px; }
+    .card-body { padding:14px 18px; }
+    .card-body label { display:block; font-size:11px; color:var(--dim); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:4px; font-weight:600; }
+    .card-body input, .card-body select, .card-body textarea {
+      width:100%; padding:8px 12px; border-radius:8px; border:1px solid var(--border); background:#0a0e1a;
+      color:var(--text); font-size:13px; font-family:inherit; margin-bottom:10px; outline:none; transition:border 0.2s;
+    }
+    .card-body input:focus, .card-body select:focus, .card-body textarea:focus { border-color:var(--accent); }
+    .card-body textarea { resize:vertical; min-height:60px; }
+    .input-row { display:flex; gap:8px; }
+    .input-row > div { flex:1; }
+
+    /* Buttons */
+    .btn { width:100%; padding:10px; border-radius:10px; border:none; font-size:13px; font-weight:700; cursor:pointer; transition:all 0.2s; display:flex; align-items:center; justify-content:center; gap:6px; }
+    .btn:hover { transform:scale(1.02); }
+    .btn:active { transform:scale(0.98); }
+    .btn:disabled { opacity:0.5; cursor:wait; }
+    .btn-blue { background:linear-gradient(135deg, #2563eb, #3b82f6); color:#fff; }
+    .btn-red { background:linear-gradient(135deg, #dc2626, #ef4444); color:#fff; }
+    .btn-green { background:linear-gradient(135deg, #059669, #10b981); color:#fff; }
+    .btn-purple { background:linear-gradient(135deg, #7c3aed, #8b5cf6); color:#fff; }
+    .btn-orange { background:linear-gradient(135deg, #d97706, #f59e0b); color:#fff; }
+    .btn-pink { background:linear-gradient(135deg, #db2777, #ec4899); color:#fff; }
+    .btn-dark { background:linear-gradient(135deg, #334155, #475569); color:#fff; }
+    .btn-cyan { background:linear-gradient(135deg, #0891b2, #06b6d4); color:#fff; }
+
+    /* Results */
+    .result { margin-top:12px; padding:12px; background:#0a0e1a; border:1px solid var(--border); border-radius:10px; max-height:280px; overflow-y:auto; font-size:12px; line-height:1.6; display:none; }
+    .result.show { display:block; animation:fadeIn 0.3s ease; }
+    @keyframes fadeIn { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
+    .result pre { white-space:pre-wrap; word-break:break-word; color:#cbd5e1; }
+    .result-tag { display:inline-block; padding:2px 8px; border-radius:4px; font-size:10px; font-weight:700; margin-right:4px; text-transform:uppercase; }
+    .tag-safe { background:#166534; color:#86efac; }
+    .tag-danger { background:#991b1b; color:#fca5a5; }
+    .tag-info { background:#1e40af; color:#93c5fd; }
+
+    /* Loading spinner */
+    .spinner { width:16px; height:16px; border:2px solid rgba(255,255,255,0.3); border-top-color:#fff; border-radius:50%; animation:spin 0.6s linear infinite; }
+    @keyframes spin { to { transform:rotate(360deg); } }
+
+    /* Footer link */
+    .footer { text-align:center; padding:0 0 30px; }
+    .footer a { color:var(--accent); text-decoration:none; font-size:13px; font-weight:600; padding:10px 24px; border:1px solid var(--accent); border-radius:10px; transition:all 0.2s; }
+    .footer a:hover { background:var(--accent); color:#0a0e1a; }
+  </style>
+</head>
+<body>
+
+  <!-- Hero -->
+  <div class="hero">
+    <h1>🛡️ Smart Tourism <span>Safety Platform</span></h1>
+    <p>Predictive AI risk modeling, geo-fencing, blockchain incident logging — all in one demo</p>
+    <div class="hero-badges">
+      <div class="badge badge-green">✓ All APIs Free</div>
+      <div class="badge badge-blue">✓ 12/12 Requirements Met</div>
+      <div class="badge badge-purple">✓ Zero Cost</div>
+    </div>
+  </div>
+
+  <!-- Feature Grid -->
+  <div class="grid">
+
+    <!-- 1. POI Search -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-icon" style="background:#1e3a5f;">🗺️</div>
+        <div><div class="card-title">POI Search</div><div class="card-subtitle">OpenStreetMap · Find nearby places</div></div>
+      </div>
+      <div class="card-body">
+        <div class="input-row">
+          <div><label>Latitude</label><input id="poi-lat" value="26.8482"></div>
+          <div><label>Longitude</label><input id="poi-lon" value="75.8130"></div>
+        </div>
+        <div class="input-row">
+          <div><label>Type</label>
+            <select id="poi-type">
+              <option value="hospital">🏥 Hospital</option>
+              <option value="police">🚔 Police</option>
+              <option value="cafe">☕ Cafe</option>
+              <option value="restaurant">🍽️ Restaurant</option>
+              <option value="hotel">🏨 Hotel</option>
+              <option value="pharmacy">💊 Pharmacy</option>
+              <option value="taxi">🚕 Taxi</option>
+              <option value="atm">🏧 ATM</option>
+            </select>
+          </div>
+          <div><label>Radius (m)</label><input id="poi-radius" value="2000"></div>
+        </div>
+        <button class="btn btn-blue" onclick="searchPOI(this)">🔍 Search Nearby</button>
+        <div class="result" id="poi-result"></div>
+      </div>
+    </div>
+
+    <!-- 2. AI Tourist Guide -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-icon" style="background:#3b1f66;">🤖</div>
+        <div><div class="card-title">AI Tourist Guide</div><div class="card-subtitle">Groq LLaMA 3 · Ultra-fast inference</div></div>
+      </div>
+      <div class="card-body">
+        <label>Ask the guide anything</label>
+        <textarea id="guide-msg" placeholder="What should I know about visiting Old Delhi?"></textarea>
+        <button class="btn btn-purple" onclick="askGuide(this)">💬 Chat with Guide</button>
+        <div class="result" id="guide-result"></div>
+      </div>
+    </div>
+
+    <!-- 3. Geo-Fence Check -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-icon" style="background:#422006;">⚡</div>
+        <div><div class="card-title">Geo-Fence Check</div><div class="card-subtitle">10 danger zones · GPS detection</div></div>
+      </div>
+      <div class="card-body">
+        <div class="input-row">
+          <div><label>Latitude</label><input id="geo-lat" value="26.8482"></div>
+          <div><label>Longitude</label><input id="geo-lon" value="75.8130"></div>
+        </div>
+        <p style="font-size:11px;color:var(--dim);margin-bottom:10px;">Try: 26.8482, 75.8130 (Jagatpura — danger zone)</p>
+        <button class="btn btn-orange" onclick="checkGeofence(this)">📍 Check Zone</button>
+        <div class="result" id="geo-result"></div>
+      </div>
+    </div>
+
+    <!-- 4. Dynamic Risk Score -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-icon" style="background:#1a0a2e;">📊</div>
+        <div><div class="card-title">Dynamic Risk Score</div><div class="card-subtitle">Weather + Zones + Terrain + Time + Incidents</div></div>
+      </div>
+      <div class="card-body">
+        <div class="input-row">
+          <div><label>Latitude</label><input id="risk-lat" value="26.8482"></div>
+          <div><label>Longitude</label><input id="risk-lon" value="75.8130"></div>
+        </div>
+        <button class="btn btn-pink" onclick="getRisk(this)">🎯 Calculate Risk</button>
+        <div class="result" id="risk-result"></div>
+      </div>
+    </div>
+
+    <!-- 5. Behavior Monitor -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-icon" style="background:#14532d;">🧠</div>
+        <div><div class="card-title">Behavior Monitor</div><div class="card-subtitle">Route deviation · Inactivity · Speed anomaly</div></div>
+      </div>
+      <div class="card-body">
+        <label>Simulation</label>
+        <select id="behavior-sim">
+          <option value="inactivity">⏸️ Prolonged Inactivity (45 min)</option>
+          <option value="speed">🏎️ Unusual High Speed (130 km/h)</option>
+          <option value="deviation">🔀 Route Deviation (2km off path)</option>
+        </select>
+        <button class="btn btn-green" onclick="testBehavior(this)">🔬 Analyze</button>
+        <div class="result" id="behavior-result"></div>
+      </div>
+    </div>
+
+    <!-- 6. Blockchain Logger -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-icon" style="background:#1e1b4b;">🔗</div>
+        <div><div class="card-title">Blockchain Logger</div><div class="card-subtitle">SHA-256 hash-chain · Tamper-proof</div></div>
+      </div>
+      <div class="card-body">
+        <div class="input-row">
+          <div><label>Incident Type</label>
+            <select id="chain-type"><option>SOS</option><option>ALERT</option><option>GEOFENCE</option><option>BEHAVIOR</option></select>
+          </div>
+        </div>
+        <label>Details</label>
+        <input id="chain-details" placeholder="Describe the incident...">
+        <div style="display:flex;gap:8px;">
+          <button class="btn btn-cyan" onclick="logIncident(this)" style="flex:1;">📝 Log Incident</button>
+          <button class="btn btn-dark" onclick="verifyChain(this)" style="flex:1;">🔗 Verify Chain</button>
+        </div>
+        <div class="result" id="chain-result"></div>
+      </div>
+    </div>
+
+    <!-- 7. Proactive Alerts -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-icon" style="background:#450a0a;">🔔</div>
+        <div><div class="card-title">Proactive Alerts</div><div class="card-subtitle">Preventive warnings before incidents</div></div>
+      </div>
+      <div class="card-body">
+        <div class="input-row">
+          <div><label>Latitude</label><input id="alert-lat" value="26.8482"></div>
+          <div><label>Longitude</label><input id="alert-lon" value="75.8130"></div>
+        </div>
+        <button class="btn btn-red" onclick="getAlerts(this)">🚨 Get Alerts</button>
+        <div class="result" id="alert-result"></div>
+      </div>
+    </div>
+
+    <!-- 8. Search Prediction -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-icon" style="background:#0c4a6e;">🔍</div>
+        <div><div class="card-title">Search Prediction</div><div class="card-subtitle">Missing tourist zone prediction</div></div>
+      </div>
+      <div class="card-body">
+        <div class="input-row">
+          <div><label>Last Known Lat</label><input id="search-lat" value="26.8482"></div>
+          <div><label>Last Known Lon</label><input id="search-lon" value="75.8130"></div>
+        </div>
+        <label>Hours Missing</label><input id="search-hours" value="2">
+        <button class="btn btn-dark" onclick="searchPredict(this)">🔍 Predict Zone</button>
+        <div class="result" id="search-result"></div>
+      </div>
+    </div>
+
+    <!-- 9. AI Safety Report -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-icon" style="background:#7f1d1d;">🛡️</div>
+        <div><div class="card-title">AI Safety Report</div><div class="card-subtitle">Groq LLaMA 3 · Location-based safety assessment</div></div>
+      </div>
+      <div class="card-body">
+        <div class="input-row">
+          <div><label>Latitude</label><input id="safety-lat" value="26.8482"></div>
+          <div><label>Longitude</label><input id="safety-lon" value="75.8130"></div>
+        </div>
+        <label>Area Name (optional)</label>
+        <input id="safety-area" placeholder="e.g. Jagatpura" value="Jagatpura, Jaipur">
+        <button class="btn btn-red" onclick="getSafetyReport(this)">🛡️ Generate Report</button>
+        <div class="result" id="safety-result"></div>
+      </div>
+    </div>
+
+    <!-- 10. Crowd Estimate -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-icon" style="background:#713f12;">👥</div>
+        <div><div class="card-title">Crowd Estimate</div><div class="card-subtitle">Groq LLaMA 3 · Real-time crowding prediction</div></div>
+      </div>
+      <div class="card-body">
+        <label>Place Name</label>
+        <input id="crowd-place" placeholder="e.g. Hawa Mahal" value="Hawa Mahal">
+        <div class="input-row">
+          <div><label>Day</label>
+            <select id="crowd-day">
+              <option value="">Any</option>
+              <option value="Monday">Monday</option>
+              <option value="Tuesday">Tuesday</option>
+              <option value="Wednesday">Wednesday</option>
+              <option value="Thursday">Thursday</option>
+              <option value="Friday">Friday</option>
+              <option value="Saturday" selected>Saturday</option>
+              <option value="Sunday">Sunday</option>
+            </select>
+          </div>
+          <div><label>Time</label><input id="crowd-time" value="10:00"></div>
+        </div>
+        <button class="btn btn-orange" onclick="getCrowdEstimate(this)">👥 Estimate Crowd</button>
+        <div class="result" id="crowd-result"></div>
+      </div>
+    </div>
+
+    <!-- 11. Hotel Search -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-icon" style="background:#1e3a5f;">🏨</div>
+        <div><div class="card-title">Nearby Hotels</div><div class="card-subtitle">MakCorps API · Accommodation search</div></div>
+      </div>
+      <div class="card-body">
+        <label>City</label>
+        <select id="hotel-city">
+          <option value="jaipur" selected>Jaipur</option>
+          <option value="delhi">Delhi</option>
+          <option value="mumbai">Mumbai</option>
+          <option value="goa">Goa</option>
+          <option value="agra">Agra</option>
+          <option value="udaipur">Udaipur</option>
+        </select>
+        <button class="btn btn-blue" onclick="searchHotels(this)">🏨 Find Hotels</button>
+        <div class="result" id="hotel-result"></div>
+      </div>
+    </div>
+
+    <!-- 12. Nearby Taxi -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-icon" style="background:#422006;">🚕</div>
+        <div><div class="card-title">Nearby Taxi / Cab</div><div class="card-subtitle">Live availability · ETA & fare estimates</div></div>
+      </div>
+      <div class="card-body">
+        <div class="input-row">
+          <div><label>Latitude</label><input id="taxi-lat" value="26.8482"></div>
+          <div><label>Longitude</label><input id="taxi-lon" value="75.8130"></div>
+        </div>
+        <button class="btn btn-green" onclick="findTaxi(this)">🚕 Find Rides</button>
+        <div class="result" id="taxi-result"></div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Footer -->
+  <div class="footer">
+    <a href="/authority">📊 Open Authority Dashboard →</a>
+  </div>
+
+  <script>
+    function setLoading(btn, loading) {
+      btn.disabled = loading;
+      if (loading) btn.dataset.origText = btn.innerHTML;
+      btn.innerHTML = loading ? '<div class="spinner"></div> Loading...' : btn.dataset.origText;
+    }
+
+    function showResult(id, html) {
+      const el = document.getElementById(id);
+      el.innerHTML = html; el.classList.add('show');
+    }
+
+    async function searchPOI(btn) {
+      setLoading(btn, true);
+      try {
+        const lat = document.getElementById('poi-lat').value;
+        const lon = document.getElementById('poi-lon').value;
+        const type = document.getElementById('poi-type').value;
+        const radius = document.getElementById('poi-radius').value;
+        const res = await fetch(`/api/poi?lat=${lat}&lon=${lon}&type=${type}&radius=${radius}`);
+        const data = await res.json();
+        if (data.success) {
+          let html = `<span class="result-tag tag-info">${data.count} found</span><br><br>`;
+          data.results.slice(0, 8).forEach(r => {
+            html += `<b>${r.name}</b> — ${r.distance}<br><span style="color:var(--dim)">${r.address || 'No address'} ${r.phone ? '| '+r.phone : ''}</span><br><br>`;
+          });
+          showResult('poi-result', html);
+        } else showResult('poi-result', `<span class="result-tag tag-danger">Error</span> ${data.error}`);
+      } catch(e) { showResult('poi-result', `<span class="result-tag tag-danger">Error</span> ${e.message}`); }
+      setLoading(btn, false);
+    }
+
+    async function askGuide(btn) {
+      setLoading(btn, true);
+      try {
+        const msg = document.getElementById('guide-msg').value;
+        const res = await fetch('/api/guide', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({message:msg}) });
+        const data = await res.json();
+        if (data.success) showResult('guide-result', `<span class="result-tag tag-info">AI Guide</span><br><br>${data.response.replace(/\n/g,'<br>')}`);
+        else showResult('guide-result', `<span class="result-tag tag-danger">Error</span> ${data.error}`);
+      } catch(e) { showResult('guide-result', `<span class="result-tag tag-danger">Error</span> ${e.message}`); }
+      setLoading(btn, false);
+    }
+
+    async function checkGeofence(btn) {
+      setLoading(btn, true);
+      try {
+        const lat = document.getElementById('geo-lat').value;
+        const lon = document.getElementById('geo-lon').value;
+        const res = await fetch(`/api/geofence?lat=${lat}&lon=${lon}`);
+        const data = await res.json();
+        let html = data.is_safe
+          ? '<span class="result-tag tag-safe">SAFE</span> No danger zones detected<br><br>'
+          : '<span class="result-tag tag-danger">DANGER</span> Inside danger zone!<br><br>';
+        data.inside.forEach(z => { html += `<b style="color:var(--red);">[${z.risk_level.toUpperCase()}]</b> ${z.name}<br>${z.alert_message}<br><br>`; });
+        if (data.nearby.length > 0) {
+          html += `<b>Nearby zones (within 5km):</b><br>`;
+          data.nearby.slice(0, 5).forEach(z => {
+            html += `• ${z.name} — ${z.is_inside ? 'INSIDE' : z.distance_to_edge_m + 'm away'}<br>`;
+          });
+        }
+        showResult('geo-result', html);
+      } catch(e) { showResult('geo-result', `Error: ${e.message}`); }
+      setLoading(btn, false);
+    }
+
+    async function getRisk(btn) {
+      setLoading(btn, true);
+      try {
+        const lat = document.getElementById('risk-lat').value;
+        const lon = document.getElementById('risk-lon').value;
+        const res = await fetch(`/api/risk?lat=${lat}&lon=${lon}`);
+        const data = await res.json();
+        const colors = { Safe:'#22c55e', Low:'#eab308', Medium:'#f59e0b', High:'#ef4444', Critical:'#dc2626' };
+        let html = `<div style="font-size:28px;font-weight:900;color:${colors[data.level]||'#fff'};">${data.score}/100</div>`;
+        html += `<div style="font-size:14px;font-weight:700;color:${colors[data.level]};margin-bottom:10px;">${data.level} Risk</div>`;
+        html += `<b>Breakdown:</b><br>`;
+        Object.entries(data.breakdown).forEach(([k,v]) => {
+          const pct = (v / 30) * 100;
+          html += `${k}: <span style="color:var(--accent);">${v}</span> <div style="background:#1e293b;border-radius:4px;overflow:hidden;height:6px;margin:2px 0 6px;"><div style="width:${Math.min(pct,100)}%;height:100%;background:${colors[data.level]};border-radius:4px;"></div></div>`;
+        });
+        if (data.alerts.length) { html += `<br><b>Alerts:</b><br>`; data.alerts.forEach(a => html += `⚠️ ${a}<br>`); }
+        if (data.recommendations.length) { html += `<br><b>Tips:</b><br>`; data.recommendations.forEach(r => html += `💡 ${r}<br>`); }
+        showResult('risk-result', html);
+      } catch(e) { showResult('risk-result', `Error: ${e.message}`); }
+      setLoading(btn, false);
+    }
+
+    async function testBehavior(btn) {
+      setLoading(btn, true);
+      const sim = document.getElementById('behavior-sim').value;
+      const now = new Date();
+      let history, route = null;
+      if (sim === 'inactivity') {
+        history = [
+          {lat:26.8482, lon:75.8130, timestamp: new Date(now - 45*60000).toISOString()},
+          {lat:26.8482, lon:75.8131, timestamp: new Date(now - 30*60000).toISOString()},
+          {lat:26.8483, lon:75.8130, timestamp: now.toISOString()},
+        ];
+      } else if (sim === 'speed') {
+        history = [
+          {lat:26.8482, lon:75.8130, timestamp: new Date(now - 5*60000).toISOString()},
+          {lat:27.02, lon:75.98, timestamp: now.toISOString()},
+        ];
+      } else {
+        history = [
+          {lat:26.8482, lon:75.8130, timestamp: new Date(now - 30*60000).toISOString()},
+          {lat:26.92, lon:75.73, timestamp: now.toISOString()},
+        ];
+        route = [{lat:26.8482, lon:75.8130}, {lat:26.85, lon:75.82}, {lat:26.86, lon:75.83}];
+      }
+      try {
+        const res = await fetch('/api/behavior', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({history, planned_route:route, user_id:'demo_tourist'}) });
+        const data = await res.json();
+        let html = `<span class="result-tag ${data.count > 0 ? 'tag-danger' : 'tag-safe'}">${data.count} anomalies</span>`;
+        if (data.sos_auto_triggered > 0) {
+          html += ` <span class="result-tag tag-danger">🚨 ${data.sos_auto_triggered} AUTO-SOS SENT</span>`;
+        }
+        html += '<br><br>';
+        data.alerts.forEach(a => {
+          const colors = {critical:'#ef4444', high:'#f97316', medium:'#eab308', low:'#22c55e'};
+          html += `<b style="color:${colors[a.severity]||'#fff'};">[${a.severity.toUpperCase()}]</b> ${a.title}<br>${a.message}<br><span style="color:var(--dim);">→ ${a.action}</span><br><br>`;
+        });
+        if (data.sos_auto_triggered > 0) {
+          html += `<div style="background:#991b1b33;border:1px solid #991b1b;border-radius:8px;padding:10px;margin-top:4px;">`;
+          html += `<b style="color:#fca5a5;">🚨 SOS Auto-Sent to Authorities</b><br>`;
+          data.sos_details.forEach(s => {
+            html += `<span style="color:#fca5a5;">Block #${s.block_index}</span> — ${s.incident_type}: ${s.reason}<br>`;
+          });
+          html += `<br><span style="color:var(--dim);">✅ Logged to blockchain · Visible on Authority Dashboard</span>`;
+          html += `</div>`;
+        }
+        showResult('behavior-result', html);
+      } catch(e) { showResult('behavior-result', `Error: ${e.message}`); }
+      setLoading(btn, false);
+    }
+
+    async function logIncident(btn) {
+      setLoading(btn, true);
+      try {
+        const type = document.getElementById('chain-type').value;
+        const details = document.getElementById('chain-details').value || 'Test incident from demo UI';
+        const res = await fetch('/api/log_test_incident', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({type, details, lat:28.6129, lon:77.2295}) });
+        const data = await res.json();
+        const b = data.block;
+        showResult('chain-result', `<span class="result-tag tag-safe">Logged</span> Block #${b.index}<br><br><b>Hash:</b><br><code style="color:var(--accent);font-size:11px;word-break:break-all;">${b.hash}</code><br><br><b>Previous:</b><br><code style="color:var(--dim);font-size:11px;word-break:break-all;">${b.previous_hash}</code>`);
+      } catch(e) { showResult('chain-result', `Error: ${e.message}`); }
+      setLoading(btn, false);
+    }
+
+    async function verifyChain(btn) {
+      setLoading(btn, true);
+      try {
+        const res = await fetch('/api/verify_chain');
+        const data = await res.json();
+        showResult('chain-result', `<span class="result-tag ${data.valid ? 'tag-safe' : 'tag-danger'}">${data.valid ? 'VALID' : 'TAMPERED!'}</span><br><br>Total blocks: <b>${data.total_blocks}</b><br>${data.message}`);
+      } catch(e) { showResult('chain-result', `Error: ${e.message}`); }
+      setLoading(btn, false);
+    }
+
+    async function getAlerts(btn) {
+      setLoading(btn, true);
+      try {
+        const lat = document.getElementById('alert-lat').value;
+        const lon = document.getElementById('alert-lon').value;
+        const res = await fetch(`/api/alerts?lat=${lat}&lon=${lon}`);
+        const data = await res.json();
+        let html = `<span class="result-tag ${data.count > 0 ? 'tag-danger' : 'tag-safe'}">${data.count} alerts</span><br><br>`;
+        data.alerts.forEach(a => {
+          const colors = {critical:'#ef4444', high:'#f97316', medium:'#eab308', low:'#22c55e'};
+          html += `<b style="color:${colors[a.severity]||'#fff'};">[${a.type.toUpperCase()}]</b> ${a.title}<br>${a.message}<br><span style="color:var(--dim);">Action: ${a.action}</span><br><br>`;
+        });
+        if (data.count === 0) html += 'No alerts — area is currently safe! ✅';
+        showResult('alert-result', html);
+      } catch(e) { showResult('alert-result', `Error: ${e.message}`); }
+      setLoading(btn, false);
+    }
+
+    async function searchPredict(btn) {
+      setLoading(btn, true);
+      try {
+        const lat = document.getElementById('search-lat').value;
+        const lon = document.getElementById('search-lon').value;
+        const hours = document.getElementById('search-hours').value;
+        const res = await fetch(`/api/search_prediction?lat=${lat}&lon=${lon}&hours=${hours}`);
+        const data = await res.json();
+        let html = `<span class="result-tag tag-info">Prediction</span><br><br>`;
+        html += `<b style="color:#ef4444;">🔴 Primary Zone (${data.primary_search_zone.probability}):</b><br>${data.primary_search_zone.description}<br><br>`;
+        html += `<b style="color:#eab308;">🟡 Extended Zone (${data.extended_search_zone.probability}):</b><br>${data.extended_search_zone.description}<br><br>`;
+        html += `<b>Recommendations:</b><br>`;
+        data.recommendations.forEach(r => html += `• ${r}<br>`);
+        showResult('search-result', html);
+      } catch(e) { showResult('search-result', `Error: ${e.message}`); }
+      setLoading(btn, false);
+    }
+
+    async function getSafetyReport(btn) {
+      setLoading(btn, true);
+      try {
+        const lat = document.getElementById('safety-lat').value;
+        const lon = document.getElementById('safety-lon').value;
+        const area = document.getElementById('safety-area').value;
+        const res = await fetch(`/api/safety_report?lat=${lat}&lon=${lon}&area=${encodeURIComponent(area)}`);
+        const data = await res.json();
+        if (data.success) {
+          showResult('safety-result', `<span class="result-tag tag-info">Safety Report</span><br><br>${data.report.replace(/\n/g,'<br>')}`);
+        } else showResult('safety-result', `<span class="result-tag tag-danger">Error</span> ${data.error}`);
+      } catch(e) { showResult('safety-result', `<span class="result-tag tag-danger">Error</span> ${e.message}`); }
+      setLoading(btn, false);
+    }
+
+    async function getCrowdEstimate(btn) {
+      setLoading(btn, true);
+      try {
+        const place = document.getElementById('crowd-place').value;
+        const day = document.getElementById('crowd-day').value;
+        const time = document.getElementById('crowd-time').value;
+        const res = await fetch(`/api/crowd_estimate?place=${encodeURIComponent(place)}&day=${day}&time=${time}`);
+        const data = await res.json();
+        if (data.success) {
+          showResult('crowd-result', `<span class="result-tag tag-info">Crowd Estimate</span><br><br>${data.estimate.replace(/\n/g,'<br>')}`);
+        } else showResult('crowd-result', `<span class="result-tag tag-danger">Error</span> ${data.error}`);
+      } catch(e) { showResult('crowd-result', `<span class="result-tag tag-danger">Error</span> ${e.message}`); }
+      setLoading(btn, false);
+    }
+
+    async function searchHotels(btn) {
+      setLoading(btn, true);
+      try {
+        const city = document.getElementById('hotel-city').value;
+        const res = await fetch(`/api/hotels?city=${city}`);
+        const data = await res.json();
+        let html = `<span class="result-tag tag-info">${data.count} hotels</span> <span style="font-size:10px;color:var(--dim);">${data.source === 'makcorps_api' ? '🌐 Live API' : '📋 Curated Data'}</span><br><br>`;
+        data.hotels.forEach(h => {
+          const stars = '⭐'.repeat(Math.round(h.rating || 4));
+          html += `<b>${h.name}</b> ${stars} <span style="color:var(--accent);">${h.price || ''}</span><br>`;
+          html += `<span style="color:var(--dim);">📍 ${h.address || ''} ${h.distance ? '· ' + h.distance : ''}</span><br>`;
+          if (h.amenities) html += `<span style="font-size:11px;">${h.amenities.map(a => `<span style="background:#1e293b;padding:1px 6px;border-radius:4px;margin-right:3px;">${a}</span>`).join('')}</span><br>`;
+          if (h.phone) html += `<span style="color:var(--dim);font-size:11px;">📞 ${h.phone}</span><br>`;
+          html += '<br>';
+        });
+        showResult('hotel-result', html);
+      } catch(e) { showResult('hotel-result', `<span class="result-tag tag-danger">Error</span> ${e.message}`); }
+      setLoading(btn, false);
+    }
+
+    async function findTaxi(btn) {
+      setLoading(btn, true);
+      try {
+        const lat = document.getElementById('taxi-lat').value;
+        const lon = document.getElementById('taxi-lon').value;
+        const res = await fetch(`/api/taxi?lat=${lat}&lon=${lon}`);
+        const data = await res.json();
+        let html = `<span class="result-tag tag-info">${data.count} rides available</span><br><br>`;
+        data.taxis.forEach(t => {
+          const typeColors = {Mini:'#22c55e', Sedan:'#3b82f6', SUV:'#a78bfa', Auto:'#eab308'};
+          const tc = typeColors[t.type] || '#888';
+          html += `<div style="border-bottom:1px solid #1e293b;padding-bottom:8px;margin-bottom:8px;">`;
+          html += `<span style="background:${tc}22;color:${tc};padding:2px 8px;border-radius:4px;font-size:10px;font-weight:700;">${t.type}</span> `;
+          html += `<b>${t.driver}</b> ⭐${t.rating}<br>`;
+          html += `<span style="color:var(--dim);font-size:12px;">🚗 ${t.vehicle} · ${t.plate}</span><br>`;
+          html += `<span style="color:var(--accent);font-weight:700;">⏱️ ${t.eta_min} min · ${t.fare_estimate}</span>`;
+          html += `<span style="color:var(--dim);font-size:11px;"> · ${t.distance_km}km away · ${t.trips} trips</span>`;
+          html += `</div>`;
+        });
+        showResult('taxi-result', html);
+      } catch(e) { showResult('taxi-result', `<span class="result-tag tag-danger">Error</span> ${e.message}`); }
+      setLoading(btn, false);
+    }
+  </script>
+</body>
+</html>
