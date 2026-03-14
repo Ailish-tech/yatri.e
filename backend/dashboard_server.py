@@ -16,7 +16,7 @@ sys.path.insert(0, os.path.dirname(__file__))
 
 # Set Groq API key from environment
 if not os.environ.get("GROQ_API_KEY"):
-    os.environ["GROQ_API_KEY"] = "YOUR_GROQ_API_KEY"
+    os.environ["GROQ_API_KEY"] = "YOUR_GROQ_API_KEY_HERE"
 
 from flask import Flask, render_template, jsonify, request
 from blockchain_logger import get_incidents, get_chain_stats, verify_chain, log_incident

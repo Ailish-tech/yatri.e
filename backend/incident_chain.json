@@ -151,5 +151,112 @@
     },
     "previous_hash": "dd313e1c080c6283f47b63c5dceff86f2b748fe1481e06a73ea74bc4f19b1455",
     "hash": "63fca352fa6890f313aef8af802464d10327e2ec59caeaec2f64a934fc6391e6"
+  },
+  {
+    "index": 12,
+    "timestamp": "2026-03-14T12:37:33.370292+00:00",
+    "incident_type": "SOS",
+    "data": {
+      "lat": 26.8482,
+      "lon": 75.813,
+      "user_id": "tourist_demo",
+      "details": "Emergency test \u2014 SOS button pressed at Jagatpura Circle"
+    },
+    "previous_hash": "63fca352fa6890f313aef8af802464d10327e2ec59caeaec2f64a934fc6391e6",
+    "hash": "0aa0a1b7acd1bc972400d4ea0e479a453f529305a3f192a9388a224742aeaedd"
+  },
+  {
+    "index": 13,
+    "timestamp": "2026-03-14T12:41:18.838282+00:00",
+    "incident_type": "SOS",
+    "data": {
+      "lat": 26.8482,
+      "lon": 75.813,
+      "user_id": "tourist_demo",
+      "details": "Emergency test \u2014 SOS button pressed at Jagatpura Circle"
+    },
+    "previous_hash": "0aa0a1b7acd1bc972400d4ea0e479a453f529305a3f192a9388a224742aeaedd",
+    "hash": "e3b7722d50e1a1c62026e940c1d476ffa533879ba533b66a3fefeecd3e880c7d"
+  },
+  {
+    "index": 14,
+    "timestamp": "2026-03-14T12:42:14.811990+00:00",
+    "incident_type": "SOS",
+    "data": {
+      "lat": 26.8482,
+      "lon": 75.813,
+      "user_id": "tourist_demo",
+      "details": "hi"
+    },
+    "previous_hash": "e3b7722d50e1a1c62026e940c1d476ffa533879ba533b66a3fefeecd3e880c7d",
+    "hash": "b9d10673652a2109859cc6d8eed32f5aa35a06a201f322878e5d62a724309e11"
+  },
+  {
+    "index": 15,
+    "timestamp": "2026-03-14T12:43:06.638636+00:00",
+    "incident_type": "SOS",
+    "data": {
+      "lat": 26.92,
+      "lon": 75.73,
+      "user_id": "demo_tourist",
+      "trigger": "route_deviation",
+      "severity": "critical",
+      "details": "AUTO-SOS: Major Route Deviation \u2014 Tourist is 11467m away from planned route.",
+      "action_required": "Contact tourist and share location with authorities"
+    },
+    "previous_hash": "b9d10673652a2109859cc6d8eed32f5aa35a06a201f322878e5d62a724309e11",
+    "hash": "77d19d18dadfecbe3e9617998c6367cdc0fc8de089c211088e0e9fd7bec652d1"
+  },
+  {
+    "index": 16,
+    "timestamp": "2026-03-14T12:50:33.374361+00:00",
+    "incident_type": "SOS",
+    "data": {
+      "lat": 26.8482,
+      "lon": 75.813,
+      "user_id": "tourist_demo",
+      "details": "Emergency test \u2014 SOS button pressed at Jagatpura Circle"
+    },
+    "previous_hash": "77d19d18dadfecbe3e9617998c6367cdc0fc8de089c211088e0e9fd7bec652d1",
+    "hash": "d277c22bb614aa1a0415fe1bffc9bfc08d0abf98b21e3679e27129746a5e1e57"
+  },
+  {
+    "index": 17,
+    "timestamp": "2026-03-14T13:20:15.140236+00:00",
+    "incident_type": "SOS",
+    "data": {
+      "lat": 26.8482,
+      "lon": 75.813,
+      "user_id": "tourist_demo",
+      "details": "Emergency test \u2014 SOS button pressed at Jagatpura Circle"
+    },
+    "previous_hash": "d277c22bb614aa1a0415fe1bffc9bfc08d0abf98b21e3679e27129746a5e1e57",
+    "hash": "a6cc2439bb33e97f4508416a63a9091f1c930fe8ab8fb10b8e8fe1179e382e25"
+  },
+  {
+    "index": 18,
+    "timestamp": "2026-03-14T13:28:20.941540+00:00",
+    "incident_type": "SOS",
+    "data": {
+      "lat": 26.8482,
+      "lon": 75.813,
+      "user_id": "tourist_demo",
+      "details": "please help me"
+    },
+    "previous_hash": "a6cc2439bb33e97f4508416a63a9091f1c930fe8ab8fb10b8e8fe1179e382e25",
+    "hash": "26f56569c4c0f2a5538b0a167354ae95a083ad237feb366a9b99c584ce4c491c"
+  },
+  {
+    "index": 19,
+    "timestamp": "2026-03-14T14:42:17.641037+00:00",
+    "incident_type": "SOS",
+    "data": {
+      "lat": 26.8482,
+      "lon": 75.813,
+      "user_id": "tourist_demo",
+      "details": "Emergency test \u2014 SOS button pressed at Jagatpura Circle"
+    },
+    "previous_hash": "26f56569c4c0f2a5538b0a167354ae95a083ad237feb366a9b99c584ce4c491c",
+    "hash": "cdcbe75ca01e65ddb8d52e80a2a0bec71018641684429a2bda7f166ffe0b3d89"
   }
 ]
