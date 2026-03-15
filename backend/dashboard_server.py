@@ -16,13 +16,14 @@ sys.path.insert(0, os.path.dirname(__file__))
 
 # Set Groq API key from environment
 if not os.environ.get("GROQ_API_KEY"):
-    os.environ["GROQ_API_KEY"] = "YOUR_GROQ_API_KEY_HERE"
+    os.environ["GROQ_API_KEY"] = "YOUR_GROQ_API_KEY_HERE"  # Set your Groq API key
 
-from flask import Flask, render_template, jsonify, request
+from flask import Flask, render_template, jsonify, request, Response
 from blockchain_logger import get_incidents, get_chain_stats, verify_chain, log_incident
 from geofence_engine import get_zone_stats, get_nearby_danger_zones, _load_zones, check_geofence
 from behavior_monitor import predict_search_zone, analyze_movement
 from risk_scoring import calculate_risk_score, get_proactive_alerts
+from face_finder import start_detection, stop_detection, generate_frames, get_status as face_status
 
 app = Flask(__name__, template_folder=os.path.join(os.path.dirname(__file__), "templates"))
 
@@ -244,14 +245,34 @@ def api_hotels():
     city = request.args.get("city", "jaipur")
     try:
         import requests as req
-        url = f"https://api.makcorps.com/free/{city}"
-        headers = {
-            "Authorization": os.environ.get("MAKCORPS_API_KEY", "YOUR_MAKCORPS_API_KEY")
-        }
-        resp = req.get(url, headers=headers, timeout=5)
+        api_key = os.environ.get("MAKCORPS_API_KEY", "69b5a6a66249cf90e3ffeebf")
+        url = f"https://api.makcorps.com/free/{city}?api_key={api_key}"
+        resp = req.get(url, timeout=8)
         if resp.status_code == 200:
             data = resp.json()
-            return jsonify({"success": True, "source": "makcorps_api", "hotels": data, "count": len(data) if isinstance(data, list) else 1})
+            # Normalize API response into consistent hotel format
+            hotels = []
+            if isinstance(data, list):
+                for h in data[:10]:
+                    hotels.append({
+                        "name": h.get("name", h.get("hotel_name", "Unknown Hotel")),
+                        "rating": h.get("rating", h.get("reviews", {}).get("rating", 4.0)),
+                        "price": h.get("price", h.get("price1", "N/A")),
+                        "address": h.get("address", h.get("location", city.title())),
+                        "distance": h.get("distance", ""),
+                        "amenities": h.get("amenities", []),
+                    })
+            elif isinstance(data, dict):
+                for key, val in data.items():
+                    if isinstance(val, dict):
+                        hotels.append({
+                            "name": val.get("name", key),
+                            "rating": val.get("rating", 4.0),
+                            "price": val.get("price1", val.get("price", "N/A")),
+                            "address": val.get("address", city.title()),
+                        })
+            if hotels:
+                return jsonify({"success": True, "source": "makcorps_api", "hotels": hotels, "count": len(hotels), "city": city})
     except Exception:
         pass
 
@@ -316,6 +337,48 @@ def api_proactive_alerts():
     lon = float(request.args.get("lon", 75.8130))
     alerts = get_proactive_alerts(lat, lon)
     return jsonify({"alerts": alerts, "count": len(alerts)})
+
+
+# ─── Face Detection API ───────────────────────────────────────
+
+@app.route("/api/face/start", methods=["POST"])
+def api_face_start():
+    """Upload reference photo and start face detection."""
+    if "photo" not in request.files:
+        return jsonify({"success": False, "error": "No photo uploaded"}), 400
+    photo = request.files["photo"]
+    image_bytes = photo.read()
+    if not image_bytes:
+        return jsonify({"success": False, "error": "Empty file"}), 400
+    try:
+        result = start_detection(image_bytes)
+        return jsonify({"success": True, **result})
+    except ValueError as e:
+        return jsonify({"success": False, "error": str(e)}), 400
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
+@app.route("/api/face/stream")
+def api_face_stream():
+    """MJPEG video stream from webcam with face detection overlay."""
+    return Response(
+        generate_frames(),
+        mimetype="multipart/x-mixed-replace; boundary=frame",
+    )
+
+
+@app.route("/api/face/status")
+def api_face_status_route():
+    """Get face detection status."""
+    return jsonify(face_status())
+
+
+@app.route("/api/face/stop", methods=["POST"])
+def api_face_stop():
+    """Stop face detection and release webcam."""
+    stop_detection()
+    return jsonify({"success": True, "message": "Face detection stopped."})
 
 
 # ─── Main ─────────────────────────────────────────────────────

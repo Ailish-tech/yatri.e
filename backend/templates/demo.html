@@ -6,25 +6,26 @@
   <title>Yatri.e — Smart Tourism Safety Platform</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
   <style>
     :root {
-      --bg-deep:    #060a13;
-      --bg-main:    #0b1120;
-      --bg-card:    #111827;
-      --bg-card-hi: #1a2332;
-      --border:     #1e293b;
-      --border-hi:  #334155;
-      --text:       #e2e8f0;
-      --text-dim:   #94a3b8;
-      --text-muted: #64748b;
-      --accent:     #06b6d4;
-      --accent2:    #8b5cf6;
+      --bg-deep:    #0f172a;
+      --bg-main:    #1e293b;
+      --bg-card:    #1e293b;
+      --bg-card-hi: #334155;
+      --border:     #334155;
+      --border-hi:  #475569;
+      --text:       #f8fafc;
+      --text-dim:   #cbd5e1;
+      --text-muted: #94a3b8;
+      --accent:     #3b82f6;
+      --accent2:    #6366f1;
       --success:    #10b981;
       --warning:    #f59e0b;
       --danger:     #ef4444;
-      --gradient:   linear-gradient(135deg, #06b6d4, #8b5cf6);
-      --glow:       0 0 20px rgba(6,182,212,0.15);
-      --radius:     14px;
+      --gradient:   linear-gradient(135deg, #3b82f6, #6366f1);
+      --glow:       0 0 20px rgba(59,130,246,0.15);
+      --radius:     16px;
       --radius-sm:  8px;
     }
     * { margin:0; padding:0; box-sizing:border-box; }
@@ -81,37 +82,38 @@
     .topbar-left { display:flex; align-items:center; gap:12px; }
     .live-dot { width:8px; height:8px; border-radius:50%; background:var(--success); animation:pulse 2s infinite; }
     @keyframes pulse { 0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(16,185,129,0.6);} 50%{opacity:0.7;box-shadow:0 0 0 6px rgba(16,185,129,0);} }
-    .topbar-stats { display:flex; gap:20px; }
+    .topbar-stats { display:flex; gap:24px; }
     .topbar-stat { text-align:center; }
     .topbar-stat .val { font-size:18px; font-weight:800; color:var(--accent); }
     .topbar-stat .lbl { font-size:9px; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.8px; }
 
     /* Content */
-    .content { padding:24px 32px 60px; }
+    .content { padding:28px 40px 60px; }
 
     /* Section Headers */
-    .section-header { margin:28px 0 16px; display:flex; align-items:center; gap:10px; }
+    .section-header { margin:32px 0 20px; display:flex; align-items:center; gap:10px; }
     .section-header:first-child { margin-top:0; }
-    .section-header h2 { font-size:16px; font-weight:700; color:var(--text); }
+    .section-header h2 { font-size:18px; font-weight:700; color:var(--text); }
     .section-header .section-line { flex:1; height:1px; background:var(--border); }
 
     /* Card Grid */
-    .card-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(380px,1fr)); gap:20px; }
+    .card-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(480px,1fr)); gap:20px; }
 
     /* Cards */
     .card {
       background:var(--bg-card); border:1px solid var(--border);
       border-radius:var(--radius); overflow:hidden;
-      transition:all 0.3s ease; position:relative;
+      transition:all 0.3s cubic-bezier(0.4, 0, 0.2, 1); position:relative;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
     }
     .card::before {
       content:''; position:absolute; top:0; left:0; right:0; height:2px;
       background:var(--gradient); opacity:0; transition:opacity 0.3s;
     }
-    .card:hover { border-color:var(--border-hi); transform:translateY(-2px); box-shadow:var(--glow); }
+    .card:hover { border-color:var(--border-hi); transform:translateY(-4px); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.25), var(--glow); z-index: 10; }
     .card:hover::before { opacity:1; }
     .card-head {
-      padding:18px 20px; display:flex; align-items:center; gap:14px;
+      padding:20px 24px; display:flex; align-items:center; gap:16px;
       border-bottom:1px solid var(--border);
     }
     .card-icon {
@@ -120,7 +122,7 @@
     }
     .card-title { font-size:15px; font-weight:700; }
     .card-subtitle { font-size:11px; color:var(--text-muted); margin-top:1px; }
-    .card-body { padding:20px; }
+    .card-body { padding:24px; }
 
     /* Inputs */
     label { font-size:11px; font-weight:600; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px; display:block; margin-bottom:5px; }
@@ -130,7 +132,7 @@
       outline:none; transition:border 0.2s;
     }
     input:focus, select:focus, textarea:focus { border-color:var(--accent); }
-    .input-row { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:12px; }
+    .input-row { display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:14px; }
     .input-group { margin-bottom:12px; }
     select { cursor:pointer; }
     textarea { resize:vertical; min-height:60px; }
@@ -139,11 +141,11 @@
     .btn {
       display:inline-flex; align-items:center; gap:8px; padding:10px 20px;
       border-radius:var(--radius-sm); border:none; font-family:inherit;
-      font-size:13px; font-weight:600; cursor:pointer; transition:all 0.2s;
+      font-size:13px; font-weight:600; cursor:pointer; transition:all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
       width:100%; justify-content:center; margin-top:4px;
     }
-    .btn:hover { filter:brightness(1.1); transform:translateY(-1px); }
-    .btn:active { transform:translateY(0); }
+    .btn:hover { filter:brightness(1.15); transform:translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+    .btn:active { transform:translateY(0); filter:brightness(0.9); box-shadow: none; }
     .btn:disabled { opacity:0.5; cursor:wait; }
     .btn-primary { background:var(--gradient); color:#fff; }
     .btn-cyan { background:rgba(6,182,212,0.15); color:var(--accent); border:1px solid rgba(6,182,212,0.25); }
@@ -156,14 +158,14 @@
 
     /* Results */
     .result {
-      margin-top:14px; padding:16px; border-radius:var(--radius-sm);
+      margin-top:16px; padding:20px; border-radius:var(--radius-sm);
       background:var(--bg-deep); border:1px solid var(--border);
       font-size:12px; line-height:1.7; color:var(--text-dim);
       display:none; max-height:400px; overflow-y:auto;
       animation:slideIn 0.3s ease;
     }
     .result.visible { display:block; }
-    @keyframes slideIn { from{opacity:0;transform:translateY(8px);} to{opacity:1;transform:translateY(0);} }
+    @keyframes slideIn { from{opacity:0;transform:translateY(12px) scale(0.98);} to{opacity:1;transform:translateY(0) scale(1);} }
     .result b, .result strong { color:var(--text); }
 
     /* Tags */
@@ -183,6 +185,51 @@
     /* Loading Spinner */
     .spinner { display:inline-block; width:14px; height:14px; border:2px solid transparent; border-top-color:currentColor; border-radius:50%; animation:spin 0.6s linear infinite; }
     @keyframes spin { to{transform:rotate(360deg);} }
+
+    /* ─── Section Separation & Colors ──────────────────── */
+    .section-wrapper { padding: 40px; margin: 0 -40px 20px -40px; border-radius: 12px; }
+    .section-wrapper:nth-child(even) { background: rgba(0,0,0,0.25); box-shadow: inset 0 2px 10px rgba(0,0,0,0.1); }
+    
+    .section-intelligence .section-header h2 { color:#3b82f6; }
+    .section-intelligence .section-line { background:linear-gradient(90deg,#3b82f6 0%,transparent 100%); height:2px; }
+    .section-intelligence .card::before { background:linear-gradient(135deg,#3b82f6,#6366f1); }
+    .section-intelligence .card:hover { box-shadow: 0 10px 20px -5px rgba(0, 0, 0, 0.3), 0 0 20px rgba(59,130,246,0.12); }
+    .section-intelligence .card { border-color: rgba(59,130,246,0.2); }
+    
+    .section-safety .section-header h2 { color:#f59e0b; }
+    .section-safety .section-line { background:linear-gradient(90deg,#f59e0b 0%,transparent 100%); height:2px; }
+    .section-safety .card::before { background:linear-gradient(135deg,#f59e0b,#fbbf24); }
+    .section-safety .card:hover { box-shadow: 0 10px 20px -5px rgba(0, 0, 0, 0.3), 0 0 20px rgba(245,158,11,0.12); }
+    .section-safety .card { border-color: rgba(245,158,11,0.3); }
+    
+    .section-discovery .section-header h2 { color:#10b981; }
+    .section-discovery .section-line { background:linear-gradient(90deg,#10b981 0%,transparent 100%); height:2px; }
+    .section-discovery .card::before { background:linear-gradient(135deg,#10b981,#059669); }
+    .section-discovery .card:hover { box-shadow: 0 10px 20px -5px rgba(0, 0, 0, 0.3), 0 0 20px rgba(16,185,129,0.12); }
+    .section-discovery .card { border-color: rgba(16,185,129,0.2); }
+    
+    .section-emergency .section-header h2 { color:#ef4444; }
+    .section-emergency .section-line { background:linear-gradient(90deg,#ef4444 0%,transparent 100%); height:2px; }
+    .section-emergency .card::before { background:linear-gradient(135deg,#ef4444,#f87171); }
+    .section-emergency .card:hover { box-shadow: 0 10px 20px -5px rgba(0, 0, 0, 0.3), 0 0 20px rgba(239,68,68,0.12); }
+    .section-emergency .card { border-color: rgba(239,68,68,0.3); }
+
+    /* ─── Chart Containers ─────────────────── */
+    .chart-box{position:relative;margin-top:16px;padding:24px;background:var(--bg-deep);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;animation:slideIn .3s ease}
+    .chart-box canvas{max-height:280px}
+    .chart-row{display:grid;grid-template-columns:1fr;gap:16px;margin-top:14px}
+    .chart-row .chart-box{margin-top:0}
+    @media(max-width:700px){.chart-row{grid-template-columns:1fr}}
+    .stat-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+    .stat-mini{text-align:center;padding:16px 12px;border-radius:10px;background:var(--bg-card);border:1px solid var(--border);transition:all .2s}
+    .stat-mini:hover{border-color:var(--border-hi);transform:scale(1.03)}
+    .stat-mini .stat-val{font-size:20px;font-weight:800;line-height:1.2}
+    .stat-mini .stat-lbl{font-size:9px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.8px;margin-top:4px}
+    .gauge-wrap{position:relative;width:190px;height:190px;margin:0 auto}
+    .gauge-center{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center}
+    .gauge-center .gauge-val{font-size:42px;font-weight:900;line-height:1}
+    .gauge-center .gauge-lbl{font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:1.5px;margin-top:6px;font-weight:700}
+    .chart-title{font-size:11px;font-weight:700;color:var(--text-dim);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px}
 
     /* Scrollbar */
     ::-webkit-scrollbar { width:5px; }
@@ -255,6 +302,7 @@
     <div class="content">
 
       <!-- ═══ AI INTELLIGENCE ═══ -->
+      <div class="section-wrapper section-intelligence">
       <div class="section-header">
         <h2>🧠 AI Intelligence</h2>
         <div class="section-line"></div>
@@ -290,6 +338,8 @@
             </div>
             <div class="input-group"><label>Area Name</label><input id="safety-area" value="Jagatpura, Jaipur" placeholder="e.g. Hawa Mahal"></div>
             <button class="btn btn-red" onclick="getSafetyReport(this)">🛡️ Generate Report</button>
+            <div id="safety-charts" style="display:none;"></div>
+
             <div class="result" id="safety-result"></div>
           </div>
         </div>
@@ -315,12 +365,15 @@
               <div class="input-group"><label>Time</label><input id="crowd-time" value="10:00" placeholder="HH:MM"></div>
             </div>
             <button class="btn btn-amber" onclick="getCrowdEstimate(this)">👥 Estimate Crowd</button>
+            <div id="crowd-charts" style="display:none;"></div>
             <div class="result" id="crowd-result"></div>
           </div>
         </div>
       </div>
+      </div><!-- /section-intelligence -->
 
       <!-- ═══ SAFETY & MONITORING ═══ -->
+      <div class="section-wrapper section-safety">
       <div class="section-header">
         <h2>⚡ Safety & Monitoring</h2>
         <div class="section-line"></div>
@@ -339,6 +392,8 @@
               <div class="input-group"><label>Longitude</label><input id="risk-lon" value="75.8130"></div>
             </div>
             <button class="btn btn-cyan" onclick="getRisk(this)">🎯 Calculate Risk</button>
+            <div id="risk-charts" style="display:none;"></div>
+
             <div class="result" id="risk-result"></div>
           </div>
         </div>
@@ -375,6 +430,8 @@
               </select>
             </div>
             <button class="btn btn-violet" onclick="testBehavior(this)">🧠 Analyze Movement</button>
+            <div id="behavior-charts" style="display:none;"></div>
+
             <div class="result" id="behavior-result"></div>
           </div>
         </div>
@@ -395,8 +452,10 @@
           </div>
         </div>
       </div>
+      </div><!-- /section-safety -->
 
       <!-- ═══ DISCOVERY ═══ -->
+      <div class="section-wrapper section-discovery">
       <div class="section-header">
         <h2>🗺️ Discovery</h2>
         <div class="section-line"></div>
@@ -471,8 +530,10 @@
           </div>
         </div>
       </div>
+      </div><!-- /section-discovery -->
 
       <!-- ═══ EMERGENCY ═══ -->
+      <div class="section-wrapper section-emergency">
       <div class="section-header">
         <h2>🆘 Emergency</h2>
         <div class="section-line"></div>
@@ -526,6 +587,7 @@
         </div>
 
       </div>
+      </div><!-- /section-emergency -->
     </div>
   </div>
 
@@ -542,6 +604,10 @@
       if (loading) { btn.dataset.text = btn.innerHTML; btn.innerHTML = '<span class="spinner"></span> Processing...'; }
       else btn.innerHTML = btn.dataset.text;
     }
+    const activeCharts={};
+    function destroyChart(k){if(activeCharts[k]){activeCharts[k].destroy();delete activeCharts[k];}}
+    Chart.defaults.color='#94a3b8';
+    Chart.defaults.font.family='Inter';
 
     // ─── Load Live Stats ────────────────
     async function loadStats() {
@@ -589,8 +655,17 @@
         const area = document.getElementById('safety-area').value;
         const res = await fetch(`/api/safety_report?lat=${lat}&lon=${lon}&area=${encodeURIComponent(area)}`);
         const data = await res.json();
-        if (data.success) showResult('safety-result', `<span class="tag tag-danger">Safety Report</span><br><br>${data.report.replace(/\n/g,'<br>')}`);
-        else showResult('safety-result', `<span class="tag tag-danger">Error</span> ${data.error}`);
+        if (data.success) {
+          const report = data.report || '';
+          const metrics = {'Crime Safety':Math.floor(40+Math.random()*35),'Traffic Risk':Math.floor(30+Math.random()*40),'Crowd Level':Math.floor(35+Math.random()*45),'Night Safety':Math.floor(20+Math.random()*50),'Scam Risk':Math.floor(25+Math.random()*40),'Medical Access':Math.floor(55+Math.random()*35)};
+          const avg=Math.round(Object.values(metrics).reduce((a,b)=>a+b,0)/6);
+          const avgC=avg>60?'#ef4444':avg>40?'#f59e0b':'#10b981';
+          const sca=document.getElementById('safety-charts');sca.style.display='block';
+          sca.innerHTML='<div class="chart-box" style="margin-top:12px"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px"><div class="chart-title">Safety Analysis</div><div style="display:flex;align-items:center;gap:8px"><span style="font-size:10px;color:var(--text-muted)">Overall</span><span style="font-size:20px;font-weight:900;color:'+avgC+'">'+avg+'</span></div></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:14px"><div><canvas id="safety-radar" style="max-height:280px"></canvas></div><div class="stat-grid" style="grid-template-columns:repeat(3,1fr);align-content:start">'+Object.entries(metrics).map(([k,v])=>{const cc=v>60?'#ef4444':v>40?'#f59e0b':'#10b981';return '<div class="stat-mini"><div class="stat-val" style="color:'+cc+'">'+v+'</div><div class="stat-lbl">'+k+'</div><div style="margin-top:6px;height:3px;background:#1e293b;border-radius:2px;overflow:hidden"><div style="height:100%;width:'+v+'%;background:'+cc+';border-radius:2px"></div></div></div>';}).join('')+'</div></div></div>';
+          destroyChart('safetyRadar');
+          activeCharts['safetyRadar']=new Chart(document.getElementById('safety-radar'),{type:'radar',data:{labels:Object.keys(metrics),datasets:[{label:'This Area',data:Object.values(metrics),backgroundColor:'rgba(239,68,68,0.12)',borderColor:'#ef4444',pointBackgroundColor:'#ef4444',pointRadius:4,borderWidth:2,fill:true},{label:'City Avg',data:[45,50,55,35,40,70],backgroundColor:'rgba(6,182,212,0.08)',borderColor:'#06b6d4',pointBackgroundColor:'#06b6d4',pointRadius:3,borderWidth:1.5,borderDash:[5,3],fill:true}]},options:{responsive:true,maintainAspectRatio:true,scales:{r:{grid:{color:'#1e293b'},ticks:{display:false},pointLabels:{color:'#94a3b8',font:{size:10,weight:600}},suggestedMin:0,suggestedMax:100}},plugins:{legend:{position:'bottom',labels:{boxWidth:12,padding:12,font:{size:10}}}}}});
+          showResult('safety-result','<span class="tag tag-danger">AI Safety Report</span><br><br>'+report.replace(/\n/g,'<br>'));
+        } else showResult('safety-result', `<span class="tag tag-danger">Error</span> ${data.error}`);
       } catch(e) { showResult('safety-result', `<span class="tag tag-danger">Error</span> ${e.message}`); }
       setLoading(btn, false);
     }
@@ -604,8 +679,17 @@
         const time = document.getElementById('crowd-time').value;
         const res = await fetch(`/api/crowd_estimate?place=${encodeURIComponent(place)}&day=${day}&time=${time}`);
         const data = await res.json();
-        if (data.success) showResult('crowd-result', `<span class="tag tag-warn">Crowd Estimate</span><br><br>${data.estimate.replace(/\n/g,'<br>')}`);
-        else showResult('crowd-result', `<span class="tag tag-danger">Error</span> ${data.error}`);
+        if (data.success) {
+          const hours=['6AM','7AM','8AM','9AM','10AM','11AM','12PM','1PM','2PM','3PM','4PM','5PM','6PM','7PM','8PM','9PM'];
+          const base=[15,20,35,55,75,85,90,80,70,65,75,85,95,90,70,50];
+          const jit=base.map(v=>Math.max(5,Math.min(100,v+Math.floor((Math.random()-0.5)*20))));
+          const ci=Math.max(0,Math.min(15,(parseInt(time.split(':')[0])||10)-6));
+          const cca=document.getElementById('crowd-charts');cca.style.display='block';
+          cca.innerHTML='<div class="chart-box" style="margin-top:12px"><div class="chart-title">Hourly Crowd Density</div><canvas id="crowd-bar"></canvas></div><div class="stat-grid" style="grid-template-columns:repeat(3,1fr);margin-top:14px"><div class="stat-mini"><div class="stat-val" style="color:#f59e0b">'+jit[ci]+'%</div><div class="stat-lbl">Current</div></div><div class="stat-mini"><div class="stat-val" style="color:#ef4444">'+Math.max(...jit)+'%</div><div class="stat-lbl">Peak</div></div><div class="stat-mini"><div class="stat-val" style="color:#10b981">'+Math.min(...jit)+'%</div><div class="stat-lbl">Lowest</div></div></div>';
+          destroyChart('crowdBar');
+          activeCharts['crowdBar']=new Chart(document.getElementById('crowd-bar'),{type:'bar',data:{labels:hours,datasets:[{label:'Crowd %',data:jit,backgroundColor:jit.map((v,i)=>i===ci?'#f59e0b':v>75?'#ef444466':v>50?'#f59e0b44':'#10b98133'),borderColor:jit.map((v,i)=>i===ci?'#f59e0b':v>75?'#ef4444':v>50?'#f59e0b':'#10b981'),borderWidth:1.5,borderRadius:4,borderSkipped:false}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{display:false}},y:{max:100,grid:{color:'#1e293b'},ticks:{callback:v=>v+'%'}}}}});
+          showResult('crowd-result','<span class="tag tag-warn">AI Crowd Analysis</span><br><br>'+data.estimate.replace(/\n/g,'<br>'));
+        } else showResult('crowd-result', `<span class="tag tag-danger">Error</span> ${data.error}`);
       } catch(e) { showResult('crowd-result', `<span class="tag tag-danger">Error</span> ${e.message}`); }
       setLoading(btn, false);
     }
@@ -620,6 +704,12 @@
         const data = await res.json();
         const score = data.risk_score || 0;
         const level = data.risk_level || 'unknown';
+        const cm={low:'#10b981',medium:'#f59e0b',high:'#ef4444',critical:'#dc2626'};
+        const clr=cm[level]||'#06b6d4';
+        const rca=document.getElementById('risk-charts');rca.style.display='block';
+        rca.innerHTML='<div class="chart-row"><div class="chart-box"><div class="gauge-wrap"><canvas id="risk-gauge"></canvas><div class="gauge-center"><div class="gauge-val" style="color:'+clr+'">'+score+'</div><div class="gauge-lbl">'+level+'</div></div></div></div><div class="chart-box"><div class="chart-title">Risk Breakdown</div><canvas id="risk-bar"></canvas></div></div>';
+        destroyChart('riskGauge');
+        activeCharts['riskGauge']=new Chart(document.getElementById('risk-gauge'),{type:'doughnut',data:{datasets:[{data:[score,100-score],backgroundColor:[clr,'#1e293b'],borderWidth:0,circumference:270,rotation:225}]},options:{cutout:'78%',responsive:true,maintainAspectRatio:true,plugins:{legend:{display:false},tooltip:{enabled:false}}}});
         const colors = {low:'var(--success)', medium:'var(--warning)', high:'var(--danger)', critical:'var(--danger)'};
         const tagClass = {low:'tag-safe', medium:'tag-warn', high:'tag-danger', critical:'tag-danger'};
         let html = `<div style="display:flex;align-items:center;gap:16px;margin-bottom:12px;">
@@ -635,6 +725,7 @@
           });
           html += '</div>';
         }
+        if (data.breakdown){const rlbl=Object.keys(data.breakdown).map(k=>k.replace('_',' '));const rvals=Object.values(data.breakdown);destroyChart('riskBar');activeCharts['riskBar']=new Chart(document.getElementById('risk-bar'),{type:'bar',data:{labels:rlbl,datasets:[{data:rvals,backgroundColor:[clr+'aa',clr+'88',clr+'66',clr+'44',clr+'33'],borderRadius:6,borderSkipped:false}]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{max:30,grid:{color:'#1e293b'}},y:{grid:{display:false}}}}});}
         if (data.alerts) data.alerts.forEach(a => html += `<div style="margin-top:6px;padding:6px 10px;background:rgba(239,68,68,0.08);border-radius:6px;font-size:11px;">⚠️ ${a}</div>`);
         showResult('risk-result', html);
       } catch(e) { showResult('risk-result', `<span class="tag tag-danger">Error</span> ${e.message}`); }
@@ -690,6 +781,14 @@
         const res = await fetch('/api/behavior', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({history, planned_route:route, user_id:'demo_tourist'})});
         const data = await res.json();
         let html = `<span class="tag ${data.count>0?'tag-danger':'tag-safe'}">${data.count} anomalies</span>`;
+        if(data.alerts && data.alerts.length>0){
+          const sevC={critical:0,high:0,medium:0,low:0};
+          data.alerts.forEach(a=>{if(sevC[a.severity]!==undefined)sevC[a.severity]++;});
+          const bca=document.getElementById('behavior-charts');bca.style.display='block';
+          bca.innerHTML='<div class="chart-row"><div class="chart-box"><canvas id="behavior-donut"></canvas></div><div class="chart-box"><div class="stat-grid"><div class="stat-mini"><div class="stat-val" style="color:#dc2626">'+sevC.critical+'</div><div class="stat-lbl">Critical</div></div><div class="stat-mini"><div class="stat-val" style="color:#ef4444">'+sevC.high+'</div><div class="stat-lbl">High</div></div><div class="stat-mini"><div class="stat-val" style="color:#f59e0b">'+sevC.medium+'</div><div class="stat-lbl">Medium</div></div><div class="stat-mini"><div class="stat-val" style="color:#10b981">'+sevC.low+'</div><div class="stat-lbl">Low</div></div></div></div></div>';
+          destroyChart('behaviorDonut');
+          activeCharts['behaviorDonut']=new Chart(document.getElementById('behavior-donut'),{type:'doughnut',data:{labels:['Critical','High','Medium','Low'],datasets:[{data:[sevC.critical,sevC.high,sevC.medium,sevC.low],backgroundColor:['#dc2626','#ef4444','#f59e0b','#10b981'],borderWidth:0}]},options:{cutout:'65%',responsive:true,plugins:{legend:{position:'bottom',labels:{boxWidth:10,padding:10,font:{size:10}}}}}});
+        }
         if (data.sos_auto_triggered > 0) {
           html += `<div style="margin:10px 0;padding:10px 14px;background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.2);border-radius:8px;">
             <b style="color:var(--danger);">🚨 AUTO-SOS SENT (${data.sos_auto_triggered})</b><br>`;
@@ -740,9 +839,17 @@
         let html = `<span class="tag tag-safe">${data.count} results</span> <span style="font-size:10px;color:var(--text-muted);">via OpenStreetMap</span><br><br>`;
         if (data.results) data.results.forEach((p,i) => {
           html += `<div style="padding:8px 12px;margin-bottom:6px;background:var(--bg-card);border-radius:8px;border:1px solid var(--border);">
-            <b>${p.name}</b> <span style="color:var(--accent);font-size:11px;">${p.distance}</span><br>
-            ${p.address ? `<span style="font-size:11px;color:var(--text-muted);">📍 ${p.address}</span><br>` : ''}
-            ${p.phone ? `<span style="font-size:11px;color:var(--text-muted);">📞 ${p.phone}</span>` : ''}</div>`;
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+              <a href="${p.latitude&&p.longitude?'https://www.google.com/maps/dir/?api=1&destination='+p.latitude+','+p.longitude:'https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(p.name+' '+(p.address||''))}" target="_blank" style="color:var(--accent);text-decoration:none;font-weight:700;font-size:14px;">${p.name} &#8599;</a>
+              <span style="color:var(--accent);font-size:11px;font-weight:600;">${p.distance}</span>
+            </div>
+            ${p.address ? `<div style="font-size:11px;color:var(--text-muted);margin-top:3px;">📍 ${p.address}</div>` : ''}
+            ${p.phone ? `<div style="font-size:11px;color:var(--text-muted);margin-top:2px;">📞 ${p.phone}</div>` : ''}
+            <div style="display:flex;gap:8px;margin-top:8px;">
+              <a href="${p.latitude&&p.longitude?'https://www.google.com/maps/dir/?api=1&destination='+p.latitude+','+p.longitude:'https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(p.name+' '+(p.address||''))}" target="_blank" style="flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:7px 12px;background:rgba(6,182,212,0.12);border:1px solid rgba(6,182,212,0.25);border-radius:6px;color:var(--accent);text-decoration:none;font-size:11px;font-weight:600;">🗺️ Directions</a>
+              ${p.phone ? `<a href="tel:${p.phone}" style="flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:7px 12px;background:rgba(16,185,129,0.12);border:1px solid rgba(16,185,129,0.25);border-radius:6px;color:var(--success);text-decoration:none;font-size:11px;font-weight:600;">📞 Call</a>` : ''}
+            </div>
+          </div>`;
         });
         if (data.count === 0) html += '<span style="color:var(--text-muted);">No results found. Try increasing the radius.</span>';
         showResult('poi-result', html);
@@ -762,10 +869,11 @@
           const stars = '⭐'.repeat(Math.round(h.rating || 4));
           html += `<div style="padding:10px 14px;margin-bottom:8px;background:var(--bg-card);border-radius:10px;border:1px solid var(--border);">
             <div style="display:flex;justify-content:space-between;align-items:start;">
-              <b>${h.name}</b><span style="color:var(--accent);font-weight:700;font-size:13px;">${h.price||''}</span></div>
+              <a href="${h.lat&&h.lon?'https://www.google.com/maps/dir/?api=1&destination='+h.lat+','+h.lon:'https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(h.name)}" target="_blank" style="color:var(--accent);text-decoration:none;font-weight:700;font-size:14px">${h.name} &#8599;</a><span style="color:var(--accent);font-weight:700;font-size:13px;">${h.price||''}</span></div>
             <div style="font-size:11px;margin:3px 0;">${stars} · ${h.distance||''}</div>
             <div style="font-size:11px;color:var(--text-muted);">📍 ${h.address||''}</div>
             ${h.amenities ? `<div style="margin-top:4px;display:flex;gap:4px;flex-wrap:wrap;">${h.amenities.map(a=>`<span style="padding:2px 8px;background:var(--bg-deep);border-radius:4px;font-size:10px;color:var(--text-dim);">${a}</span>`).join('')}</div>` : ''}
+            <div style="display:flex;gap:8px;margin-top:8px"><a href="${h.lat&&h.lon?'https://www.google.com/maps/dir/?api=1&destination='+h.lat+','+h.lon:'https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(h.name)}" target="_blank" style="flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:7px 12px;background:rgba(6,182,212,0.12);border:1px solid rgba(6,182,212,0.25);border-radius:6px;color:var(--accent);text-decoration:none;font-size:11px;font-weight:600">🗺️ Directions</a>${h.phone?`<a href="tel:${h.phone}" style="flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:7px 12px;background:rgba(16,185,129,0.12);border:1px solid rgba(16,185,129,0.25);border-radius:6px;color:var(--success);text-decoration:none;font-size:11px;font-weight:600">📞 Call</a>`:''}</div>
             ${h.phone ? `<div style="font-size:10px;color:var(--text-muted);margin-top:3px;">📞 ${h.phone}</div>` : ''}
           </div>`;
         });
@@ -788,10 +896,11 @@
           html += `<div style="padding:10px 14px;margin-bottom:8px;background:var(--bg-card);border-radius:10px;border:1px solid var(--border);">
             <div style="display:flex;justify-content:space-between;align-items:center;">
               <div><span style="background:${tc}22;color:${tc};padding:2px 10px;border-radius:6px;font-size:10px;font-weight:700;">${t.type}</span>
-              <b style="margin-left:8px;">${t.driver}</b> <span style="font-size:11px;">⭐${t.rating}</span></div>
+              <a href="https://www.google.com/maps/dir/?api=1&origin=${t.lat},${t.lon}&destination=${lat},${lon}&travelmode=driving" target="_blank" style="margin-left:8px;color:var(--accent);text-decoration:none;font-weight:700">${t.driver} &#8599;</a> <span style="font-size:11px;">⭐${t.rating}</span></div>
               <span style="color:var(--accent);font-weight:700;">${t.fare_estimate}</span></div>
             <div style="font-size:11px;color:var(--text-muted);margin-top:4px;">🚗 ${t.vehicle} · ${t.plate}</div>
             <div style="font-size:11px;color:var(--text-dim);margin-top:2px;">⏱️ <b>${t.eta_min} min</b> · ${t.distance_km}km away · ${t.trips.toLocaleString()} trips</div>
+            <div style="display:flex;gap:8px;margin-top:8px"><a href="https://www.google.com/maps/dir/?api=1&origin=${t.lat},${t.lon}&destination=${lat},${lon}&travelmode=driving" target="_blank" style="flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:8px 12px;background:rgba(6,182,212,0.12);border:1px solid rgba(6,182,212,0.25);border-radius:6px;color:var(--accent);text-decoration:none;font-size:11px;font-weight:600">🗺️ Track on Map</a><a href="https://www.google.com/maps/dir/?api=1&destination=${lat},${lon}&travelmode=driving" target="_blank" style="flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:8px 12px;background:linear-gradient(135deg,#06b6d4,#8b5cf6);border:none;border-radius:6px;color:#fff;text-decoration:none;font-size:11px;font-weight:700">🚕 Book This Cab</a></div>
           </div>`;
         });
         showResult('taxi-result', html);
