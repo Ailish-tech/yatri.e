@@ -258,5 +258,70 @@
     },
     "previous_hash": "26f56569c4c0f2a5538b0a167354ae95a083ad237feb366a9b99c584ce4c491c",
     "hash": "cdcbe75ca01e65ddb8d52e80a2a0bec71018641684429a2bda7f166ffe0b3d89"
+  },
+  {
+    "index": 20,
+    "timestamp": "2026-03-15T02:20:04.018545+00:00",
+    "incident_type": "SOS",
+    "data": {
+      "lat": 26.8482,
+      "lon": 75.813,
+      "user_id": "face_finder",
+      "details": "\ud83d\udea8 FACE MATCH \u2014 Target person detected on surveillance camera at (26.8482, 75.813). Similarity: 50%"
+    },
+    "previous_hash": "cdcbe75ca01e65ddb8d52e80a2a0bec71018641684429a2bda7f166ffe0b3d89",
+    "hash": "179142cb4767763e5c9e63b06fe383518e079de67eb78c862336a2e1b03e03ef"
+  },
+  {
+    "index": 21,
+    "timestamp": "2026-03-15T02:25:23.692617+00:00",
+    "incident_type": "SOS",
+    "data": {
+      "lat": 26.8482,
+      "lon": 75.813,
+      "user_id": "face_finder",
+      "details": "\ud83d\udea8 FACE MATCH \u2014 Target person detected on surveillance camera at (26.8482, 75.813). Match confidence: 55%"
+    },
+    "previous_hash": "179142cb4767763e5c9e63b06fe383518e079de67eb78c862336a2e1b03e03ef",
+    "hash": "97d98a74c861825002fb3a9b937623de77136ac44e5f1ec2d026a42f6a950dfb"
+  },
+  {
+    "index": 22,
+    "timestamp": "2026-03-15T02:26:16.013709+00:00",
+    "incident_type": "SOS",
+    "data": {
+      "lat": 26.8482,
+      "lon": 75.813,
+      "user_id": "face_finder",
+      "details": "\ud83d\udea8 FACE MATCH \u2014 Target person detected on surveillance camera at (26.8482, 75.813). Match confidence: 54%"
+    },
+    "previous_hash": "97d98a74c861825002fb3a9b937623de77136ac44e5f1ec2d026a42f6a950dfb",
+    "hash": "42d1eca6542f7b6f40cc91e62368ab06dfae80cd64de8e6ac8b7f8c279b93421"
+  },
+  {
+    "index": 23,
+    "timestamp": "2026-03-15T03:11:11.371977+00:00",
+    "incident_type": "SOS",
+    "data": {
+      "lat": 26.8482,
+      "lon": 75.813,
+      "user_id": "face_finder",
+      "details": "\ud83d\udea8 FACE MATCH \u2014 Target person detected on surveillance camera at (26.8482, 75.813). Match confidence: 58%"
+    },
+    "previous_hash": "42d1eca6542f7b6f40cc91e62368ab06dfae80cd64de8e6ac8b7f8c279b93421",
+    "hash": "94e46ca0100c5b0319d8b56531839402c3e11dfc2ef8f13949a25d643cc7aeca"
+  },
+  {
+    "index": 24,
+    "timestamp": "2026-03-15T03:11:59.122207+00:00",
+    "incident_type": "SOS",
+    "data": {
+      "lat": 26.8482,
+      "lon": 75.813,
+      "user_id": "face_finder",
+      "details": "\ud83d\udea8 FACE MATCH \u2014 Target person detected on surveillance camera at (26.8482, 75.813). Match confidence: 52%"
+    },
+    "previous_hash": "94e46ca0100c5b0319d8b56531839402c3e11dfc2ef8f13949a25d643cc7aeca",
+    "hash": "0b83e20c941f703c1584f2fd27357e2fff60d59f8ed0eca06f1e4f2551511d9f"
   }
 ]
